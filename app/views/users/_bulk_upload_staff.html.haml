@@ -48,6 +48,11 @@
 
             / if past stage 1, show any errors
             #show-errors{class: ( (@stage > 1 ) ? '' : 'display-none')}
+              - if @errors.count > 0
+                %h3.ui-error.text-right
+                  ='Please fix original file and upload it again'
+                  = "&nbsp;".html_safe
+                %br
               - if @error_list && @error_list.length > 0
                 .ui-error.text-right
                   ='Lines with Duplicated Emails Errors by email address'
