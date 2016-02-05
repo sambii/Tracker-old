@@ -29,7 +29,7 @@ function do_db_backup () {
                done
         fi
     }
-    
+
     pwd=`get_field password`
     databse=`get_field database`
     user=`get_field username`
@@ -43,4 +43,4 @@ function do_db_backup () {
 }
 
 ### EGYPT ENVIRONMENT ####
-do_db_backup /web/parlo-tracker/egypt/current/config/database.yml /root/db_backups/egypt production_egypt
+do_db_backup /web/parlo-tracker/stem-egypt/current/config/database.yml /root/db_backups/StemEgypt production_parlo_tracker
