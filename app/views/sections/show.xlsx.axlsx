@@ -1,0 +1,67 @@
+workbook = xlsx_package.workbook
+worksheet = workbook.add_worksheet(name: "Section")
+
+# Define Styles
+#   Student
+stud = workbook.styles.add_style(alignment: {textRotation: 45}, bg_color: "FF225577", fg_color: "FFFFFF", b: true)
+
+#   Section Outcomes
+so   = workbook.styles.add_style(bg_color: "FFAABBCC", fg_color: "FF000000", alignment: {horizontal: :center, vertical: :center}, b: true, :border => { :style => :medium, :color =>"FF225577" })
+so_h = workbook.styles.add_style(bg_color: "FF336688", fg_color: "FFFFFFFF", alignment: {horizontal: :center, vertical: :center}, b: true, :border => { :style => :medium, :color =>"FF225577" })
+so_p = workbook.styles.add_style(bg_color: "FF338866", fg_color: "FFFFFFFF", alignment: {horizontal: :center, vertical: :center}, b: true, :border => { :style => :medium, :color =>"FF225577" })
+so_n = workbook.styles.add_style(bg_color: "FFC23030", fg_color: "FFFFFFFF", alignment: {horizontal: :center, vertical: :center}, b: true, :border => { :style => :medium, :color =>"FF225577" })
+so_u = workbook.styles.add_style(bg_color: "FF696969", fg_color: "FFFFFFFF", alignment: {horizontal: :center, vertical: :center}, b: true, :border => { :style => :medium, :color =>"FF225577" })
+#   Evidences
+ev   = workbook.styles.add_style(bg_color: "FFDDDDDD", fg_color: "FF000000", alignment: {vertical: :center}, :border => { :style => :thick, :color =>"FF225577" })
+ev_b = workbook.styles.add_style(bg_color: "FF88BBDD", fg_color: "FF000000", alignment: {horizontal: :center, vertical: :center}, :border => { :style => :medium, :color =>"FF225577" })
+ev_g = workbook.styles.add_style(bg_color: "FF88DDBB", fg_color: "FF000000", alignment: {horizontal: :center, vertical: :center}, :border => { :style => :medium, :color =>"FF225577" })
+ev_y = workbook.styles.add_style(bg_color: "FFE8E679", fg_color: "FF000000", alignment: {horizontal: :center, vertical: :center}, :border => { :style => :medium, :color =>"FF225577" })
+ev_r = workbook.styles.add_style(bg_color: "FFFF9494", fg_color: "FF000000", alignment: {horizontal: :center, vertical: :center}, :border => { :style => :medium, :color =>"FF225577" })
+ev_u = workbook.styles.add_style(bg_color: "FFDDDDDD", fg_color: "FF000000", alignment: {horizontal: :center, vertical: :center}, :border => { :style => :medium, :color =>"FF225577" })
+
+
+# Generate Student Roster
+worksheet.add_row [""] + (@students.map { |a| "#{a.last_name}, #{a.first_name}"}), style: stud
+
+# Generate Section Outcomes
+@section.section_outcomes.each do |section_outcome|
+  styles = [so]
+  ratings = []
+  @students.each do |student|
+    ratings << @section_outcome_ratings[section_outcome.id][student.id][0]
+    case ratings[-1]
+      when "H"
+        styles << so_h
+      when "P"
+        styles << so_p
+      when "N"
+        styles << so_n
+      else
+        styles << so_u
+    end
+  end
+  worksheet.add_row [section_outcome.name] + ratings, style: styles, height: 24
+  # Conditional Formatting for Section Outcome rows
+  section_outcome.evidence_section_outcomes.each do |evidence|
+    styles  = [ev]
+    ratings = []
+    @students.each do |student|
+      ratings << @evidence_ratings[section_outcome.id][evidence.evidence.id][student.id][0]
+      case ratings[-1]
+        when "B"
+          styles << ev_b
+        when "G"
+          styles << ev_g
+        when "Y"
+          styles << ev_y
+        when "R"
+          styles << ev_r
+        else
+          styles << ev_u
+      end
+    end
+    worksheet.add_row [evidence.name] + ratings, style: styles, height: 24
+  end
+end
+# * operator turns resultant array of @students.map{...} into a bare list of arguments.
+worksheet.column_widths 34, *@students.map { |a| 5 }

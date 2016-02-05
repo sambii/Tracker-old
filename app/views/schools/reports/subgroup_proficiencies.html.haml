@@ -1,0 +1,31 @@
+%h2= "#{@school.name} Proficiencies Report"
+%h3= "Selected Races: #{params[:races].to_sentence}"
+%h3= "Selected Special Ed Statuses: #{@special_ed.to_sentence}"
+%div.form
+  = form_tag "/schools/#{@school.id}/subgroup_proficiencies"
+  %table
+    %tr
+      %td
+        %p
+          %em Select race(s). Leaving this blank will select all races.
+        - RACES.each do |race|
+          = check_box_tag "races[]", race
+          = race
+          %br
+      %td
+        %p
+          %em Select special education status. Leaving this blank will include all statuses.
+        = check_box_tag "special_ed", true
+        True
+        %br
+        = check_box_tag "special_ed", false
+        False
+    %tr
+      %td= submit_tag "Update Report"
+
+%div#chart
+= render 'schools/reports/subgroup_proficiencies_chart'
+%div
+  %p
+    = "Number of students included in report: #{@students.length}"
+

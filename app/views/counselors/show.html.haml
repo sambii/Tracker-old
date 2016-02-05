@@ -1,0 +1,14 @@
+
+- content_for(:title, 'Counselor Dashboard')
+- content_for(:page_name, 'Counselor Dashboard')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Dashboard'
+  %h2.h1.page-title
+    %strong="Counselor: #{@counselor.full_name}"
+  - si_time = (@counselor.current_sign_in_at.nil?) ? 'Never' : @counselor.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
+  %span="(Latest signin time at: #{si_time})"
+/ = render 'dashboard'

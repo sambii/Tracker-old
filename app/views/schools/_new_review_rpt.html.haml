@@ -1,0 +1,35 @@
+-# to be used to develop rollover handling
+- @subject_rpt.each do |row|
+  %table.sub-titled-table.table.table-bordered.table-condensed.remove-margin
+    %thead.table-title
+      %tr
+        %th='New Discipline'
+        %th='New Subject'
+        %th='Old Discipline'
+        %th='Old Subject'
+        %th='Errors'
+    %tbody
+      %tr
+        %td=row[:new_discipline]
+        %td=row[:new_subject]
+        %td.text-center=''
+        %td=row[:old_discipline]
+        %td=row[:old_subject]
+        %td=row[:error_str]
+
+  %table.sub-titled-table.table.table-bordered.table-condensed.remove-margin
+    %thead.table-sub-title
+      %tr
+        %th='New LO Name'
+        %th='New LO MP'
+        %th='Old LO Name'
+        %th='Old LO MP'
+        %th='Errors'
+    %tbody
+      - row[:subject_outcomes].each do |so|
+        %tr
+          %td=so[:new_lo_name]
+          %td=so[:new_lo_mp]
+          %td=so[:old_lo_name]
+          %td=so[:old_lo_mp]
+          %td=so[:error_str]

@@ -1,0 +1,67 @@
+
+- content_for(:title, 'Section Summary By Learning Object Report')
+- content_for(:page_name, 'Section Summary By Learning Object Report')
+- content_for(:page_class, 'generate-reports misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :rpt_sect_sum_outcome, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Generate Reports"
+  %h2.h1.page-title
+    %strong= "Section Summary by Outcome"
+  .row
+    %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-filter
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+  .row
+    %table.table
+      %thead
+        %tr
+          %th='Subject'
+          %th='Sections'
+          %th='Learning Outcomes'
+      %tbody
+        %tr
+          %td=@section.name
+          %td=@section.line_number
+          %td='All'
+.row
+  .col-sm-6.col-lg-8
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th='Learning Outcome'
+              %th.title-blue='H'
+              %th.title-green='P'
+              %th.title-red='N'
+              %th.title-gray='U'
+          %tbody
+            - @section.section_outcomes.each do |so|
+              - ratings = so.count_ratings
+              %tr
+                %td.ellipsis{title: "#{so.name}"}=so.shortened_name
+                %td=ratings['H']
+                %td=ratings['P']
+                %td=ratings['N']
+                %td=ratings['U']
+            %tr
+              %td='Total'
+              %td=@section.count_ratings['H']
+              %td=@section.count_ratings['P']
+              %td=@section.count_ratings['N']
+              %td=@section.count_ratings['U']
+  .col-sm-6.col-lg-4
+    .row
+      %div#pie-chart.text-center{data: {red_count: @section.count_ratings['N'], green_count: @section.count_ratings['P'], blue_count: @section.count_ratings['H'], unrated_count: @section.count_ratings['U']}}
+    .row
+      %h3.text-center='Summarized by Outcome'
+    .row

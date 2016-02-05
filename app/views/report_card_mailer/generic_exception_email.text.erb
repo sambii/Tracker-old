@@ -1,0 +1,13 @@
+<%= @full_name %>,
+
+Unfortunately, your request for report cards failed during processing. Please contact the Tracker team so we can help resolve this issue.
+
+School:         <%= @school.name %>
+Acronym:        <%= @school.acronym %>
+Grade:          <%= @grade %>
+Requested By:   <%= @email %>
+Date Requested: <%= Time.now %>
+
+This email was automatically generated. Please do not respond to it.
+
+<%= render 'disclaimer' %>

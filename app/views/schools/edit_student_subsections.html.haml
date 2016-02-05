@@ -1,0 +1,11 @@
+= form_for @school do |f|
+  %table.report
+    %tr
+      %th Student
+      %th Subsection
+      = f.fields_for :students, f.object.students.alphabetical do |g|
+        %tr
+          %td= g.object.last_name_first
+          %td= g.text_field :subsection, size: 2
+    %tr
+      %td{colspan: 2}= f.submit "Update Subsections"

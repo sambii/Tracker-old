@@ -1,0 +1,11 @@
+%h3
+  = @discipline.name
+  %span.small= link_to "(edit)", edit_discipline_path(@discipline)
+%ul
+  - if @discipline.subjects.size > 0
+    - @discipline.subjects.each do |subject|
+      %li= link_to subject.name, subject
+  - else
+    (No subjects exist for this discipline.)
+%p= link_to "Add Subject", new_subject_path(discipline_id: @discipline.id)
+%p= link_to "Show all disciplines", disciplines_path

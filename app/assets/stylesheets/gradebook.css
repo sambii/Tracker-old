@@ -1,0 +1,604 @@
+html body {
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+  margin: 0;          /* Some of the jQuery-UI used in this project more or less requires */
+  padding: 0;         /* That the body margin and padding is zero. It is also important   */
+}                     /* for the formatting of the general page layout                    */
+
+/* two approaches to clear floats (clear_fix and clear) without adding an extra clearing div after */
+.clear_fix {
+  zoom: 1;
+}
+.clear_fix:after {
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+
+.clear {
+  overflow: hidden;
+}
+
+.float_left {
+  float: left;
+}
+
+.float_right {
+  float: right;
+}
+
+.centered {
+  text-align: center;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+tr, td {
+  margin: 0;
+  padding: 0;
+}
+
+span.link {
+  cursor: pointer;
+  color: #00f;
+  text-decoration: underline;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Trebuchet MS", Helvetica, sans-serif
+}
+
+table {
+  border-spacing: 0; /* This value is set to zero so that sorting evidence in section#show */
+}                    /* will not change the table heights. Very important!                 */
+
+table.section_outcome {
+  border-collapse: collapse;
+}
+
+table.form {
+  background-color: #ddd;
+  border: 3px solid #035;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+}
+
+.auto_margins {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.inline_block {
+  display: inline-block;
+}
+
+div#current_controller, div#current_action {
+  display: none;
+  opacity: 0;
+}
+
+div.dashboard {
+  background-color: #58a;
+  border: 3px double #035;
+  border-radius:  10px;
+  color: white;
+  float: left;
+  -moz-border-radius: 10px;
+  margin: 10px;
+  padding: 5px;
+}
+
+div.dashboard h3, h4 {
+  margin: 3px;
+}
+
+div.dashboard div {
+  background-color: #eee;
+  border: 1px solid #035;
+  border-radius:  10px;
+  color: #035;
+  -moz-border-radius: 10px;
+  border-radius:      10px;
+}
+
+div.dashboard ul {
+  font-size: 0.9em;
+  list-style: none;
+  margin-right: 3px;
+  margin-left: 3px;
+  padding-left: 0;
+}
+
+/*th.s_o_r, td.e_r, div#tools_menu, img#tools {
+  cursor: pointer;
+  position: relative;
+}
+
+*/div#tools_menu a {
+  text-decoration: none;
+  color: #035;
+  display: block;
+}
+
+div#tools_menu a:hover {
+  color: white;
+}
+
+div.essential {
+  background-image: url('/assets/essential.png');
+  background-position: 15px 50%;
+  background-repeat: no-repeat;
+}
+
+/*div.field_with_errors {
+  background-color: #f99;
+  border: 1px solid #f33;
+}
+*/
+div#gradebook {
+  clear: both;
+  overflow: visible;
+}
+
+div#gradebook_spacer {
+  height: 145px;
+}
+
+div#grades_left {
+  background-color: #035;
+  border-bottom: 3px double #ccc;
+  border-left: 3px double #ccc;
+  color: white;
+  left: 10px;
+  position: fixed;
+  padding-bottom: 5px;
+  -moz-border-radius-bottomleft: 10px;
+  border-bottom-left-radius: 10px;
+  z-index: 5;
+}
+
+div#grades_left td {
+  background-color: #eee;
+  color: #035;
+  padding-left: 5px;
+}
+
+div#grades_left th {
+  background-color: #abc;
+  color: #333;
+  padding-left: 5px;
+}
+
+
+div#grades_right {
+  background-color: #035;
+  border-bottom: 3px double #ccc;
+  border-right: 3px double #ccc;
+  float: left;
+  margin-left: 500px;
+  margin-right: 5px;
+  overflow: hidden;
+  padding-right: 3px;
+  padding-bottom: 5px;
+  -moz-border-radius-bottomright: 10px;
+  border-bottom-right-radius: 10px;
+  z-index: 3;
+}
+
+div#marking_periods div.mp {
+  background-color: #abc;
+  border: 3px double #ccc;
+  float: left;
+  text-align: center;
+  margin-top: 4px;
+  width: 1.3em;
+  -moz-border-radius-bottomleft: 5px;
+  border-bottom-left-radius: 5px;
+  -moz-border-radius-bottomright: 5px;
+  border-bottom-right-radius: 5px;
+  -moz-border-radius-topleft: 5px;
+  border-top-left-radius: 5px;
+  -moz-border-radius-topright: 5px;
+  border-top-right-radius: 5px;
+}
+
+div.mp {
+  color: #333;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0px;
+  margin: 4px;
+}
+
+div#mp_all {
+  color: #3f0;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+div#placeholder {
+  background-color: #035;
+  border-left: 3px double #ccc;
+  border-top: 3px double #ccc;
+  color: white;
+  height: 85px;
+  left: 10px;
+  padding: 5px;
+  position: fixed;
+  top: 4em;
+  width: 455px;
+  z-index: 9;
+  -moz-border-radius-topleft: 10px;
+  border-top-left-radius: 10px;
+}
+
+div#popup_form {
+  background-color: #ddd;
+  border: 3px double #035;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  color: #035;
+  display: none;
+  max-height: 90%;
+  max-width: 90%;
+  overflow: scroll;
+  padding: 16px;
+  position: fixed;
+  top: 25px;
+  z-index: 13;
+}
+
+div#popup_form h3 {
+  margin: 5px;
+  padding: 0;
+}
+
+div#roster_row {
+  background-color: #035;
+  border-left: 3px double #ccc;
+  border-right: 3px double #ccc;
+  border-top: 3px double #ccc;
+  height: 67px;
+  margin-left: 10px;
+  padding-right: 5px;
+  /* padding-top: 38px; */
+  position: fixed;
+  top: 4em;
+  -moz-border-radius-topleft: 10px;
+  border-top-left-radius: 10px;
+  -moz-border-radius-topright: 10px;
+  border-top-right-radius: 10px;
+  z-index: 7;
+}
+
+div#roster_row tr#header-row {
+  background-color: #035;
+}
+
+div#scrolling_body {
+  padding-bottom: 3em;
+  padding-top: 2em;
+}
+
+div#sign_in {
+  float: right;
+}
+
+div#subsections {
+  border: 3px double #8af;
+  color: #bdf;
+  background-color: #035;
+  float: left;
+  margin-top: 4px;
+  padding: 3px;
+  width: 11em;
+  -moz-border-radius-bottomleft: 5px;
+  border-bottom-left-radius: 5px;
+  -moz-border-radius-bottomright: 5px;
+  border-bottom-right-radius: 5px;
+  -moz-border-radius-topleft: 5px;
+  border-top-left-radius: 5px;
+  -moz-border-radius-topright: 5px;
+  border-top-right-radius: 5px;
+}
+
+div#subsections a {
+  color: #bdf;
+  text-decoration: none;
+}
+
+div#title {
+  float: left;
+}
+
+div#tools_menu {
+  background-color: #bdf;
+  border: 3px double #035;
+  padding: 5px;
+  position: fixed;
+  display: none;
+  z-index: 11;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+}
+
+div#tools_menu ul {
+  color: #035;
+  font-weight: bold;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+div#tools_menu li:hover {
+  background-color: #035;
+  color: #eee;
+}
+
+div#top_bar {
+  border-bottom: 3px double #bdf;
+  color: white;
+  background-color: #035;
+  min-width: 100%;
+  overflow: hidden;
+  position: fixed;
+  z-index: 9;
+}
+
+div#top_bar a {
+  color: #cef;
+}
+
+div#top_bar h3, p {
+  margin: 5px;
+}
+
+div#white_space_left {
+  background-color: white;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  width: 10px;
+  z-index: 8;
+}
+
+div#section_message {
+  background-color: #ddd;
+  border-bottom: 3px double #035;
+  left: 0;
+  position: fixed;
+  top: 35px;
+  width: 100%;
+  z-index: 11;
+}
+
+div#white_space_top {
+  background-color: white;
+  height: 40px;
+  left:0;
+  position: fixed;
+  top: 2em;
+  width: 100%;
+  z-index: 7;
+
+}
+
+img.flag {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+span.assignment_date, span.evidence_attachments, span.evidence_section_outcome, span.evidence_type, span.evidence_e, span.evidence_x, span.section_message {
+  background-color: #ccc;
+  cursor: pointer;
+  float: right;
+  font-size: 0.7em;
+  margin-right: 4px;
+  margin-top: 3px;
+  padding-left: 2px;
+  padding-right: 2px;
+  -sand-box-shadow: 2px 2px 3px #035;
+}
+
+span.evidence_e {
+  color: #060;
+  font-weight: bold;
+}
+
+span.evidence_x {
+  color: #f33;
+  font-weight: bold;
+}
+
+span.evidence_name {
+  float: left;
+  cursor: pointer;
+}
+
+span.section_outcome_marking_periods {
+  float: right;
+  margin-right: 5px;
+}
+
+/*span.section_outcome_name {
+  cursor: pointer;
+  float: left;
+  overflow: hidden;
+  width: 380px;
+}
+*/
+span.include_mp {
+  color: #333;
+  cursor: pointer;
+  text-shadow: 2px 2px 3px #8ad;
+}
+
+span.exclude_mp {
+  color: #888;
+  cursor: pointer;
+}
+
+span.reassessment {
+  background-color: #009933;
+  color: white;
+  cursor: pointer;
+  float: left;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 4px;
+  margin-top: 3px;
+  padding-left: 2px;
+  padding-right: 2px;
+  -sand-box-shadow: 2px 2px 3px #035;
+}
+
+span.section_outcome_toggle {
+  cursor: pointer;
+  float: left;
+  text-shadow: 1px 1px 1px #8ac;
+}
+
+span.section_outcome_x {
+  color: #ff3333;
+  cursor: pointer;
+  float: right;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+td#blank > div {
+  height: 40px;
+  width: 485px;
+  z-index: 8;
+}
+
+td.name, th.name {
+  border: 1px solid #aaa;
+  display: inline-block;
+  float: left;
+  height: 22px;
+  overflow: hidden;
+  padding: 0;
+  width: 480px;
+  white-space: nowrap;
+}
+
+/*td.r, th.r {
+  border: 1px solid #aaa;
+  display: inline-block;
+  float: left;
+  height: 22px;
+  overflow: hidden;
+  padding: 0;
+  text-align: center;
+  width: 52px;
+  white-space: nowrap;
+}
+*/
+html div#roster_row th.student {
+  max-width: 52px;  /* sets column width, but allows the rotated text to be longer */
+  width: 52px;
+  height: 100px;
+  position: relative;
+}
+
+th.student > div {
+  color: white;
+  cursor: pointer;
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+  font-size: 14px; /*font-size: 0.8em;*/
+  font-weight: bold;
+  overflow: visible;
+  position: relative;
+  /* -sand-transform: rotate(300deg); /* See /vendor/assets/javascripts/cssSandpaper */
+  -webkit-transform: rotate(300deg);
+  -moz-transform: rotate(300deg);
+  -o-transform: rotate(300deg);
+  transform: rotate(300deg);
+  padding: 1px;
+  display: block;
+  text-align: left;
+  left: 10px;
+  bottom: 5px; /*bottom: 35px;*/
+  max-height: 50px;
+  width: 100%;
+}
+html.standard th.student > div {
+  width: 95px;
+}
+
+html.pre_ie10 th.student > div {
+  width: 50px;
+  -ms-transform: rotate(300deg);
+}
+
+tr.evidence {
+  vertical-align: middle;
+}
+
+tr.section_outcome {
+  color: white;
+}
+
+table.rate_section_outcome {
+  border-spacing: 4px;
+}
+
+table.rate_section_outcome > tbody > tr > td.student {
+  background-color: #035;
+  color:            white;
+  border-top:       3px double white;
+}
+
+table.rate_section_outcome > tbody > tr > td.evidence {
+  background-color: white;
+}
+
+table.rate_section_outcome > tbody > tr > td.rating_cell {
+  background-color: white;
+  width: 40px;
+}
+
+td.bottom {
+  border-bottom: 3px double #035;
+}
+
+table.rate_section_outcome > tbody > tr > td.rating_cell > div {
+  width: 40px;
+  text-align: center;
+}
+
+table.rate_section_outcome > tbody > tr > td.comment {
+  background-color: white;
+}
+
+div#chart {
+  border: 3px double #035;
+}
+
+.small {
+  font-size: 0.8em;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+/* code to highlight the current input day in the datepicker calendar
+ - note this may be unnecessary in later versions of jquery UI */
+td.ui-datepicker-current-day .ui-state-active {
+  background-color: #7fc;
+  display: block;
+}

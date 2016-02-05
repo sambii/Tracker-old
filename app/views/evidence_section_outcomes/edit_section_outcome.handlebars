@@ -1,0 +1,14 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" action="/evidence_section_outcomes/{{id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <h3>Edit {{name}} Learning Outcome</h3>
+    <select id="evidence_section_outcome_section_outcome_id" name="evidence_section_outcome[section_outcome_id]"  sel="{{section_outcome_id}}">
+      {{#each section_outcomes}}
+        <option value="{{id}}">{{name}}</option>
+      {{/each}}
+    </select>
+    <br>
+    <button type="submit" value="commit">Update Evidence Learning Outcome</button>
+  </form>
+</div>

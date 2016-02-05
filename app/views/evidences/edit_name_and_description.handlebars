@@ -1,0 +1,26 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" id="edit_evidence" action="/evidences/{{id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <table>
+      <tr>
+        <td>Evidence Name</td>
+        <td>
+          <input id="evidence_name" name="evidence[name]" type="text" value="{{name}}">
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          Description
+          <br>
+          <textarea id="evidence_description" name="evidence[description]">{{description}}</textarea>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          <button type="submit" value="commit">Update Evidence</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>

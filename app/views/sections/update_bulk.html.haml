@@ -1,0 +1,52 @@
+
+- content_for(:title, 'Section Bulk Entry Report')
+- content_for(:page_name, 'Section Bulk Entry Report')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :section_bulk_updated, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Maintenance"
+  %h2.h1.page-title
+    %strong="Section Bulk Entered Report"
+  .row
+    %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-filter
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+    %a#collapse-all-groups.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-caret-right
+    %a#expand-all-groups.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-caret-down
+.row.text-center
+  %span
+    %strong
+      %big="Total Sections Entered: #{@sections.count}"
+.row.text-center
+  %button.text-button.show_report_btn='Show entered report'
+.row.hidden_report
+  .col-sm-12.col-lg-8
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          %i.fa.fa-lg.fa-th
+          %i.fa.fa-lg.fa-stack-overflow
+          ="Section Bulk Entered Report"
+      .block-content-full
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th='Subject Name'
+              %th='Section ID'
+          %tbody
+            - @sections.each do |s|
+              %tr
+                %td=s.subject.name
+                %td=s.line_number
+  .col-sm-0.col-lg-4

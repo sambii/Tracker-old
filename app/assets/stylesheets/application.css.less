@@ -1,0 +1,30 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * don't automatically read in all app/assets/stylesheets
+ * require_tree .
+ * don't automatically read in all css in this sheet
+ * require_self
+ *
+ * using LESS version of bootstrap from proui version
+ *= require proui-v2.0/bootstrap/bootstrap
+ *
+ * using downloaded font-awesome instead of proui version
+ * note fonts are directly off of assets directory (see application.rb)
+ *= require font-awesome-4.1.0/font-awesome
+ *
+ * using LESS:
+ *= require proui-v2.0/variables
+ *= require proui-v2.0/proui_tracker.min
+ *= require proui-v2.0/plugins/plugins
+ *= require proui-v2.0/styles
+ *
+ * custom UI ProUI overrides in here
+ *= require proui_overwrite_app
+ *= require proui_overwrite
+ *= require proui_overwrite_misc
+ *= require proui_overwrite_tracker
+ *
+ */
+

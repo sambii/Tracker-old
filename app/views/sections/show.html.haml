@@ -1,0 +1,239 @@
+
+- content_for(:title, 'Teacher Tracker')
+- content_for(:page_name, 'Teacher Tracker')
+- content_for(:page_class, 'tracker-page')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - if !current_user.teacher?
+    - breadcrumb :teacher_dashboard, @section.teachers.first
+  = help_gen_breadcrumbs
+
+- if @section.school.has_flag?(School::USER_BY_FIRST_LAST)
+  - order_first_last = true
+- else
+  - order_first_last = false
+
+/ Teacher Tracker Page
+#tracker-header{data: {section_id: "#{@section.id}"}}
+  / DISPLAY Bread Crumbs
+  #breadcrumb-flash
+    .last
+      %a{href: session[:last_original_url]}= 'Last Page'
+    - breadcrumb :root # to ensure breadcrumbs always show
+    / - breadcrumb :current # to ensure breadcrumbs always show
+    / = yield :layout_breadcrumbs
+    - breadcrumb :section, @section
+    = help_gen_breadcrumbs
+    #breadcrumb-flash-msgs
+      = render 'layouts/messages'
+  #tracker-header-top
+    #tracker-header-top-left
+      %h1.page-title
+        %strong
+          = "#{@section.name} - #{@section.line_number}"
+          / %a{href: class_dashboard_section_path(@section.id)}
+          /   %i.fa.fa-dashboard
+      %ul.list-inline
+        %li
+          %h4.remove-margin
+            -@section.teachers.each do |t|
+              %a{href: teacher_path(t.id)}
+                %i.fa.fa-user
+                = t.full_name
+        %li
+          .remove-margin
+            %i.fa.fa-calendar-o
+            = @section.school_year.name
+        - subsection_qs = ""
+        - if @section.school.subsection == true
+          - subsection_qs = ".html?subsection=#{params[:subsection]}"
+          %li
+            / Subsection Select Box
+            Subsection:
+            %select#subsection-select.select-select2{name: "subsection-select", data: {placeholder: "Subsection"}}
+              = options_for_select(["All"] + @section.subsections, selected = params[:subsection])
+          %li
+            / edit subsections icon
+            %a#edit_subsections.btn.btn-sm.btn-primary{href: "#{edit_section_path(@section, subsection: params[:subsection])}", data: {current_subsection: params[:subsection]}}
+              %i.fa.fa-lg.fa-edit
+      / rest of header (originally in left of tracker-table header)
+      .clearfix
+        / filter / Expand / Collapse All Learning Outcomes
+        .pull-left
+          %div.btn.btn-sm.btn-primary.pointer-cursor#filter-button
+            %i.fa.fa-lg.fa-filter
+          %div.btn.btn-sm.btn-primary.pointer-cursor#collapse-all-los-button
+            %i.fa.fa-lg.fa-caret-right
+          %div.btn.btn-sm.btn-primary.pointer-cursor#expand-all-los-button
+            %i.fa.fa-lg.fa-caret-down
+        / Marking Period filter
+        %ul.pagination.pagination-sm.pull-left
+          - sel_mp = @section.selected_marking_period
+          %li.mp-filter#mp_all{class: ('active' if sel_mp.nil? || sel_mp == 0)}
+            %a All
+          - @marking_periods.each do |marking_period|
+            %li.mp-filter{id: "mp_#{marking_period}", class: ('active' if sel_mp == marking_period)}
+              %a= marking_period
+        / misc page level buttons
+        .pull-left
+          %a.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+            %i.fa.fa-lg.fa-print
+          %a#download-xlsx.btn.btn-sm.btn-primary{href: "/sections/#{@section.id}.xlsx"}
+            %i.fa.fa-lg.fa-download
+
+      #filter-options-chosen
+        %ul.floating-list.btn-group.btn-group-sm
+          / Listing of chosen filters
+          %li
+            %small.text-muted All Learning Outcomes
+            %a.text-muted{href: "javascript:void(0)"}
+              %i.fa.fa-times-circle
+    #tracker-header-top-right
+      #tracker-comments-students
+        %a.tracker-student-comments{data: {target: "#modal_popup", toggle: 'modal', url: edit_section_message_section_path(@section.id, format: :js)}}
+          %i.fa.fa-comment
+          %span.text-muted= @section.message
+      #tracker-student-pages
+        .clearfix
+          %span.student-pages-separator.pull-left
+            Students:
+          %ul.pagination.pagination-sm.remove-margin.pull-left
+            %li
+              %a#gb-pg-prev{href: "javascript:void(0)"}
+                %i.fa.fa-arrow-left
+                Prev
+            %li
+              %a#gb-pg-next{href: "javascript:void(0)"}
+                Next
+                %i.fa.fa-arrow-right
+          %span.pull-left.text-muted.student-pages-separator
+            |
+          %ul.pagination.pagination-sm.remove-margin.pull-left
+            %li
+              %a#tr-set-thinnermode{href: "javascript:void(0)"} ||
+            %li
+              %a#tr-set-thinmode{href: "javascript:void(0)"} |&nbsp;|
+            %li.active
+              %a#tr-set-regmode{href: "javascript:void(0)"} |&nbsp;&nbsp;|
+            %li
+              %a#tr-set-widemode{href: "javascript:void(0)"} |&nbsp;&nbsp;&nbsp;|
+            %li
+              %a#tr-set-widermode{href: "javascript:void(0)"} |&nbsp;&nbsp;&nbsp;&nbsp;|
+
+/ DISPLAY Content
+.block.full.block-alt-noborder.tracker-content
+  / RENDER Content Body
+  #tracker-table-container-outer
+    #tracker-table-container
+      %table.tracker-table.ui-sortable{ class: (@cell_size.nil? ? 'regular-mode' : @cell_size), data: {section_id: "#{@section.id}"}}
+        %thead
+          %tr
+            %th.tracker-firstcol
+              .tracker-table-options
+                - if can? :create, Student
+                  %div{style: 'position: relative;'}
+                    .tracker-remove-student{title: 'Remove student from Section'}
+                      %a#remove-student{data: {target: "#modal_popup", toggle: 'modal', url: list_enrollments_section_path(format: :js)}}
+                        %i.fa.fa-lg.fa-minus-square
+                  %div{style: 'position: relative;'}
+                    .tracker-add-student{title: 'Add student to Section'}
+                      %a#add-student{data: {target: "#modal_popup", toggle: 'modal', url: new_enrollment_section_path(format: :js)}}
+                        %i.fa.fa-lg.fa-plus-square
+                / old Tracker Page options in table head
+
+            - @students.each do |student|
+              - if order_first_last
+                - show_name = "#{student.xid} #{student.first_name} #{student.last_name} "
+              - else
+                - show_name = student.full_name
+              %th.rotate-45
+                %div.cloner
+                  %div.clone
+                    %div{data_template: "students/show", data_url: "students/#{student.id}.json"}
+                      %span.name= (show_name).html_safe
+                      %span.icon
+                        %a{href: "#{student_path(student.id)}"}
+                          %i.fa.fa-user
+            %th
+        -@section.section_outcomes.each do |section_outcome|
+          - sel_mp = @section.selected_marking_period
+          - match_marking_period = sel_mp.nil? || sel_mp == 0 ? true : false
+          - match_marking_period = true if section_outcome.marking_period_array.include? sel_mp
+          %tbody.tbody-header.block{:class => [section_outcome.minimized ? '' : 'tbody-open' , match_marking_period ? 'showLO' : '' ], data: {so_id: "#{section_outcome.id}"}}
+            %tr.ui-sortable-handle
+              %td.tracker-firstcol
+                .clearfix
+                  .tracker-cell-toggle.section_outcome_toggle.pointer-cursor
+                    %i.fa.fa-caret-down
+                  .tracker-cell-title
+                    %span.section_outcome_name{title: section_outcome.name}= section_outcome.name
+                  .tracker-cell-marking-periods
+                    %ul.pagination.pagination-sm
+                      - @marking_periods.each do |marking_period|
+                        %li{class: ( "mp#{marking_period}"+((section_outcome.marking_period_array.include? marking_period) ? ' active' : '') )}
+                          = link_to marking_period, toggle_marking_period_section_outcome_path(section_outcome.id, mp: marking_period), method: :put, data: {remote: :true}
+                  .tracker-cell-options
+                    .btn-group.btn-group-xs
+                      %a.btn.btn-default.lo-rate{href: "/section_outcomes/#{section_outcome.id}#{subsection_qs}", data: {so_id: "#{section_outcome.id}"}}
+                        %i.fa.fa-lg.fa-check-square-o
+                      %a.btn.btn-default.lo-x{href: "/section_outcomes/#{section_outcome.id}.js?#{{active: false}.to_query('section_outcome')}", data: {method: :put, remote: true, section_outcome_id: "#{section_outcome.id}"}}
+                        %i.fa.fa-lg.fa-times-circle
+              - @student_ids.each do |student_id|
+                - full_rating = @section_outcome_ratings[section_outcome.id][student_id][0]
+                - rating = ''
+                - if !full_rating.nil? && full_rating.length > 0
+                  - rating = full_rating.chars.first.upcase
+                - rid = @section_outcome_ratings[section_outcome.id][student_id][1]
+                - case rating
+                - when 'H'
+                  %td.blue.r.s_o_r.pointer-cursor{id: "s_o_r_#{rid}", data: {id: "#{rid}", so_id: "#{section_outcome.id}", student_id: "#{student_id}", rating: 'H'}}= 'H'
+                - when 'P'
+                  %td.green.r.s_o_r.pointer-cursor{id: "s_o_r_#{rid}", data: {id: "#{rid}", so_id: "#{section_outcome.id}", student_id: "#{student_id}", rating: 'P'}}= 'P'
+                - when 'N'
+                  %td.red.r.s_o_r.pointer-cursor{id: "s_o_r_#{rid}", data: {id: "#{rid}", so_id: "#{section_outcome.id}", student_id: "#{student_id}", rating: 'N'}}= 'N'
+                - when 'U'
+                  %td.unrated.r.s_o_r.pointer-cursor{id: "s_o_r_#{rid}", data: {id: "#{rid}", so_id: "#{section_outcome.id}", student_id: "#{student_id}", rating: 'U'}}= 'U'
+                - else
+                  %td.unrated.r.s_o_r.pointer-cursor{id: "s_o_r_#{rid}", data: {id: "#{rid}", so_id: "#{section_outcome.id}", student_id: "#{student_id}", rating: ''}}= ''
+              %td
+          %tbody.tbody-section{ data: {so_id: "#{section_outcome.id}"}}
+            - get_evidence_section_outcomes(section_outcome.id).each do |eso|
+              %tr{data: {eso_id: "#{eso.id}", evid_id: "#{eso.evidence_id}"}}
+                %td.tracker-firstcol
+                  .clearfix
+                    .tracker-cell-attachment{data_template: "evidences/edit_name_and_description", data_url: "evidences/#{eso.evidence_id}.json"}
+                      - if eso.evidence_attachments.size + eso.evidence_hyperlinks.size > 0
+                        %a{data: {target: "#modal_popup", toggle: 'modal', url: show_attachments_evidence_path(eso.evidence_id, format: :js)}}
+                          %i.fa.fa-paperclip
+                          = eso.evidence_attachments.size + eso.evidence_hyperlinks.size
+                    .tracker-cell-title.evidence_name{title: "#{eso.description}"}
+                      - if eso.evidence.reassessment
+                        %span.reassess-icon.fa-stack.fa
+                          %i.fa.fa-circle-o.fa-stack-2x
+                          %i.strong.fa.fa-stack-1x R
+                      = eso.name
+                    / .tracker-cell-marking-periods
+                    .tracker-cell-options
+                      .btn-group.btn-group-xs
+                        %a.btn.btn-default.evidence-edit{href: "/evidences/#{eso.evidence_id}/edit?eso_id=#{eso.id}"}
+                          %i.fa.fa-lg.fa-edit
+                        %a.btn.btn-default.evidence-rate{ href: "/evidences/#{eso.evidence_id}#{subsection_qs}" }
+                          %i.fa.fa-lg.fa-check-square-o
+                        %a.btn.btn-default.evidence_x{href: "/evidences/#{eso.evidence_id}.js?#{{active: false}.to_query('evidence')}", data: {method: :put, remote: true, confirm: "Remove #{eso.name}?"}}
+                          %i.fa.fa-lg.fa-times-circle
+                    .tracker-evid-date
+                      %small= eso.assignment_date.strftime("%d-%b-%Y")
+                    .tracker-evid-type
+                      %small.text-muted= eso.evidence_type.name
+                - @student_ids.each do |student_id|
+                  %td.evid-cell
+                    - rating = @evidence_ratings[section_outcome.id][eso.evidence_id][student_id][0]
+                    - rating = (rating.nil? || rating == '' ) ? '' : rating.chars.first.upcase
+                    - comment = @evidence_ratings[section_outcome.id][eso.evidence_id][student_id][1]
+                    - erid = @evidence_ratings[section_outcome.id][eso.evidence_id][student_id][2]
+                    %a.esor{id: "e_s_o_r_#{erid}", class: ('commented' if !comment.blank?), href: "javascript:void(0)", data: {id: erid, student_id: "#{student_id}",rating: rating, comment: comment}}
+                      =raw(evidence_icon_html(rating))
+                / last column to fill out page to right (so last student diagonal name displays)
+                %td.evid-cell
+  / END Gradebook Table
+  #tracker_table_bottom_buffer

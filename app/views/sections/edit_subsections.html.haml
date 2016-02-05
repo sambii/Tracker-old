@@ -1,0 +1,28 @@
+= form_for(@section) do |f|
+  .block
+    .table-responsive
+      %table.table.table-striped.table-vcenter
+        %thead
+          %tr
+            %th{colspan: 4}
+              Edit Student Subsections
+              %input{type: 'hidden', name: 'subsection', value: "#{params[:subsection]}"}
+          %tr
+            %th Student ID
+            %th Last Name
+            %th First Name
+            %th Subsection # (1-9)
+        %tbody#students
+          = f.fields_for :enrollments, f.object.enrollments.alphabetical do |g|
+            %tr
+              %td= g.object.student.xid
+              %td= g.object.student.last_name
+              %td= g.object.student.first_name
+              %td= g.text_field :subsection, size: 4
+        %tbody.submit
+          %tr
+            %td{colspan: 4}
+              %a.btn.btn-default{href: "/sections/#{@section.id}?subsection=#{params[:subsection]}"}
+                Cancel
+              %button.btn.btn-primary{type: 'submit', name: 'commit'}
+                Update Section

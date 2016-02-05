@@ -1,0 +1,155 @@
+
+- content_for(:title, 'Teacher Dashboard')
+- content_for(:page_name, 'Teacher Dashboard')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :teacher_dashboard, @teacher
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Dashboard'
+  %h2.h1.page-title
+    %strong="Teacher: #{@teacher.full_name}"
+  - si_time = (@teacher.current_sign_in_at.nil?) ? 'Never' : @teacher.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
+  %span="(Latest signin time at: #{si_time})"
+/ First Row
+.row.indent-row
+  .col-sm-6.col-lg-6
+    / Overall Student Performance Block
+    - # sum overall student performance values
+    - overall_h = 0
+    - overall_p = 0
+    - overall_n = 0
+    - overall_u = 0
+    - @current_sections.each do |s|
+      - e_ratings = @ratings[s.id]
+      - overall_h += e_ratings[:H]
+      - overall_p += e_ratings[:P]
+      - overall_n += e_ratings[:N]
+      - overall_u += e_ratings[:U]
+    .block.block-alt-style.full
+      / Learning Outcome Title
+      .block-title.text-center
+        %h2
+          %i.fa.fa-bar-chart
+          Overall Student Performance
+      / END Learning Outcome Title
+      / Learning Outcome Content
+      .row
+        .col-xs-5.text-center
+          / Sparklines plugin used and initialized at the bottom of the page
+          #pie-chart.text-center{data: {px_size: 128, unrated_count: "#{overall_u}", red_count: "#{overall_n}", green_count: "#{overall_p}", blue_count: "#{overall_h}"}}
+        .col-xs-7#overall
+          %ul.fa-ul.ul-breath
+            %li
+              %i.fa.fa-circle.fa-li.text-blue
+              .text-normal="#{overall_h} - High Performance"
+            %li
+              %i.fa.fa-circle.fa-li.text-green
+              .text-normal="#{overall_p} - Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-red
+              .text-normal="#{overall_n} - Not Yet Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-unrated
+              .text-normal="#{overall_u} - Unrated"
+      / END Learning Outcome Content
+    / END Learning Outcome Block
+  .col-sm-6.col-lg-6
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: '2'}='Proficiency Bar Chart'
+          %tbody#prof_bar
+            - @current_sections.each do |s|
+              - s_ratings = @ratings[s.id]
+              - total_ratings = s_ratings[:H] + s_ratings[:P] + s_ratings[:N] + s_ratings[:U]
+              %tr{data: {prof_bar_section_id: "#{s.id}"}}
+                %td
+                  %a{href: "#{class_dashboard_section_path(s.id)}"}
+                    %i.fa.fa-dashboard.fa-lg
+                  %a{href: "#{section_path(s.id)}"}
+                    %i.fa.fa-check.fa-lg
+                  ="#{s.name} | #{s.line_number}"
+                - pixel_width = 300
+                %td{style: "width: #{pixel_width+11}px;"}
+                  - if total_ratings > 0
+                    .flat-bar-chart{style: "width: 100%;"}
+                      .high-rating-bar.progress-bar{style: "width: #{(s_ratings[:H]*pixel_width/total_ratings).floor}px"}=s_ratings[:H]
+                      .prof-rating-bar.progress-bar{style: "width: #{(s_ratings[:P]*pixel_width/total_ratings).floor}px"}=s_ratings[:P]
+                      .nyp-rating-bar.progress-bar{style: "width: #{(s_ratings[:N]*pixel_width/total_ratings).floor}px"}=s_ratings[:N]
+                      .unrated-rating-bar.progress-bar{style: "width: #{(s_ratings[:U]*pixel_width/total_ratings).floor}px"}=s_ratings[:U]
+  .col-sm-0.col-lg-2
+/ END First Row
+
+.row.indent-row
+  .col-sm-4.col-lg-4
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Active Classes'
+          %tbody#active_section
+            - @current_sections.each do |s|
+              %tr{data: {active_section_id: "#{s.id}"}}
+                %td
+                  %a{href: "#{class_dashboard_section_path(s.id)}"}
+                    %i.fa.fa-dashboard.fa-lg
+                  %a{href: "#{section_path(s.id)}"}
+                    %i.fa.fa-check.fa-lg
+                  ="#{s.name} | #{s.line_number}"
+                %td="#{s.active_student_enrollments.count} Students"
+  .col-sm-4.col-lg-4
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.table-clickable-rows
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Students Not Yet Proficient Count'
+          %tbody#nyp_student
+            - shown = 0
+            - @students.each do |st|
+              - st_ratings = @student_ratings[st.id]
+              - if st_ratings[:N] && st_ratings[:N] > 0
+                - shown += 1
+                - if shown > 9
+                  / note this is for all sections for the teacher, nyp report only handles 1 section at this point.
+                  %tr
+                    %td{colspan: 2}
+                      %a{href: new_generate_path}= 'View All'
+                  - break
+                - else
+                  %tr{data: {nyp_student_id: "#{st.id}"}}
+                    %td
+                      %a{href: "#{student_path(st.id)}"}
+                        =st.full_name
+                    %td
+                      %a{href: "#{student_path(st.id)}"}
+                        =st_ratings[:N]
+  .col-sm-4.col-lg-4
+    / Recent Activity Block
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.table-clickable-rows
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Recent Activity'
+          %tbody#recent
+            - @recent10.take(9).each do |s|
+              %tr{data: {recent_student_id: "#{s.id}"}}
+                %td
+                  %a{href: "#{student_path(s.id)}"}
+                    =s.full_name
+                %td
+                  %a{href: "#{student_path(s.id)}"}
+                    =s.current_sign_in_at
+            - if @recent10.length > 9
+              %tr
+                %td{colspan: 2}
+                  %a{href: '#'}= 'View All'

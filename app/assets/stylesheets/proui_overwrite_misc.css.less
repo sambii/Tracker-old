@@ -1,0 +1,93 @@
+/*
+ * UI styles for Misc Pages.
+ */
+
+@import "tracker-variables.less";
+
+/*
+ * Generate Reports / Listings layouts
+ */
+
+/*
+ * block layouts
+ */
+
+.page-form {
+  line-height: 1.2em;
+  font-size: 1.2em;
+  fieldset {
+    label {
+      text-align: right;
+    }
+    .checkbox-input {
+      margin-left: 10px;
+      margin-right: 2px;
+    }
+  }
+}
+
+/* input-group fieldset layouts */
+fieldset.input-group {
+  .value-fields {
+    padding-left: 15px;
+  }
+}
+
+/* input fields in table - remove extra padding*/
+td fieldset {
+  margin-top: -5px !important;
+  margin-bottom: -5px !important;
+  label {
+    margin-bottom: 0;
+  }
+}
+
+body .wide-modal {
+  width: 70%;
+  // left: 5%;
+  // margin-left: auto;
+  // margin-right: auto;
+}
+
+.pagination li a {
+  line-height: 16px;
+}
+
+.button-bar .pagination {
+  margin: 3px 10px 0 10px;
+}
+
+.marking-periods-height-30 {
+    float: left;
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: right;
+    width: 100px;
+}
+
+
+ul.list-inline.lmargin10 {
+  li {
+    margin-left: 10px;
+  }
+}
+
+.lmargin5 {
+  margin-left: 5px;
+}
+
+.input-group {
+  min-height: 30px;
+  line-height: 30px;
+  padding: 0 10px;
+  .checkbox-right-label {
+    font-weight: normal !important;
+    margin-left: 5px !important;
+  }
+  input[type='checkbox'], input[type='radio'] {
+    margin-top: 8px;
+  }
+}

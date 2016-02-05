@@ -1,0 +1,29 @@
+!!!
+%html
+  %head
+    %title PARLO Progress Tracker - Popup
+    %link{rel: "shortcut icon", href:"/favicon.ico"}
+    = javascript_tag "var AUTH_TOKEN      = '#{form_authenticity_token}';"
+    = javascript_tag "var CURRENT_USER_ID = '#{current_user.id if current_user}';"
+    = javascript_include_tag "application"
+    = yield(:head)
+    = stylesheet_link_tag    "application", media: "all"
+    = csrf_meta_tag
+
+  %body
+    %div#current_controller= params[:controller]
+    %div#current_action= params[:action]
+    %div#alert= flash[:alert]
+    %div#notice= flash[:notice]
+    %div#wrapper
+      %div#top_bar
+        %div#title
+          %p
+            = link_to "Close", session[:close_to_path], { class: "blank_on_click"}
+        %div#sign_in
+          %p
+            = link_to "Close", session[:close_to_path], { class: "blank_on_click"}
+      %div#scrolling_body
+        = render 'layouts/announcements'
+        = yield
+      = render 'layouts/school_context'

@@ -1,0 +1,89 @@
+
+.page-form.alternate-highlight
+  - if @errors[:base] && @errors[:base] != []
+    %div.ui-error.text-center=@errors[:base]
+  - if current_user.system_administrator?
+    %fieldset.input-group
+      %label.col-sm-4.control-label='Role:'
+      %input{type: 'hidden', name: 'user[system_administrator]', value: 'false'}
+      %input.pull-left{:name => "user[system_administrator]", :type => "checkbox", checked: @user.system_administrator?}
+      %label.checkbox-right-label.pull-left="System Administrator"
+      %span.ui-error="#{@errors[:system_administrator] if @errors[:system_administrator].present?}"
+    %fieldset.input-group
+      %label.col-sm-4.control-label='Role:'
+      %input{type: 'hidden', name: 'user[researcher]', value: 'false'}
+      %input.pull-left{:name => "user[researcher]", :type => "checkbox", checked: @user.researcher?}
+      %label.checkbox-right-label.pull-left="Researcher"
+      %span.ui-error="#{@errors[:researcher] if @errors[:researcher].present?}"
+    %fieldset.input-group
+      %label.col-sm-4.control-label='Role:'
+      %input{type: 'hidden', name: 'user[school_administrator]', value: 'false'}
+      %input.pull-left{:name => "user[school_administrator]", :type => "checkbox", checked: @user.school_administrator?}
+      %label.checkbox-right-label.pull-left="School Administrator"
+      %span.ui-error="#{@errors[:school_administrator] if @errors[:school_administrator].present?}"
+  - if current_user.system_administrator? || current_user.school_administrator?
+    %fieldset.input-group
+      %label.col-sm-4.control-label='Role:'
+      %input{type: 'hidden', name: 'user[teacher]', value: 'false'}
+      %input.pull-left{:name => "user[teacher]", :type => "checkbox", checked: @user.teacher?}
+      %label.checkbox-right-label.pull-left="Teacher"
+      %span.ui-error="#{@errors[:teacher] if @errors[:teacher].present?}"
+    %fieldset.input-group
+      %label.col-sm-4.control-label='Role:'
+      %input{type: 'hidden', name: 'user[counselor]', value: 'false'}
+      %input.pull-left{:name => "user[counselor]", :type => "checkbox", checked: @user.counselor?}
+      %label.checkbox-right-label.pull-left="Counselor"
+      %span.ui-error="#{@errors[:counselor] if @errors[:counselor].present?}"
+  - if current_user.system_administrator?
+    %fieldset.input-group
+      %label.col-sm-4.control-label='Permission:'
+      %input{type: 'hidden', name: 'user[permission_par][manage_subject_admin]', value: 'false'}
+      %input.pull-left{:name => "user[permission_par][manage_subject_admin]", :type => "checkbox", checked: @user.has_permission?('manage_subject_admin')}
+      %label.checkbox-right-label.pull-left="Manage Subject Admins"
+      %span.ui-error="#{@errors[:permissions] if @errors[:permissions].present?}"
+  - if current_user.system_administrator? || current_user.has_permission?('manage_subject_admin')
+    %fieldset.input-group
+      %label.col-sm-4.control-label='Permission:'
+      %input{type: 'hidden', name: 'user[permission_par][subject_admin]', value: 'false'}
+      %input.pull-left{:name => "user[permission_par][subject_admin]", :type => "checkbox", checked: @user.has_permission?('subject_admin')}
+      %label.checkbox-right-label.pull-left="Subject Administrator"
+      %span.ui-error="#{@errors[:permissions] if @errors[:permissions].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='Staff ID:'
+    %input{id: 'staff_id', name: 'user[xid]', value: @user.xid}
+    %span.ui-error="#{@errors[:xid] if @errors[:xid].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='First Name:'
+    %input{id: 'staff_first_name', name: 'user[first_name]', value: @user.first_name}
+    %span.ui-required{title: 'Required'}='*'
+    %span.ui-error="#{@errors[:first_name] if @errors[:first_name].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='Last Name:'
+    %input{id: 'staff_last_name', name: 'user[last_name]', value: @user.last_name}
+    %span.ui-required{title: 'Required'}='*'
+    %span.ui-error="#{@errors[:last_name] if @errors[:last_name].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='Email:'
+    %input{id: 'staff_email', name: 'user[email]', value: @user.email}
+    %span.ui-error="#{@errors[:email] if @errors[:email].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='Street Address:'
+    %input{id: 'staff_street_address', name: 'user[street_address]', value: @user.street_address}
+    %span.ui-error="#{@errors[:street_address] if @errors[:street_address].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='City:'
+    %input{id: 'staff_city', name: 'user[city]', value: @user.city}
+    %span.ui-error="#{@errors[:city] if @errors[:city].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='State:'
+    %input{id: 'staff_state', name: 'user[state]', value: @user.state}
+    %span.ui-error="#{@errors[:state] if @errors[:state].present?}"
+  %fieldset.input-group
+    %label.col-sm-4.control-label='Zip Code:'
+    %input{id: 'staff_zip_code', name: 'user[zip_code]', value: @user.zip_code}
+    %span.ui-error="#{@errors[:zip_code] if @errors[:zip_code].present?}"
+
+  %fieldset.text-center
+    %input{type: :hidden, name: 'user[school_id]', value: @user.school_id}
+    %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+    %button.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'

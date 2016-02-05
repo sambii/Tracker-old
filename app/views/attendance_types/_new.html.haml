@@ -1,0 +1,28 @@
+
+- content_for(:title, 'Add Attendance Type')
+- content_for(:page_name, 'Add Attendance Type')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Attendance Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Add Attendance Type'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          =@attendance_type.description
+      .block-content-full
+        =form_for(@attendance_type, remote: true) do |f|
+          - @errors = @attendance_type.errors
+          = render 'form', f: f
+  .col-sm-1

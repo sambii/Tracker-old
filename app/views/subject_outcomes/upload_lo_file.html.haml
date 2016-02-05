@@ -1,0 +1,148 @@
+
+- content_for(:title, 'Upload Learning Outcomes from Curriculum')
+- content_for(:page_name, 'Upload Learning Outcomes from Curriculum')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Upload Learning Outcomes from Curriculum'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h3
+          ='Upload Curriculum / LOs File'
+      .block-content-full
+        = form_tag(upload_lo_file_subject_outcomes_path, multipart: true) do
+          / display any errors
+          - if @errors && @errors[:base]
+            #form-errors.ui-error.text-center=@errors[:base]
+
+          / / Only show file input if stage 1, or errors exist for rerun
+          / - if @stage == 1 || @errors.count > 0 || @error_list.count > 0 || @preview
+          / always show the file input
+          - if true
+            #ask-filename
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Learning Outcomes Upload File:'
+                %input#file{type: 'file', name: 'file'}
+                / = file_field_tag :file
+                %span.ui-error="#{@errors[:filename] if @errors[:filename].present?}"
+
+            #show-upload.display-none
+              / %fieldset.input-group
+              /   %label.col-sm-4.control-label='Preview Mode?'
+              /   %input{type: 'checkbox', name: 'preview'}
+              .row.text-center
+                %button#upload.btn.btn-primary{type: 'submit'}='Upload'
+                / %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+                / %button.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'
+
+          .upload-output
+            / show chosen filename
+            #show-filename{class: ( (@stage > 1 ) ? '' : 'display-none')}
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Uploaded Filename:'
+                %span=@filename
+
+            / / if past stage 1, show any errors
+            / #show-filename{class: ( (@stage > 1 ) ? '' : 'display-none')}
+            /   - if @errors.count == 0 && @records.present?
+            /     - if @preview
+            /       %h3="Preview of #{@records.count} Staff bulk upload."
+            /     - else
+            /       %h3="Bulk create of #{@records.count} Staff records successful!"
+            /   - if !(@any_errors || @preview)
+            /     .row.text-center
+            /       %a.btn.btn-primary.show_report_btn{href: 'javascript: void(0);'}='Show entered report'
+  .col-sm-1
+
+- if @stage > 1 && @error_list && @error_list.length > 0
+  .row.upload-output
+    .col-sm-1
+    .col-sm-10
+      .block.block-alt-style.full
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th{colspan: 2}= 'Duplicated LO Codes'
+              %tr
+                %th= 'LO Code'
+                %th= 'Lines with duplicates'
+            %tbody.tbody-body
+              - @error_list.each do |k, v|
+                %tr.ui-error
+                  %td="#{v[0]}"
+                  %td="#{v[1]}"
+    .col-sm-1
+
+- if @stage > 1 && @error_list2 && @error_list2.length > 0
+  .row.upload-output
+    .col-sm-1
+    .col-sm-10
+      .block.block-alt-style.full
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th{colspan: 2}= 'Duplicated LO Descriptions'
+              %tr
+                %th= 'LO Description'
+                %th= 'Lines with duplicates'
+            %tbody.tbody-body
+              - @error_list2.each do |k, v|
+                %tr.ui-error
+                  %td="#{v[0]}"
+                  %td="#{v[1]}"
+    .col-sm-1
+
+- if @stage > 1 && @records
+  .row.upload-output{class: (@any_errors || @preview ? '' : 'hidden_report')}
+    .col-sm-1
+    .col-sm-10
+      .block.block-alt-style.full
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th{colspan: 8}= @filename
+              %tr
+                %th= 'Line'
+                %th= 'Subject'
+                %th= 'Course'
+                %th= 'Grade'
+                %th= 'Marking Period'
+                %th= 'LO Code:'
+                %th= 'Learning Outcome'
+                %th= 'Errors'
+            %tbody.tbody-body
+              - @records.each_with_index do |rx, ix|
+                - if rx[SubjectOutcomesHelper::COL_ERROR].present?
+                  %tr
+                    %td="#{ix+2}"
+                    %td=rx[SubjectOutcomesHelper::COL_SUBJECT]
+                    %td=rx[SubjectOutcomesHelper::COL_COURSE]
+                    %td=rx[SubjectOutcomesHelper::COL_GRADE]
+                    %td
+                      =rx[SubjectOutcomesHelper::COL_MP_BITMAP]
+                    %td=rx[SubjectOutcomesHelper::COL_OUTCOME_CODE]
+                    %td= (rx[SubjectOutcomesHelper::COL_OUTCOME_NAME].blank?) ? '' : rx[SubjectOutcomesHelper::COL_OUTCOME_NAME].truncate(50, omission: '...')
+                    %td
+                      %span.ui-error=rx[SubjectOutcomesHelper::COL_ERROR]
+                      - if !@rollback
+                        %span.ui-success=rx[SubjectOutcomesHelper::COL_SUCCESS]
+    .col-sm-1
+  .row.upload-output{class: (@any_errors || @preview ? '' : 'hidden_report')}
+    .col-sm-1
+    .col-sm-10
+      .ui-error='* - duplicate LO Code and/or Description error'

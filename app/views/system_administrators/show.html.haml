@@ -1,0 +1,30 @@
+
+- content_for(:title, 'System Administrator Dashboard')
+- content_for(:page_name, 'System Administrator Dashboard')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :system_admin_dashboard, @system_administrator
+  = help_gen_breadcrumbs
+- content_for :header_contextual_dropdown do
+  %li
+    .alert.alert-danger.alert-alt
+      %a{href: "#{edit_user_path(current_user)}"}
+        %i.fa.fa-cog.fa-fw.pull-right
+        System Admin Emergency Power
+  %li
+    %div
+      %a{href: "#{edit_user_path(current_user)}"}
+        %i.fa.fa-cog.fa-fw.pull-right
+        System Admin Extra Action
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Dashboard'
+  %h2.h1.page-title
+    %strong="System Administrator: #{@system_administrator.full_name}"
+  - si_time = (@system_administrator.current_sign_in_at.nil?) ? 'Never' : @system_administrator.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
+  %span="(Latest signin time at: #{si_time})"
+= render 'dashboard'
+

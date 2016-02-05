@@ -1,0 +1,44 @@
+
+/ - content_for(:title, '')
+/ - content_for(:page_name, '')
+/ - content_for(:page_class, '')
+
+/ Header
+#enroll_student
+  .header-block
+    .row
+      .col-sm-1
+      .col-sm-10
+        %h1.h3.page-title.text-center
+          %strong='Remove Student from Section:'
+        %h2.h1.page-title.text-center
+          %strong
+            =@section.name
+            = ' - '
+            =@section.line_number
+      .col-sm-1
+
+  .row
+    .col-sm-1
+    .col-sm-10
+      .block.block-alt-style.full
+        .block-title.text-center
+          %h2
+            ='Remove Student:'
+        .block-content-full
+          %form{action: "/sections/#{@section.id}/remove_enrollment", method: :put }
+            - @errors = @enrollment.errors
+            .page-form
+              - if @errors[:base] && @errors[:base] != []
+                %div.ui-error.text-center=@errors[:base]
+              %fieldset.input-group
+                .col-sm-9
+                  %select#enrollment_id{:chosen => "true", :name => "section_enrollment_id"}
+                    - @enrollments.each do |e|
+                      %option{value: e.id}
+                        =e.student.full_name
+                %span.ui-error.col-sm-3="#{@errors[:id] if @errors[:id].present?}"
+              %fieldset.text-center
+                %button.btn.btn-primary{name: 'commit', type: "submit"}='Remove Student from Section'
+    .col-sm-1
+  %br/

@@ -1,0 +1,5 @@
+if ("<%= params[:source_controller] %>" == "users" && "<%= params[:source_action] %>" == "show") {
+  $("#active_sections").append("<li><a href='/sections/<%= @section.id %>'><%= @section.full_name %></a></li>");
+} else {
+  location.reload();
+}

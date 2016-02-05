@@ -1,0 +1,9 @@
+%div.dashboard
+  %div
+    %h3 Researcher Dashboard
+    %table.report
+      %tr
+        %th Select a School
+        - School.order(:name).all.each do |school|
+          %tr
+            %td= link_to school.name, school

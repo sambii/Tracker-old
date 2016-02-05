@@ -1,0 +1,91 @@
+
+- if @errors[:base] && @errors[:base] != []
+  %div.ui-error.text-center=@errors[:base]
+%fieldset.input-group
+  %label.col-sm-5.control-label='Student ID:'
+  %input{id: 'student_id', name: 'student[xid]', value: @student.xid}
+  %span.ui-error="#{@errors[:xid] if @errors[:xid].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='First Name:'
+  %input{id: 'student_first_name', name: 'student[first_name]', value: @student.first_name}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:first_name] if @errors[:first_name].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Last Name:'
+  %input{id: 'student_last_name', name: 'student[last_name]', value: @student.last_name}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:last_name] if @errors[:last_name].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Student Email:'
+  %input{id: 'student_email', name: 'student[email]', value: @student.email}
+  %span.ui-error="#{@errors[:email] if @errors[:email].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Grade Level:'
+  %input{id: 'student_grade_level', name: 'student[grade_level]', value: @student.grade_level}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:grade_level] if @errors[:grade_level].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Street Address:'
+  %input{id: 'student_street_address', name: 'student[street_address]', value: @student.street_address}
+  %span.ui-error="#{@errors[:street_address] if @errors[:street_address].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='City:'
+  %input{id: 'student_city', name: 'student[city]', value: @student.city}
+  %span.ui-error="#{@errors[:city] if @errors[:city].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='State:'
+  %input{id: 'student_state', name: 'student[state]', value: @student.state}
+  %span.ui-error="#{@errors[:state] if @errors[:state].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Zip Code:'
+  %input{id: 'student_zip_code', name: 'student[zip_code]', value: @student.zip_code}
+  %span.ui-error="#{@errors[:zip_code] if @errors[:zip_code].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label{for: 'student_race'}='Race:'
+  %select.select-select2{id: 'student_race', name: "student[race]", placeholder: 'Select Race:'}
+    %option{value: ""}
+    %option{value: "American Indian", selected: (@student.race == 'American Indian')} American Indian
+    %option{value: "Asian / Pacific Islander", selected: (@student.race == 'Asian / Pacific Islander')} Asian / Pacific Islander
+    %option{value: "Black", selected: (@student.race == 'Black')} Black
+    %option{value: "Hispanic", selected: (@student.race == 'Hispanic')} Hispanic
+    %option{value: "White", selected: (@student.race == 'White')} White
+    %option{value: "Multi-Racial", selected: (@student.race == 'Multi-Racial')} Multi-Racial
+    %option{value: "Other", selected: (@student.race == 'Other')} Other
+  %span.ui-error="#{@errors[:section_id] if @errors[:section_id].present?}"
+%fieldset.input-group
+  - gender = @student.gender.present? ? @student.gender.upcase : ''
+  %label.col-sm-5.control-label{for: 'student_gender'}='Gender:'
+  %select.select-select2{id: 'student_gender', name: "student[gender]", placeholder: 'Gender:'}
+    - if gender == ''
+      %option{value: ""}
+    %option{value: "M", selected: (gender == 'M')}='M'
+    %option{value: "F", selected: (gender == 'F')}='F'
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:gender] if @errors[:gender].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label{for: 'student_special_ed'}='Special Education:'
+  %select.select-select2{id: 'student_special_ed', name: "student[special_ed]", placeholder: 'True / False:'}
+    %option{value: ""}
+    %option{value: "false", selected: (@student.special_ed == false)} False
+    %option{value: "true", selected: (@student.special_ed == true)} True
+  %span.ui-error="#{@errors[:section_id] if @errors[:section_id].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label{for: 'parent_first_name'}='Parent First Name:'
+  %input{id: 'parent_first_name', name: 'parent[first_name]', value: @parent.first_name}
+  %span.ui-error="#{@parent.errors[:first_name] if @parent.errors[:first_name].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label{for: 'parent_last_name'}='Parent Last Name:'
+  %input{id: 'parent_email', name: 'parent[last_name]', value: @parent.last_name}
+  %span.ui-error="#{@parent.errors[:last_name] if @parent.errors[:last_name].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label{for: 'parent_email'}='Parent Email:'
+  %input{id: 'parent_email', name: 'parent[email]', value: @parent.email}
+  %span.ui-error="#{@parent.errors[:email] if @parent.errors[:email].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label{for: 'parent_subscription_status'}='Send Parent Email:'
+  %select.select-select2{id: 'parent_subscription_status', name: "parent[subscription_status]", placeholder: 'Status:'}
+    %option{value: "0"}='Never'
+    %option{value: "weekly", selected: (@parent.subscription_status == "weekly")}='Weekly'
+    %option{value: "biweekly", selected: (@parent.subscription_status == "biweekly")}='Twice per Month'
+    %option{value: "monthly", selected: (@parent.subscription_status == "monthly")}='Monthly'
+  %span.ui-error="#{@parent.errors[:subscription_status] if @parent.errors[:subscription_status].present?}"

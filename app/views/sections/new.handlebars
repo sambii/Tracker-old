@@ -1,0 +1,45 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" id="new_section" action="/sections" method="post" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <table>
+      <tr>
+        <td>
+          <label for="school_id">School: </label>
+        </td>
+        <td>
+          <select id="school_id" name="school_id" select_url="schools"></select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="section_subject_id">Subject: </label>
+        </td>
+        <td>
+          <select id="section_subject_id" name="section[subject_id]" dependent_on="school_id" select_url="subjects.json?school_id=$value$"></select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="section_teaching_assignments_attributes_0_teacher_id">Teacher: </label>
+        </td>
+        <td>
+          <select id="section_teaching_assignments_attributes_0_teacher_id" name="section[teaching_assignments_attributes][0][teacher_id]" dependent_on="school_id" select_url="teachers"></select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="section_line_number">Identifier: </label>
+        </td>
+        <td>
+          <input type="text" id="section_line_number" name="section[line_number]">
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          <button type="submit" value="commit">Add Section</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>

@@ -1,0 +1,42 @@
+<div id="popup_form">
+  <h3>Summary of {{full_name}} by Outcome</h3>
+  <table class="report">
+    <thead>
+			<td colspan=4>
+				<canvas class="Chart"
+								chart-type="Pie"
+								chart-data='[{"value":"{{count_ratings/H}}","color":"#336688"},{"value":"{{count_ratings/P}}","color":"#338866"},{"value":"{{count_ratings/N}}","color":"#C23030"}]'
+								width=300
+								height=250>
+				</canvas>
+			</td>
+      <tr>
+        <th colspan=4>Summarized by Outcome</th>
+      </tr>
+      <tr>
+        <th>Outcome</th>
+        <th># HP</th>
+        <th># P </th>
+        <th># NYP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each section_outcomes}}
+        {{#if count_ratings}}
+          <tr>
+            <td><span title="{{../name}}">{{../shortened_name}}</span></td>
+            <td class="centered"><div>{{../count_ratings/H}}</div></td>
+            <td class="centered"><div>{{../count_ratings/P}}</div></td>
+            <td class="centered"><div>{{../count_ratings/N}}</div></td>
+          </tr>
+        {{/if}}
+      {{/each}}
+			<tr>
+				<th>Total</th>
+				<th>{{count_ratings/H}}</th>
+				<th>{{count_ratings/P}}</th>
+				<th>{{count_ratings/N}}</th>
+			</tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,18 @@
+<table class="black_border">
+  <% @school_administrators.each do |school_administrator| %>
+    <tr>
+      <td><%= school_administrator.school.name %></td>
+      <td><%= link_to school_administrator.last_name_first, school_administrator %></td>
+      <td><%= school_administrator.user.username %></td>
+      <td>
+        <%= school_administrator.user.temporary_password unless school_administrator.user.temporary_password == nil %>
+        <%= if school_administrator.user.temporary_password == nil
+          link_to "Reset Password",
+          set_temporary_password_path(:id => school_administrator.id, :role_type => "school_administrator"),
+          :remote => true,
+          :confirm => "Are you sure you want to reset " + school_administrator.full_name + "'s password?"
+        end %>
+      </td>
+    </tr>
+  <% end %>
+</table>

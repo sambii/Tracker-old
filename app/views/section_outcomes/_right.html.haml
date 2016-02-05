@@ -1,0 +1,13 @@
+/variables
+- id = section_outcome.id
+
+%table.section_outcome.s_o_right{id: "section_outcome_table_right_#{section_outcome.id}", style: "width: #{@students.count * 54}px"}
+  %thead
+    %tr.section_outcome
+      - @student_ids.each do |student_id|
+        %th.r.s_o_r{id: "s_o_r_#{@section_outcome_ratings[section_outcome.id][student_id][1]}"}= @section_outcome_ratings[section_outcome.id][student_id][0]
+  %tbody.evidence{id: "section_outcome_evidences_right_#{section_outcome.id}"}
+    - if not section_outcome.minimized
+      = render partial: 'evidences/right', collection: get_evidence_section_outcomes(id), as: 'evidence', locals: {section_outcome: section_outcome}
+    -else
+      %tr{id: "empty_evidence_right_#{id}"}

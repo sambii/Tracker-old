@@ -1,0 +1,23 @@
+
+- content_for(:title, 'Edit Evidence')
+- content_for(:page_name, 'Edit Evidence')
+- content_for(:page_class, 'add-edit-evidence')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - if @section.nil?
+    - breadcrumb :current
+  - else
+    - breadcrumb :edit_evidence, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Maintenance for Section: "
+    %a{href: section_path(@section.id)}
+      %i.fa.fa-check
+      ="#{@section.name} - #{@section.line_number}"
+  %h2.h1.page-title
+    %strong
+      ="Edit Evidence: #{@evidence.name} "
+= render 'add_edit_form'

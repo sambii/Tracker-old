@@ -1,0 +1,8 @@
+%div.report_card.clear_fix
+  %div.message
+
+    <p>The process for generating report cards may take several minutes. Please be patient. Upon completion an email will be sent to <span class='red'>#{current_user.email}</span> with the status of your request. </p> <p> You can request report cards for multiple grades. Each request will be queued for processing, and you will recieve a <u>separate</u> email for each grade level. </p>
+
+  %section.formbox
+    =render 'form'
+    =link_to('Back to Dashboard',root_path, class: 'back_to_dashboard')

@@ -1,0 +1,33 @@
+%div.entry
+  %h3
+    = I18n.translate('action_titles.view')
+    = I18n.translate('models.attendance.name')
+    \-
+    = @school_name
+  %p#notice= notice
+  - if current_user.can_change_school?
+    %div.fieldset
+      %label= I18n.translate('models.attendance.fields.school')
+      = @school.name
+  %div.fieldset
+    %label= I18n.translate('models.attendance.fields.code')
+    = @attendance.code
+  %div.fieldset
+    %label= I18n.translate('models.attendance.fields.description')
+    = @attendance.description
+  %div.fieldset
+    %label= I18n.translate('models.attendance.fields.active')
+    = @attendance.active
+  %div.entry_links
+    = link_to I18n.translate('action_titles.create'), new_attendance_path
+    \|
+    = link_to I18n.translate('action_titles.edit'), edit_attendance_path(@attendance)
+    \|
+    = link_to I18n.translate('action_titles.delete'),
+              @attendance,
+              method: :delete,
+              data: { :confirm => I18n.translate('responses.are_you_sure') }
+    \|
+    = link_to I18n.translate('action_titles.list'), attendances_path
+    \|
+    = link_to I18n.translate('navigations.dashboard.title'), current_user

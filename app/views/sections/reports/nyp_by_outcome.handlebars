@@ -1,0 +1,19 @@
+<div id="popup_form">
+  <h3>NYP by Learning Outcome</h3>
+  <table class="report">
+    {{#each section_outcomes}}
+      <tr>
+        <th>
+          {{name}}
+        </th>
+      </tr>
+      {{#each students}}
+        <tr>
+          <td>
+            {{last_name}}, {{first_name}}
+          </td>
+        </tr>
+      {{/each}}
+    {{/each}}
+  </table>
+</div>

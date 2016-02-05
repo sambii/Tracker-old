@@ -1,0 +1,26 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" id="edit_evidence" action="/evidences/{{id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <table>
+      <tr>
+        <td>Evidence Type</td>
+        <td>
+          <select id="evidence_evidence_type_id" name="evidence[evidence_type_id]" select_url="evidence_types" sel={{evidence_type_id}}></select>
+        </td>
+      </tr>
+      <tr>
+        <td>Reassessment? </td>
+        <td>
+          <input id="evidence_reassessment_hidden" name="evidence[reassessment]" type="hidden" value="false">
+          <input id="evidence_reassessment" name="evidence[reassessment]" type="checkbox" {{checked reassessment}} value="true">
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          <button type="submit" value="commit">Update Evidence</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>

@@ -1,0 +1,22 @@
+%div.form
+  = form_for @subject do |f|
+    = display_errors @subject
+    %div.fieldset
+      = f.label :school_id
+      - if params[:school_id]
+        %i= School.find(params[:school_id].to_i).name
+        = f.hidden_field :school_id, value: params[:school_id].to_i
+      - else
+        = f.select :school_id, [], {}, select_url: "schools", sel: @subject.school_id || params[:school_id]
+    %div.fieldset
+      = f.label :discipline_id
+      = f.select :discipline_id, [], {}, select_url: "disciplines", sel: @subject.discipline_id || params[:discipline_id]
+    %div.fieldset
+      = f.label :name
+      = f.text_field :name
+    %div.fieldset
+      = f.label :subject_manager_id
+      = select_tag :subject_manager_type, options_for_select([["Teacher", "teachers"]]), sel: @subject.subject_manager.try(:school_administrator) == true ? "school_administrators" : "teachers"
+      = f.select :subject_manager_id, [], {}, select_url: "$value$", dependent_on: "subject_manager_type", sel: @subject.subject_manager_id
+    %div.submit
+      = f.submit

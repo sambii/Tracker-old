@@ -1,0 +1,227 @@
+
+- content_for(:title, 'Student Tracker')
+- content_for(:page_name, 'Student Tracker')
+- content_for(:page_class, 'misc student-tracker-page')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :student_tracker, @enrollment
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Tracker Pages for: #{@student.full_name}"
+  %h2.h1.page-title
+    %strong
+      ="#{@section.name} | #{@section.line_number}"
+      / %span.flash_alert="Student has been unenrolled from this class!"
+.row
+  .block-section.indent-block
+    .row.height-30
+      %ul.list-inline.pull-left
+        %li
+          %h4.remove-margin
+            %i.fa.fa-user
+            - if can? :edit, @section.teachers.first
+              - if @section.teachers.count > 0
+                - @section.teachers.each_with_index do |t,ix|
+                  %a{href: teacher_path(t.id), title: 'Link to Teacher Dashboard'}
+                    - if ix > 0
+                      =', '
+                    =t.full_name
+            - else
+              = @section.teacher_names
+        %li
+          .remove-margin
+            %i.fa.fa-calendar-o
+            =@sy.name
+      .pull-left
+        %a.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+          %i.fa.fa-lg.fa-print
+        %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+          %i.fa.fa-lg.fa-download
+.row.indent-row
+  .block-section.indent-block
+    - if @section.message.present?
+      %div.section-message
+        ='Section Announcement: '
+        %span.flash_alert=@section.message
+
+/ First Row
+.row.indent-row
+  .col-md-6
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+          %thead.table-title
+            %tr
+              %th{colspan: 2}= 'Evidence Statistics'
+            %tr
+              %th= 'Overall'
+              %th= 'Weekly'
+          %tbody
+            %tr
+              %td#evidence-stats-overall
+                / Overall Stats
+                - overall_g = @e_over_cur['G'] + @e_over_cur['B']
+                - overall_n = @e_over_cur['Y'] + @e_over_cur['R'] + @e_over_cur['M']
+                - g_class = (overall_g < overall_n )? 'circle-icon-small' : ''
+                - n_class = (overall_n < overall_g) ? 'circle-icon-small' : ''
+                - total = overall_g + overall_n
+                .row.text-center
+                  .col-xs-6
+                    %a.circle-icon.background-success{:href => "#", class: "#{g_class}"}
+                      %i.fa.fa-thumbs-o-up
+                    %h4.text-success
+                      %strong="#{overall_g}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='G/B'
+                  .col-xs-6
+                    %a.circle-icon.background-danger{:href => "#", class: "#{n_class}"}
+                      %i.fa.fa-thumbs-o-down
+                    %h4.text-danger
+                      %strong="#{overall_n}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='YRM'
+              %td#evidence-stats-last7
+                / Weekly Stats
+                - weekly_g = @e_weekly_cur['G'] + @e_weekly_cur['B']
+                - weekly_n = @e_weekly_cur['Y'] + @e_weekly_cur['R'] + @e_weekly_cur['M']
+                - g_class = (weekly_g < weekly_n )? 'circle-icon-small' : ''
+                - n_class = (weekly_n < weekly_g) ? 'circle-icon-small' : ''
+                - total = weekly_g + weekly_n
+                .row.text-center
+                  .col-xs-6
+                    %a.circle-icon.background-success{:href => "#", class: "#{g_class}"}
+                      %i.fa.fa-thumbs-o-up
+                    %h4.text-success
+                      %strong="#{weekly_g}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='G/B'
+                  .col-xs-6
+                    %a.circle-icon.background-danger{:href => "#", class: "#{n_class}"}
+                      %i.fa.fa-thumbs-o-down
+                    %h4.text-danger
+                      %strong="#{weekly_n}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='YRM'
+      / END Weekly Evidence Content
+    / END Weekly Evidence Block
+  #lo-pie.col-md-6
+    / Overall Learning Outcome Performance Block
+    - # sum overall learning outcome performance values
+    - e_ratings = @ratings[@enrollment.section.id]
+    .block.block-alt-style.full
+      / Learning Outcome Title
+      .block-title.text-center
+        %h2
+          %i.fa.fa-bar-chart
+          Overall Learning Outcome Performance
+      / END Learning Outcome Title
+      / Learning Outcome Content
+      .row
+        .col-xs-5.text-center
+          / Sparklines plugin used and initialized at the bottom of the page
+          #pie-chart.text-center{data: {px_size: 128, red_count: "#{e_ratings[:N]}", green_count: "#{e_ratings[:P]}", blue_count: "#{e_ratings[:H]}", unrated_count: "#{e_ratings[:U]}"}}
+        .col-xs-7
+          %ul.fa-ul.ul-breath
+            %li
+              %i.fa.fa-circle.fa-li.text-blue
+              .text-normal="#{e_ratings[:H]} - High Performance"
+            %li
+              %i.fa.fa-circle.fa-li.text-green
+              .text-normal="#{e_ratings[:P]} - Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-red
+              .text-normal="#{e_ratings[:N]} - Not Yet Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-unrated
+              .text-normal="#{e_ratings[:U]} - Unrated"
+      / END Learning Outcome Content
+    / END Learning Outcome Block
+/ END First Row
+
+.block-section.indent-block
+  .row.height-30.button-bar
+    .pull-left
+      %a#collapse-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-caret-right
+      %a#expand-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-caret-down
+    / Marking Period filter
+    %ul.pagination.pagination-sm.pull-left#filter_student_lo_evid
+      - sel_mp = @section.selected_marking_period
+      %li.mp-filter#mp_all{class: ('active' if sel_mp.nil? || sel_mp == 0)}
+        %a All
+      - @marking_periods.each do |marking_period|
+        %li.mp-filter{id: "mp_#{marking_period}", class: ('active' if sel_mp == marking_period)}
+          %a= marking_period
+    / misc page level buttons
+    .pull-left
+      %a.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-print
+      %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-download
+.row
+  #lo-evid.col-md-12
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody.table-lo-evid
+          %thead.table-title
+            %tr
+              %th= 'Learning Outcome / Evidence'
+              %th= 'Rating'
+              %th= 'Comments'
+          - @section.section_outcomes.each do |section_outcome|
+            - rating = @section_outcome_ratings[section_outcome.id]
+            %tbody.tbody-header.show-tbody.show-tbody-body
+              %tr.height-30{id: "lo-#{section_outcome.id}"}
+                %td
+                  .clearfix
+                    %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
+                      %i.fa.fa-caret-down.fa-lg
+                    / %a.pull-left.lmargin5{href: "javascript:void(0)"}
+                    %strong.lo-name.pull-left.lmargin5= section_outcome.name
+                    .tracker-cell-marking-periods.pull-right
+                      %ul.pagination.pagination-sm
+                        - @marking_periods.each do |marking_period|
+                          %li{class: ("active mp#{marking_period}" if section_outcome.marking_period_array.include? marking_period) }
+                            %a{href: "javascript:void(0)"}= marking_period
+                %td.lo-rating-name{colspan: 2, class: "#{sor_color_class_text(rating)}"}= long_section_outcome_rating rating
+            %tbody.tbody-body
+              - section_outcome.evidence_section_outcomes.each do |eso|
+                - unless eso.reassessment == true and @evidence_ratings[eso.id][:rating] == '' # and @evidence_ratings[eso.id][:flagged] == false
+                  %tr.evidence{id: "lo-eso-#{eso.id}"}
+                    %td.student_evidence
+                      .clearfix
+                        .tracker-cell-title.evidence_name{title: "#{eso.description}"}
+                          - if eso.reassessment
+                            %span.reassess-icon.fa-stack.fa
+                              %i.fa.fa-circle-o.fa-stack-2x
+                              %i.strong.fa.fa-stack-1x R
+                          .eso-evidence-name
+                            = eso.name
+                        .tracker-evid-date
+                          %small= eso.assignment_date.strftime("%d-%b-%Y")
+                        .tracker-evid-type
+                          %small.text-muted= eso.evidence_type.name
+                      - eso.evidence_attachments.each_with_index do |ea, ix|
+                        .evidence-attachment-row
+                          %a{href: ea.attachment.url, target: '_blank'}
+                            %i.fa.fa-paperclip
+                            .evidence-attachment-name
+                              ="#{ea.name}"
+                      - eso.evidence_hyperlinks.each_with_index do |eh, ix|
+                        .evidence-attachment-row
+                          %a{href: eh.hyperlink, target: '_blank'}
+                            %i.fa.fa-paperclip
+                            .evidence-hyperlink-title
+                              ="#{eh.title}"
+                    %td.eso-evidence-rating-icon
+                      =raw(evidence_icon_html(@evidence_ratings[eso.id][:rating]))
+                    %td.eso-evidence-rating-comment
+                      = @evidence_ratings[eso.id][:comment]

@@ -1,0 +1,144 @@
+/ (Left) Sidebar for Application Layout
+/ Brand
+%div.sidebar-brand
+  %strong TOOLKIT
+/ END Brand
+/ User Links
+.sidebar-section.sidebar-user.sidebar-user-custom.text-center
+  %a.btn.btn-user{href: "#{root_path}"}
+    %i.fa.fa-home
+  %a.btn.btn-user{href: "#{profile_user_path(current_user)}"}
+    %i.fa.fa-cog
+  %a.btn.btn-user{href: "#{destroy_user_session_path}"}
+    %i.fa.fa-power-off
+  %a.btn.btn-user{href: "javascript:void(0)"}
+    %i.fa.fa-question
+/ END User Links
+/ Sidebar Navigation
+%ul.sidebar-nav
+  %li#side-name
+    %a{href: "#{root_path}"}
+      %i.fa.fa-home.sidebar-nav-icon
+      = @current_user.full_name.blank? ? @current_user.username : @current_user.full_name
+  / Only show roles selector if a staff member
+  - if current_user.staff? && current_user.role_symbols.length > 1
+    %li#side-role
+      %a.sidebar-nav-menu{href: "javascript:void(0)", class: (@current_role == '' ? 'open' : '')}
+        %i.fa.fa-angle-down.sidebar-nav-indicator
+        %i.fa.fa-random.sidebar-nav-icon
+        ="Role: #{User.role_symbol_to_name(@current_role)}"
+      %ul
+        - if @current_user.system_administrator? && @current_user.role_symbols.include?(:system_administrator)
+          %li{class: (@current_role == 'system_administrator') ? 'active' : ''}
+            %a{href: "/system_administrators/#{@current_user.id}?role=system_administrator"}= User.role_symbol_to_name(:system_administrator)
+        - if @current_user.researcher? && @current_user.role_symbols.include?(:researcher)
+          %li{class: (@current_role == 'researcher') ? 'active' : ''}
+            %a{href: "/researchers/#{@current_user.id}?role=researcher"}= User.role_symbol_to_name(:researcher)
+        - if @current_school.id.present?
+          - if @current_user.school_administrator? && @current_user.role_symbols.include?(:school_administrator)
+            %li{class: (@current_role == 'school_administrator') ? 'active' : ''}
+              %a{href: "/school_administrators/#{@current_user.id}?role=school_administrator"}= User.role_symbol_to_name(:school_administrator)
+          - if @current_user.teacher? && @current_user.role_symbols.include?(:teacher)
+            %li{class: (@current_role == 'teacher') ? 'active' : ''}
+              %a{href: "/teachers/#{@current_user.id}?role=teacher"}= User.role_symbol_to_name(:teacher)
+          - if @current_user.counselor? && @current_user.role_symbols.include?(:counselor)
+            %li{class: (@current_role == 'counselor') ? 'active' : ''}
+              %a{href: "/counselors/#{@current_user.id}?role=counselor"}= User.role_symbol_to_name(:counselor)
+  / toolkit options for students and parents
+  - if current_user.student? || current_user.parent?
+    %li#side-current.active
+      %a.sidebar-nav-menu{href: "javascript:void(0)", class: (@toolkit_current_enrollments.count == 0 ? 'disabled' : '')}
+        %i.fa.fa-angle-left.sidebar-nav-indicator
+        %i.fa.fa-dashboard.sidebar-nav-icon
+        ='Current Trackers'
+      %ul
+        - @toolkit_current_enrollments.each do |e|
+          %li
+            %a{href: "#{enrollment_url(e.id)}"}= "#{e.section.subject.name} - #{e.section.line_number}"
+    %li#side-past.active
+      %a.sidebar-nav-menu{href: "javascript:void(0)", class: (@toolkit_past_enrollments.count == 0 ? 'disabled' : '')}
+        %i.fa.fa-angle-left.sidebar-nav-indicator
+        %i.fa.fa-folder.sidebar-nav-icon
+        ='Past Trackers'
+      %ul
+        - @toolkit_past_enrollments.each do |e|
+          %li
+            %a{href: "#{enrollment_url(e.id)}"}= "#{e.section.subject.name} - #{e.section.line_number}"
+  - if current_user.staff?
+    / toolkit options for all but students and parents
+    %li#side-current{:class => (!@section.nil? && @toolkit_current_section_ids.include?(@section.id)) ? 'active' : ''}
+      %a.sidebar-nav-menu{href: "javascript:void(0)", class: (@toolkit_current_sections.count == 0 ? 'disabled' : '')}
+        %i.fa.fa-angle-down.sidebar-nav-indicator
+        %i.fa.fa-check.sidebar-nav-icon
+        ='Current Trackers'
+      %ul
+        - @toolkit_current_sections.each do |s|
+          - if @current_school.subsection == true and s.subsections.length > 0
+            %li{class: (!@section.nil? && @section.id == s.id) ? 'active' : ''}
+              %a{href: "#{section_url(s.id)}"}= "#{s.name}"
+              %ul.subsections
+                - s.subsections.reverse_each do |subsection|
+                  %li
+                    %a{href: section_path(s, subsection: subsection[1])}=subsection[0]
+                    / link_to subsection[0], section_path(section, subsection: subsection[1])
+          - else
+            %li{class: (!@section.nil? && @section.id == s.id) ? 'active' : ''}
+              %a{href: "#{section_url(s.id)}"}= "#{s.subject.name} - #{s.line_number}"
+    %li#side-add-lo
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : new_section_outcome_section_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+        %i.fa.fa-lightbulb-o.sidebar-nav-icon>
+        ='Add Learning Outcome'
+    %li#side-add-evid
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : new_evidence_section_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+        %i.fa.fa-puzzle-piece.sidebar-nav-icon>
+        ='Add Evidence'
+    %li#side-restore-evid
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : restore_evidence_section_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+        %i.fa.fa-puzzle-piece.sidebar-nav-extra-icon>
+        %i.fa.fa-repeat.sidebar-nav-icon>
+        ='Restore Evidence'
+    %li#side-attend
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : section_attendance_attendance_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+        %i.fa.fa-calendar.sidebar-nav-icon>
+        ='Section Attendance'
+    %li#side-attendance-maint
+      %a{href: (can?(:update, AttendanceType) ? attendance_maintenance_attendances_path : 'javascript:void(0)'), class: (can?(:update, AttendanceType) ? '' : 'disabled')}
+        %i.fa.fa-calendar.sidebar-nav-extra-icon
+        %i.fa.fa-pencil.sidebar-nav-icon>
+        ='Attendance Maint.'
+    %li#side-reports
+      %a{href: new_generate_path(section_id: (@section.nil? || @section.id.nil? ? '' : @section.id) )}
+        %i.fa.fa-files-o.sidebar-nav-icon>
+        ='Generate Reports'
+    %li#side-staff
+      %a{href: (can?(:staff_listing, User) ? staff_listing_users_path : 'javascript:void(0)'), class: (can?(:staff_listing, User) ? '' : 'disabled')}
+        %i.fa.fa-user.sidebar-nav-icon>
+        ='Staff'
+    %li#side-students
+      %a{href: students_path}
+        %i.fa.fa-users.sidebar-nav-icon
+        ='Students'
+    %li#side-subjects
+      %a{href: (can?(:read, Subject) ? subjects_path : 'javascript:void(0)'), class: (can?(:read, Subject) ? '' : 'disabled')}
+        %i.fa.fa-book.sidebar-nav-icon
+        ='Subjects'
+    - if can?(:switch, School)
+      %li#side-schools
+        %a{href: schools_path}
+          %i.fa.fa-building-o.sidebar-nav-icon>
+          ='Schools'
+    - if can?(:upload_bulk_templates, Misc)
+      %li#side-schools
+        %a{href: upload_bulk_templates_path}
+          %i.fa.fa-building-o.sidebar-nav-icon>
+          ='Upload Templates'
+    %li#side-past{:class => (!@section.nil? && @toolkit_past_section_ids.include?(@section.id)) ? 'active' : ''}
+      %a.sidebar-nav-menu{href: "javascript:void(0)", class: (@toolkit_past_sections.count == 0 ? 'disabled' : '')}
+        %i.fa.fa-angle-down.sidebar-nav-indicator
+        %i.fa.fa-folder.sidebar-nav-icon
+        ='Past Trackers'
+      %ul
+        - @toolkit_past_sections.each do |s|
+          %li{class: (!@section.nil? && @section.id == s.id) ? 'active' : ''}
+            %a{href: "#{section_url(s.id)}"}= "#{s.subject.name} - #{s.line_number}"
+/ END Sidebar Navigation

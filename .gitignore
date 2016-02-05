@@ -1,0 +1,23 @@
+**/.bundle
+**/chromedriver.log
+**/.DS_Store
+**/Guardfile
+**/nohup.out
+**/.idea/
+**/.sass-cache/
+**/config/database.yml
+**/db/*.sqlite3
+**/db/*.sqlite3-journal
+**/log/*.log
+**/public/assets/*
+**/public/system/*
+**/tmp/
+**/coverage
+
+# Ignore other unneeded files.
+**/doc/
+**/*.swp
+**/*~
+**/.project
+**/images/login_bg.png
+

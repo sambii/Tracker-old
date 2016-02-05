@@ -1,0 +1,7 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" action="/students/{{id}}" method="put" data-remote="true">
+    <p>Are you sure you want to remove {{first_name}} {{last_name}} from your school?</p>
+    <input name="student[active]" type="hidden" value="false">
+    <button type="submit" value="commit">Remove Student</button>
+  </form>
+</div>

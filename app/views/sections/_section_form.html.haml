@@ -1,0 +1,70 @@
+=form_for(@section, remote: true) do |f|
+  - @errors = @section.errors
+  .row.page-form
+    .col-sm-6
+      .block.block-alt-style.full
+        .block-title.text-center
+          %h3='Section'
+        .block-content-full
+          - if @errors[:base] && @errors[:base] != []
+            %div.ui-error.text-center=@errors[:base]
+          %fieldset.input-group
+            %label.col-sm-5.control-label{for: 'section[subject_id]'}='Subject:'
+            %input#section_subject_id{type: 'hidden', name: 'section[subject_id]', value: @section.subject_id}
+            %span{name: 'section_subject_line_number]'}=@section.subject.name
+            %span.ui-error="#{@errors[:subject_id] if @errors[:subject_id].present?}"
+          %fieldset.input-group
+            %label.col-sm-5.control-label{for: 'section[line_number]'}='Section ID:'
+            %input#section_line_number{name: 'section[line_number]', value: @section.line_number}
+            %span.ui-required{title: 'Required'}='*'
+            %span.ui-error="#{@errors[:line_number] if @errors[:line_number].present?}"
+          %fieldset.input-group
+            %label.col-sm-5.control-label{for: 'section[school_year_id]'}='School Year:'
+            %input#section_subject_id{type: 'hidden', name: 'section[school_year_id]', value: @section.school_year_id}
+            %span#section_school_year_id=@section.school_year.name
+            %span.ui-error="#{@errors[:school_year_id] if @errors[:school_year_id].present?}"
+    .col-sm-6
+      .block.block-alt-style.full
+        .block-title.text-center
+          %h3='Current Teachers'
+        .block-content-full.rounded-title-container
+          %table#attendance_table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th Remove?
+                %th Name
+            %tbody
+              - @section.teaching_assignments.each_with_index do |ta, ta_ix|
+                - if !ta.id.nil?
+                  - if  ta.teacher.nil?
+                    - Rails.logger.error("!!! ERROR - Missing Teacher on Teacher assignment with id: #{ta.id}")
+                  %tr
+                    %td.text-center
+                      - if @teachers.count > 1
+                        %input.remove-teacher{name: "teaching_assignment_attributes[#{ta_ix+1}][id]", type: "checkbox", value: "#{ta.id}", title: "remove teacher"}
+                    %td
+                      - if ta.teacher.nil?
+                        = "Teacher Assignment #{ta.id} missing Teacher"
+                      - else
+                        =ta.teacher.full_name
+      - if @teachers.count > 1 || !@section.id
+        .block.block-alt-style.full
+          .block-title.text-center
+            %h3='Add Teacher'
+          .block-content-full
+            %fieldset.input-group
+              %label.col-sm-5.control-label{for: 'teaching_assignment_attributes[0][teacher_id]'}
+                ='Teacher:'
+                %select#section-assignment-teacher-id.select-select2{name: "teaching_assignment_attributes[0][teacher_id]", data: {placeholder: "select Teacher"}}
+                  - if @teachers.count > 1
+                    %option{value: ''}
+                  = options_from_collection_for_select(@teachers, 'id', 'full_name')
+                  %input#section-assignment-section-id{type: 'hidden', name: 'teaching_assignment_attributes[0][section_id]', value: @section.id}
+
+
+  .row.page-form
+    .col-sm-12
+      %fieldset.text-center
+        %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+        %button.btn.btn-primary{name: 'commit', type: "submit"}='Save'
+

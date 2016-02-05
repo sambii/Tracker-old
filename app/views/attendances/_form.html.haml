@@ -1,0 +1,17 @@
+= form_for(@attendance) do |f|
+  %p
+    =label_tag 'attendance_date_field', 'Date:'
+    =text_field_tag( 'attendance_date_field', @attendance_date_field,  class: 'datepicker-rusure-submit')
+  = display_errors @attendance
+  = hidden_field_tag "school_id", @school.id.to_s
+  %div.fieldset
+    = f.label I18n.translate('models.attendance.fields.comment')
+    = collection_select("attendance_#{f.object.user_id.to_s}", :attendance_type_id, @attendance_types, :id, :description, {include_blank: '', selected: f.object.attendance_type_id})
+  %div.fieldset
+    = f.label I18n.translate('models.attendance.fields.comment')
+    = collection_select("attendance_#{f.object.user_id.to_s}", :attendance_type_id, @attendance_types, :id, :description, {include_blank: '', selected: f.object.attendance_type_id})
+  %div.fieldset
+    = f.label I18n.translate('models.attendance.fields.comment')
+    = f.text_field :comment, placeholder: "enter comment here."
+  %div.submit
+    = f.submit I18n.translate('action_titles.save')

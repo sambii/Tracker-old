@@ -1,0 +1,4 @@
+%div#subsections
+  Subsection:
+  = select_tag :subsections_select, options_for_select(["All"] + @section.subsections, params[:subsection])
+  = link_to "(edit)", edit_section_path(@section, subsection: true), id: "edit_subsections"

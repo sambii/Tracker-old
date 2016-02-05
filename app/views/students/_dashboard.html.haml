@@ -1,0 +1,182 @@
+/ First Row
+.row.indent-row
+  .col-md-6
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+          %thead.table-title
+            %tr
+              %th{colspan: 2}= 'Evidence Statistics'
+            %tr
+              %th= 'Overall'
+              %th= 'Last 7 Days'
+          %tbody
+            %tr
+              %td#evidence-stats-overall
+                / Overall Stats
+                - overall_g = @e_over_cur['G'] + @e_over_cur['B']
+                - overall_n = @e_over_cur['Y'] + @e_over_cur['R'] + @e_over_cur['M']
+                - g_class = (overall_g < overall_n )? 'circle-icon-small' : ''
+                - n_class = (overall_n < overall_g) ? 'circle-icon-small' : ''
+                - total = overall_g + overall_n
+                .row.text-center
+                  .col-xs-6
+                    %a.circle-icon.background-success{:href => "#", class: "#{g_class}"}
+                      %i.fa.fa-thumbs-o-up
+                    %h4.text-success
+                      %strong="#{overall_g}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='G/B'
+                  .col-xs-6
+                    %a.circle-icon.background-danger{:href => "#", class: "#{n_class}"}
+                      %i.fa.fa-thumbs-o-down
+                    %h4.text-danger
+                      %strong="#{overall_n}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='YRM'
+              %td#evidence-stats-last7
+                / Weekly Stats
+                - weekly_g = @e_weekly_cur['G'] + @e_weekly_cur['B']
+                - weekly_n = @e_weekly_cur['Y'] + @e_weekly_cur['R'] + @e_weekly_cur['M']
+                - g_class = (weekly_g < weekly_n )? 'circle-icon-small' : ''
+                - n_class = (weekly_n < weekly_g) ? 'circle-icon-small' : ''
+                - total = weekly_g + weekly_n
+                .row.text-center
+                  .col-xs-6
+                    %a.circle-icon.background-success{:href => "#", class: "#{g_class}"}
+                      %i.fa.fa-thumbs-o-up
+                    %h4.text-success
+                      %strong="#{weekly_g}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='G/B'
+                  .col-xs-6
+                    %a.circle-icon.background-danger{:href => "#", class: "#{n_class}"}
+                      %i.fa.fa-thumbs-o-down
+                    %h4.text-danger
+                      %strong="#{weekly_n}/#{total}"
+                      %br
+                        %small.text-muted
+                          %strong='YRM'
+      / END Weekly Evidence Content
+    / END Weekly Evidence Block
+  #lo-pie.col-md-6
+    / Overall Learning Outcome Performance Block
+    - # sum overall learning outcome performance values
+    - overall_h = 0
+    - overall_p = 0
+    - overall_n = 0
+    - overall_u = 0
+    - @active_enrollments.each do |e|
+      - e_ratings = @ratings[e.section.id]
+      - overall_h += e_ratings[:H]
+      - overall_p += e_ratings[:P]
+      - overall_n += e_ratings[:N]
+      - overall_u += e_ratings[:U]
+    .block.block-alt-style.full
+      / Learning Outcome Title
+      .block-title.text-center
+        %h2
+          %i.fa.fa-bar-chart
+          Overall Learning Outcome Performance
+      / END Learning Outcome Title
+      / Learning Outcome Content
+      .row
+        .col-xs-5.text-center
+          / Sparklines plugin used and initialized at the bottom of the page
+          #pie-chart.text-center{data: {px_size: 128, red_count: "#{overall_n}", green_count: "#{overall_p}", blue_count: "#{overall_h}", unrated_count: "#{overall_u}"}}
+        .col-xs-7
+          %ul.fa-ul.ul-breath
+            %li
+              %i.fa.fa-circle.fa-li.text-blue
+              .text-normal="#{overall_h} - High Performance"
+            %li
+              %i.fa.fa-circle.fa-li.text-green
+              .text-normal="#{overall_p} - Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-red
+              .text-normal="#{overall_n} - Not Yet Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-unrated
+              .text-normal="#{overall_u} - Unrated"
+      / END Learning Outcome Content
+    / END Learning Outcome Block
+/ END First Row
+/ Second Row
+.row
+  #missing-evid.col-md-6
+    / Missing Evidence Block
+    .block.block-alt-style.full
+      / Missing Evidence Title
+      .block-title.text-center
+        %h2
+          %i.fa.fa-exclamation
+          ='Missing Evidence'
+      / END Missing Evidence Title
+      / Missing Evidence Content
+      .block-content-full
+        #missing_evidence.panel-group.expand-collapse-group
+          - open_first_section = true
+          - @active_enrollments.each do |ae|
+            - evid = @missing[ae.id] # { enroll_id: nil, subject: '', section: '', evid_hash: nil, count: 0}
+            - if evid[:count] > 0
+              .panel.panel-default
+                .panel-heading.group-header.show-group.show-body
+                  .panel-heading-sign=evid[:count]
+                  %h4.panel-title
+                    %a.toggle-group-body
+                      %i.fa.fa-caret-right.fa-lg
+                    %a{href: (can?(:show, ae) ? "#{enrollment_path(ae)}" : "javascript:void(0)"), class: (can?(:show, ae) ? "" : "deactivated arrow-cursor"), title: 'Link to Tracker Page'}
+                      %i.fa.fa-check.fa-lg
+                      %strong="#{evid[:subject]} | #{evid[:teacher_lname]}"
+                #evid_1.group-body
+                  .panel-body.remove-padding
+                    %table.table.table-vcenter.remove-margin
+                      %tbody
+                        / - @student.section_evidence_ratings_of_rating(ae.section_id, 'M').each do |esor|
+                        - evid[:evid_hash].each do |evid_id, esor|
+                          %tr{title: 'Click on link to the Tracker Page for this evidence for more information'}
+                            %td="#{esor[:evid_name]}"
+                            %td.text-right
+                              %small.text-muted="#{esor[:type]}"
+                              \&bull;
+                              %small="#{esor[:date]}"
+  #lo-progress.col-md-6
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.table.titled-table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+          %thead.table-title
+            %tr
+              %th{colspan: 2}
+                %i.fa.fa-check
+                %span{title: 'Learning Outcomes completed at Proficient or higher'}='Learning Outcomes Progress'
+          %tbody
+            - @student.cur_yr_enrollments.current.each do |e|
+              - e_ratings = @ratings[e.section.id]
+              - complete = e_ratings[:H]+e_ratings[:P]
+              - problems = e_ratings[:N]
+              - total = complete + problems
+              - grand_total = e.section.section_outcomes.count
+              - todo = grand_total - total
+              - prof_width = (complete > 0) ? (complete*100/grand_total).floor : 0
+              - prob_width = (problems > 0) ? (problems*100/grand_total).floor : 0
+              - total_width = (todo > 0) ? (todo*100/grand_total).floor : 0
+              - display = "#{complete}/#{total.floor}"
+              - display_total = "of #{grand_total}"
+              - t_name = (e.section.teachers && e.section.teachers.first) ? e.section.teachers.first.last_name : ''
+              %tr{data: {lo_prog_id: "#{e.section.id}"}}
+                %td.col-sm-5
+                  %a{href: (can?(:show, e) ? "#{enrollment_path(e.id)}" : "javascript:void(0)"), class: (can?(:show, e) ? "" : "deactivated arrow-cursor"), title: 'Link to Tracker Page'}
+                    %i.fa.fa-check.fa-lg
+                    %strong.left=" #{e.section.name} | #{t_name}"
+                %td.active.col-sm-7
+                  / .table-progress{:style => "width: #{width}%;"}=display if width >= 15
+                  .progress-container
+                    - if prof_width >= 10
+                      .table-progress{title: 'Learning Outcomes completed at Proficient or Higher out of total rated', :style => "width: #{prof_width}%;"}=display if prof_width >= 10 && prob_width < 10
+                    - if prob_width >= 10
+                      .table-problems{title: 'Learning Outcomes not completed at Proficient or Higher out of total rated', :style => "width: #{prob_width}%;"}=display if prob_width >= 10
+                    - if total_width >= 10
+                      .after-progress{title: 'Total planned number of Learning Outcomes for this course', :style => "width: #{total_width}%;"}= (prof_width < 10 && total_width < 10) ? display : display_total

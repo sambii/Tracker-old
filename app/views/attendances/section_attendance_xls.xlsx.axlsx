@@ -1,0 +1,124 @@
+workbook = xlsx_package.workbook
+worksheet = workbook.add_worksheet(name: "Section")
+
+# Define Styles
+style_align_right = worksheet.styles.add_style({alignment: {horizontal: :right}, sz: 11})
+style_align_center = worksheet.styles.add_style({alignment: {horizontal: :center}})
+style_align_left = worksheet.styles.add_style({alignment: {horizontal: :left}, sz: 11})
+style_header_center = worksheet.styles.add_style({alignment: {horizontal: :center}, sz: 11})
+style_total_student = worksheet.styles.add_style({border: {style: :thin, color: '000000', edges: [:top, :bottom]}})
+# hash for every day of the school year
+col_for_date = Hash.new
+(@school_year.starts_at...@school_year.ends_at).each_with_index do |date, ix|
+  col_for_date[date] = ix
+  last_col_ix = ix
+end
+
+# Add top header rows
+h_row = ['Student Name', 'Subject', 'Section']
+h_row2 = ['','','']
+row_widths = [20, 20, 15]
+
+# symbol to display for attendance types (1st character of description)
+at_sym = Hash.new
+
+# totals column to display attendance type
+at_col = Hash.new
+
+last_col_ix = 0
+# put attendance type totals column in header rows
+@attendance_types.each_with_index do |at, ix|
+  h_row << at.description
+  h_row2 << ''
+  row_widths << 10
+  at_sym[at.id] = at.description[0]
+  # total column (offset) for this attendance type
+  at_col[at.id] = ix
+end
+
+# put month and dates for every day in school year in header rows
+(@school_year.starts_at..@school_year.ends_at).each_with_index do |date, ix|
+  if ix == 0 || date.day == 1
+    h_row << Date::MONTHNAMES[date.month]
+  else
+    h_row << ''
+  end
+  h_row2 << date.mday.to_s
+  row_widths << 3
+  last_col_ix = ix
+end
+  
+# put header rows out
+worksheet.add_row h_row, style: [style_header_center, style_header_center, style_header_center, style_header_center, style_header_center]
+worksheet.add_row h_row2, style: style_align_center
+
+# loop through days in school year
+# with break at student, and student/(subject)/section
+last_student_id = 0
+last_section_id = 0
+first_rec = true
+row_values = Hash.new
+type_totals = Hash.new
+s_type_totals = Hash.new
+s_row = []
+@attendances.each do |a|
+  # set first record to not break
+  if first_rec
+    last_student_id = a.student.id
+    last_section_id = a.section_id
+    h_row = [a.student.full_name, a.section.subject.name, a.section.line_number ]
+    s_row = ["#{a.student.full_name}", '', 'Total:' ]
+    first_rec = false
+  end
+  # check for section breaks
+  if last_student_id != a.student.id || last_section_id != a.section_id
+    @attendance_types.each_with_index do |at, ix|
+      h_row << type_totals[at.id]
+    end
+    (@school_year.starts_at..@school_year.ends_at).each_with_index do |date, ix|
+      h_row << (row_values[date.to_s(:db)].nil? ? '' : row_values[date.to_s(:db)])
+    end
+    worksheet.add_row h_row, types: [:string, :string, :string], style: style_align_center
+    # start row for next record
+    h_row = [a.student.full_name, a.section.subject.name, a.section.line_number]
+    row_values = Hash.new
+    type_totals = Hash.new
+  end
+  # check for student break
+  if last_student_id != a.student.id
+    @attendance_types.each_with_index do |at, ix|
+      s_row << (s_type_totals[at.id].nil? ? 0 : s_type_totals[at.id])
+    end
+    (@school_year.starts_at..@school_year.ends_at).each_with_index do |date, ix|
+      s_row << ''
+    end
+    worksheet.add_row s_row, types: [:string, :string, :string], style: style_total_student #style_align_left
+    # worksheet.merge_cells worksheet.rows.last.cells[(0..2)]
+    # start row for next student record
+    s_row = ["#{a.student.full_name}", '', 'Total:' ]
+    s_type_totals = Hash.new
+  end
+
+  # populate row_values with first character of attendance type description
+  first_char = at_sym[a.attendance_type_id]
+  # if value for that date already, add to it
+  row_values[a.attendance_date.to_s(:db)] = (row_values[a.attendance_date.to_s(:db)].nil? ? first_char : "#{row_values[a.attendance_date.to_s(:db)]} #{first_char}")
+
+  # attendance type totals
+  at_id = a.attendance_type_id
+  type_totals[at_id] = (type_totals[at_id].nil? ? 1 : type_totals[at_id] + 1 )
+  s_type_totals[at_id] = (s_type_totals[at_id].nil? ? 1 : s_type_totals[at_id] + 1 )
+
+  # update break detectors
+  last_section_id = a.section_id
+  last_student_id = a.user_id
+
+end
+
+# print final break
+# output_section_row
+# output_student_total_row
+
+# set column widths
+worksheet.column_widths *row_widths
+

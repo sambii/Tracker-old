@@ -1,0 +1,89 @@
+
+- content_for(:title, 'View Student')
+- content_for(:page_name, 'View Student')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Student Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='View Student'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          =@student.full_name
+      .block-content-full
+        .page-form.alternate-highlight
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Student ID:'
+            %span.col-sm-7=@student.xid
+          %fieldset.span-group
+            %label.col-sm-5.control-label='First Name:'
+            %span.col-sm-7=@student.first_name
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Last Name:'
+            %span.col-sm-7=@student.last_name
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Student Email:'
+            %span.col-sm-7=@student.email
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Student Username:'
+            %span.col-sm-7=@student.username
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Grade Level:'
+            %span.col-sm-7=@student.grade_level
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Street Address:'
+            %span.col-sm-7=@student.street_address
+          %fieldset.span-group
+            %label.col-sm-5.control-label='City:'
+            %span.col-sm-7=@student.city
+          %fieldset.span-group
+            %label.col-sm-5.control-label='State:'
+            %span.col-sm-7=@student.state
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Zip Code:'
+            %span.col-sm-7=@student.zip_code
+          %fieldset.span-group
+            %label.col-sm-5.control-label{for: 'student_race'}='Race:'
+            %span.col-sm-7=@student.race
+          %fieldset.span-group
+            - gender = @student.gender.present? ? @student.gender.upcase : ''
+            %label.col-sm-5.control-label{for: 'student_gender'}='Gender:'
+            %span.col-sm-7=gender
+          %fieldset.span-group
+            %label.col-sm-5.control-label{for: 'student_special_ed'}='Special Education:'
+            %span.col-sm-7=@student.special_ed
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Parent First Name:'
+            %span.col-sm-7=@parent.first_name
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Parent Family/Last:'
+            %span.col-sm-7=@parent.last_name
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Parent Username:'
+            %span.col-sm-7=@parent.username
+          %fieldset.span-group
+            %label.col-sm-5.control-label{for: 'parent_email'}='Send Parent Email:'
+            %span.col-sm-7=@parent.email
+          %fieldset.span-group
+            - subscr_status = 'Never'
+            - subscr_status = 'Weekly' if @parent.subscription_status == "weekly"
+            - subscr_status = 'Twice per Month' if @parent.subscription_status == "biweekly"
+            - subscr_status = 'Monthly' if @parent.subscription_status == "monthly"
+            %label.col-sm-5.control-label{for: 'parent_subscription_status'}='Parent Subscription Status:'
+            %span.col-sm-7=subscr_status
+
+          %fieldset.text-center
+            .col-sm-12
+              %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+  .col-sm-1

@@ -1,0 +1,23 @@
+!!!
+/[if IE 8]>  <html class="no-js lt-ie9 pre_ie10"> <![endif]-->
+/[if lt IE 10] <html class="no-js pre_ie10">
+/ [if gt IE 9]><!
+%html.no-js.standard
+  / <![endif]
+  %head
+    %meta{content: "width=device-width, initial-scale=1.0", name: "viewport"}/
+    %title= content_for?(:title) ? yield(:title) : "Tracker UI"
+    %meta{content: content_for?(:page_name) ? yield(:page_name) : "Tracker UI", name: "page_name"}/
+    %meta{content: "noindex, nofollow", name: "robots"}/
+    %meta{content: "width=device-width,initial-scale=1,maximum-scale=1.0", name: "viewport"}/
+    %link{rel: "shortcut icon", href:"/favicon.ico"}
+    = javascript_tag "var AUTH_TOKEN      = '#{form_authenticity_token}';"
+    = javascript_tag "var CURRENT_USER_ID = '#{current_user.id if current_user}';"
+    = stylesheet_link_tag "application", media: "all"
+    = javascript_include_tag "application"
+    = yield(:head) # is this needed? - see application_helper.rb  javascript(*files)
+    = csrf_meta_tag
+    = yield(:styles)
+  %body
+    = yield
+    = yield(:scripts)

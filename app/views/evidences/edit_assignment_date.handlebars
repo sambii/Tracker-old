@@ -1,0 +1,17 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" id="edit_evidence" action="/evidences/{{id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <table>
+      <tr>
+        <td>Assignment Date</td>
+        <td><input type="text" id="evidence_assignment_date" name="evidence[assignment_date]" class="datepicker" value="{{assignment_date}}"></td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          <button type="submit" value="commit">Update Evidence</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>

@@ -1,0 +1,149 @@
+
+- content_for(:title, 'School Administrator Dashboard')
+- content_for(:page_name, 'School Administrator Dashboard')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :school_admin_dashboard, @school_administrator
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Dashboard'
+  %h2.h1.page-title
+    %strong="School Administrator: #{@school_administrator.full_name}"
+  - si_time = (@school_administrator.current_sign_in_at.nil?) ? 'Never' : @school_administrator.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
+  %span="(Latest signin time at: #{si_time})"
+
+/ First Row
+.row.indent-row
+  .col-sm-6.col-lg-6
+    / Overall Student Performance Block
+    .block.block-alt-style.full
+      / Learning Outcome Title
+      .block-title.text-center
+        %h2
+          ='Overall Student Performance'
+      / END Learning Outcome Title
+      / Learning Outcome Content
+      .row
+        .col-xs-5.text-center
+          / Sparklines plugin used and initialized at the bottom of the page
+          #pie-chart.text-center{data: {px_size: 128, unrated_count: "#{@school_ratings[:U]}", red_count: "#{@school_ratings[:N]}", green_count: "#{@school_ratings[:P]}", blue_count: "#{@school_ratings[:H]}"}}
+        .col-xs-7
+          %ul.fa-ul.ul-breath
+            %li
+              %i.fa.fa-circle.fa-li.text-blue
+              .text-normal="#{@school_ratings[:H]} - High Performance"
+            %li
+              %i.fa.fa-circle.fa-li.text-green
+              .text-normal="#{@school_ratings[:P]} - Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-red
+              .text-normal="#{@school_ratings[:N]} - Not Yet Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-unrated
+              .text-normal="#{@school_ratings[:U]} - Unrated"
+      / END Learning Outcome Content
+    / END Learning Outcome Block
+  .col-sm-6.col-lg-6
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Proficiency Bar Chart'
+          %tbody
+            - shown = 0
+            / loop through subjects sorted by last_rating_date
+            - @by_date.each do |srd_k, srd_v|
+              - subject = srd_v[:subject]
+              - s_ratings = srd_v[:ratings]
+              - total_ratings = s_ratings[:H] + s_ratings[:P] + s_ratings[:N] + s_ratings[:U]
+              - shown += 1
+              - if shown > 9
+                %tr
+                  %td{colspan: 2}
+                    %a{href: proficiency_bars_subjects_path}= 'View All'
+                - break
+              - else
+                %tr
+                  %td
+                    %a{href: subject_path(subject.id)}
+                      ="#{subject.name}"
+                  - pixel_width = 300
+                  %td{style: "width: #{pixel_width+11}px;"}
+                    - if total_ratings > 0
+                      .flat-bar-chart{style: "width: 100%;"}
+                        .high-rating-bar.progress-bar{style: "width: #{(s_ratings[:H]*pixel_width/total_ratings).floor}px"}=s_ratings[:H]
+                        .prof-rating-bar.progress-bar{style: "width: #{(s_ratings[:P]*pixel_width/total_ratings).floor}px"}=s_ratings[:P]
+                        .nyp-rating-bar.progress-bar{style: "width: #{(s_ratings[:N]*pixel_width/total_ratings).floor}px"}=s_ratings[:N]
+                        .unrated-rating-bar.progress-bar{style: "width: #{(s_ratings[:U]*pixel_width/total_ratings).floor}px"}=s_ratings[:U]
+/ END First Row
+
+.row.indent-row
+  .col-sm-6.col-lg-6
+    / Active Classes Block
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Learning Outcomes Covered'
+          %tbody
+            - shown = 0
+            / loop through subjects sorted by proportion of LOs covered
+            - @by_lo_count.each do |srd_k, srd_v|
+              - subject = srd_v[:subject]
+              - complete = srd_v[:rated_los_count]
+              - grand_total = srd_v[:all_los_count]
+              - width = (complete > 0) ? (complete*100/grand_total).floor : 0
+              - shown += 1
+              - if shown > 9
+                %tr
+                  %td{colspan: 2}
+                    %a{href: progress_meters_subjects_path}= 'View All'
+                - break
+              - else
+                %tr
+                  %td{:style => "width: 150px;"}
+                    %a{href: subject_path(subject.id)}
+                      ="#{subject.name}"
+                  %td.active
+                    / .table-progress{:style => "width: #{width}%;"}=display if width >= 15
+                    .progress-container
+                      .table-progress{title: 'Learning Outcomes Covered out of All', :style => "width: #{width}%;"}
+                        - if width >= 20
+                          ="#{complete}"
+                        - if width >= 80
+                          =" out of #{grand_total}"
+                      .after-progress
+                        - if width < 20
+                          ="#{complete}"
+                        - if width < 80
+                          =" out of #{grand_total}"
+  .col-sm-6.col-lg-6
+    / Recent Activity Block
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.table-clickable-rows
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Recent Staff Activity'
+          %tbody
+            - @recent10.take(9).each do |s|
+              %tr
+                %td
+                  %a{href: "#{user_dashboard_path(s)}"}
+                    =s.full_name
+                %td
+                  %a{href: "#{user_dashboard_path(s)}"}
+                    =s.current_sign_in_at
+            / - if @recent10.length > 9
+            /   %tr
+            /     %td{colspan: 2}
+            /       %a{href: '#'}= 'View All'
+/ .row
+/   .col= render 'dashboard'
+

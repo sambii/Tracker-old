@@ -1,0 +1,72 @@
+<div id="popup_form">
+  <h3>Student Report for {{first_name}} {{last_name}}</h3>
+  <button type="button" data_template="students/edit" data_url="students/{{id}}.json">Edit Student Information</button>
+  <h4>Current Courses</h4>
+  <table class="report">
+    <thead>
+      <tr>
+        <th>Section</th>
+        <th>Teacher(s)</th>
+        <th>LO's</th>
+        <th># HP</th>
+        <th># P</th>
+        <th># NYP</th>
+    </thead>
+    <tbody id="current_sections">
+      {{#each current_sections}}
+        <tr>
+          <td><a href="/enrollments/{{enrollment_id}}">{{name}}</a></td>
+          <td>{{teacher_names}}</td>
+          {{#with ratings}}
+            <td class="rating"><div>{{sum_ratings H P N}}</div></td>
+            <td class="rating"><div>{{H}}</div></td>
+            <td class="rating"><div>{{P}}</div></td>
+            <td class="rating"><div>{{N}}</div></td>
+            {{#if_current_section ../id}}
+              <td>
+                <form accept-charset="UTF-8" action="/enrollments/{{../../enrollment_id}}" data-remote="true" method="put">
+                  <input name="enrollment[active]" value="false" type="hidden">
+                  <button type="submit" value="commit">Remove Student</button>
+                </form>
+              </td>
+            {{/if_current_section}}
+          {{/with}}
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  <h4>Prior Courses</h4>
+  <table class="report">
+    <thead>
+      <tr>
+        <th>Section</th>
+        <th>Teacher(s)</th>
+        <th>LO's</th>
+        <th># HP</th>
+        <th># P</th>
+        <th># NYP</th>
+    </thead>
+    <tbody id="old_sections">
+      {{#each old_sections}}
+        <tr>
+          <td><a href="/enrollments/{{enrollment_id}}">{{name}}</a></td>
+          <td>{{teacher_names}}</td>
+          {{#with ratings}}
+            <td class="rating"><div>{{sum_ratings H P N}}</div></td>
+            <td class="rating"><div>{{H}}</div></td>
+            <td class="rating"><div>{{P}}</div></td>
+            <td class="rating"><div>{{N}}</div></td>
+            {{#if_current_section ../id}}
+              <td>
+                <form accept-charset="UTF-8" action="/enrollments/{{../../enrollment_id}}" data-remote="true" method="put">
+                  <input name="enrollment[active]" value="false" type="hidden">
+                  <button type="submit" value="commit">Remove Student</button>
+                </form>
+              </td>
+            {{/if_current_section}}
+          {{/with}}
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

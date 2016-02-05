@@ -1,0 +1,73 @@
+/ POSITIONED POPUPS
+/
+/ Pop Up on Hover
+#popup-hover.popup.display-none
+  .popup-content
+    %h5.popup-header
+      %i.fa.fa-comment
+      %strong Comments
+    .well
+      %p#popup-hover-comment.text-muted.push-bit
+/ END Pop Up on Hover
+/ Popup on Click
+#popup-rate-single-evid.popup.display-none{style: 'background-color: transparent;'}
+  %button.close{type: "button", title: 'close'} X&nbsp;
+  %div#popup-see-evid-ratings
+  %ul.popup-links.just-rating
+    %li.blue
+      %a.btn.esor{href: "javascript:void(0)", data: {selection: 'B'}}
+        %i.fa.fa-asterisk.text-blue2
+    %li.green
+      %a.btn.esor{href: "javascript:void(0)", data: {selection: 'G'}}
+        %i.fa.fa-circle.text-green2
+    %li.yellow
+      %a.btn.esor{href: "javascript:void(0)", data: {selection: 'Y'}}
+        %i.fa.fa-adjust.text-yellow2
+    %li.red
+      %a.btn.esor{href: "javascript:void(0)", data: {selection: 'R'}}
+        %i.fa.fa-circle-o.text-red2
+    %li.missing{title: 'Missing'}
+      %a.btn.esor{href: "javascript:void(0)", data: {selection: 'M'}}
+        %i.fa.fa-ban.text-unrated2
+    %li.unrated{title: 'Unrated'}
+      %a.btn.esor{href: "javascript:void(0)", data: {selection: 'U'}}
+        %i.fa.fa-circle.text-unrated2
+  .popup-form
+    %h5#add-edit.popup-header.pointer-cursor
+      / %i.fa.fa-comment
+      / %strong Add/Edit a comment
+    #edit-comment
+      %form{action: "index.html", method: "post"}
+        %textarea#popup-comment.form-control{name: "popup-comment", rows: "5"}
+        / .popup-form-action
+        /   %button.btn.btn-link{type: "submit"} SAVE
+        %fieldset#reassess-fields
+          %input#reassess-flag{type: "checkbox"}
+          %label{for: 'reassess-flag'}='Flag for reassessment'
+      .text-center
+        %button#save-single-evid.btn.btn-primary{type: "button", title: 'save'}='Save'
+        %button#cancel-bulk-evid.btn.btn-cancel.cancel{type: "button", title: 'cancel'}='Cancel'
+/ END Popup on Click
+#popup-rate-single-lo.popup.display-none
+  %button.close{type: "button", title: 'close'} X&nbsp;
+  %h5#add-edit.popup-header.pointer-cursor
+  %ul.popup-links.rating-plus-desc
+    %li.blue{}
+      %a.btn.btn-rate-lo{href: "javascript:void(0)", data: {selection: 'H'}}
+        %i.larger-font.not-italic.text-blue2='H'
+        %span= 'igh Performance'
+    %li.green
+      %a.btn.btn-rate-lo{href: "javascript:void(0)", data: {selection: 'P'}}
+        %i.larger-font.not-italic.text-green2='P'
+        %span= 'roficient'
+    %li.red
+      %a.btn.btn-rate-lo{href: "javascript:void(0)", data: {selection: 'N'}}
+        %i.larger-font.not-italic.text-red2="N"
+        %span= 'ot Yet Proficient'
+    %li.unrated
+      %a.btn.btn-rate-lo{href: "javascript:void(0)", data: {selection: 'U'}}
+        %i.larger-font.not-italic.text-unrated2="U"
+        %span= 'nrated'
+    .text-center
+      %button#save-single-lo.btn.btn-primary{type: "button", title: 'save'}='Save'
+      %button#cancel-bulk-lo.btn.btn-cancel.cancel{type: "button", title: 'cancel'}='Cancel'

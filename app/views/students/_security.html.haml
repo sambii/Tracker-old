@@ -1,0 +1,79 @@
+
+- content_for(:title, 'User Maintenance - Student/Parent Security and Access')
+- content_for(:page_name, 'User Maintenance - Student Security and Access')
+- content_for(:page_class, 'misc')
+
+.modal-message#modal-message
+.modal-header
+  %button.close{"aria-hidden" => "true", "data-dismiss" => "modal", type: "button"} ×
+
+.modal-body#modal-body
+
+  / Header
+  .header-block
+    .row
+      .col-md-12
+        %h1.h3.page-title.text-center
+          %strong='User Maintenance'
+        %h2.h1.page-title.text-center
+          %strong='Student/Parent Security and Access'
+
+  .row
+    .col-md-12
+      .block.block-alt-style.full
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th='Student'
+                %th='Parent'
+            %tbody
+              %tr
+                %td
+                  .row
+                    .col-md-5='Name:'
+                    .col-md-7=@student.full_name
+                %td
+                  .row
+                    .col-md-5='Name:'
+                    .col-md-7=@parent.full_name
+              %tr
+                %td
+                  .row
+                    .col-md-5='Sign In Count:'
+                    .col-md-7=@student.sign_in_count
+                %td
+                  .row
+                    .col-md-5='Sign In Count:'
+                    .col-md-7=@parent.sign_in_count
+              %tr
+                %td
+                  .row
+                    .col-md-5='Last Sign In At:'
+                    .col-md-7=@student.last_sign_in_at
+                %td
+                  .row
+                    .col-md-5='Last Sign In At:'
+                    .col-md-7=@parent.last_sign_in_at
+              %tr
+                %td
+                  .row
+                    .col-md-5='Username:'
+                    .col-md-7=@student.username
+                %td
+                  .row
+                    .col-md-5='Username:'
+                    .col-md-7=@parent.username
+              %tr
+                %td{id: "user_#{@student.id}"}
+                  .row
+                    .col-md-5='Temporary Password:'
+                    .col-md-7{id: "user_#{@student.id}_password"}=set_temporary_password(@student)
+                %td{id: "user_#{@parent.id}"}
+                  .row
+                    .col-md-5='Temporary Password:'
+                    .col-md-7{id: "user_#{@parent.id}_password"}=set_temporary_password(@parent)
+  .modal-footer
+    %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} Close
+
+

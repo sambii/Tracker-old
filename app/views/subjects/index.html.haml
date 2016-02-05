@@ -1,0 +1,112 @@
+- title = 'Subjects / Sections Listing'
+- content_for(:title, title)
+- content_for(:page_name, title)
+- content_for(:page_class, 'misc edit_subject_outcomes')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :subjects_sections_listing
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Maintenance"
+  %h2.h1.page-title
+    %i.fa.fa-book
+    %strong='/'
+    %i.fa.fa-th
+    %strong='-'
+    %strong=title
+  .row
+    %a#collapse-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Collapse All'}
+      %i.fa.fa-lg.fa-caret-right
+    %a#expand-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Expand All'}
+      %i.fa.fa-lg.fa-caret-down
+    %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-filter
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+    - if can?(:create, Subject)
+      %a#add_lo.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_subject_path(format: :js), title: 'Create Subject'}}
+        %i.fa.fa-lg.fa-plus-square
+    - if can?(:switch, School)
+      %a#upload-los.btn.btn-sm.btn-primary{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes', class: (@school.acronym == 'MOD' ? '' : 'deactivated arrow-cursor')}
+        %i.fa.fa-lg.fa-lightbulb-o
+        %i.fa.fa-lg.fa-upload
+    - if can? :enter_bulk, Section
+      %a#bulk-enter-sections.btn.btn-sm.btn-primary{ href: enter_bulk_sections_path(), title: 'Bulk Enter Sections'}
+        %i.fa.fa-lg.fa-th
+        %i.fa.fa-lg.fa-stack-overflow
+    - if can? :create, TeachingAssignment
+      %a#bulk-enter-teaching-assignments.btn.btn-sm.btn-primary{ href: enter_bulk_teaching_assignments_path(), title: 'Bulk Enter Teaching Assignments'}
+        %i.fa.fa-lg.fa-user
+        %i.fa.fa-lg.fa-stack-overflow
+    - if can? :create, Enrollment
+      %a#bulk-enter-enrollments.btn.btn-sm.btn-primary{ href: enter_bulk_enrollments_path(), title: 'Bulk Enter Student Assignments'}
+        %i.fa.fa-lg.fa-users
+        %i.fa.fa-lg.fa-stack-overflow
+%br
+.row
+  .col-sm-12
+    .block.block-alt-style.full
+      .block-title
+        %h2
+          %i.fa.fa-lg.fa-caret-right
+          ='Discipline : Subject'
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+          %thead.table-title
+            %tr
+              %th= 'Section'
+              %th= 'Teacher'
+              %th= 'Students'
+              %th= ''
+          - @disciplines.each do |disc|
+            - disc.subjects.each do |subj|
+              %tbody.tbody-header.show-tbody{id: "subj_header_#{subj.id}", class: (false ? 'show-tbody-body' : '' )}
+                %tr.height-30
+                  %td{colspan: 3}
+                    .clearfix
+                      %a.toggle-tbody.pull-left{href: "javascript:void(0)", id: "subj_header_#{subj.id}_a"}
+                        %i.fa.fa-caret-down.fa-lg
+                      %a{href: subject_path(subj.id), title: 'Subject Dashboard'}
+                        %strong.pull-left.lmargin5="#{disc.name} : #{subj.name}"
+                  %td.text-center
+                    - if can? :create, Section
+                      %a.add-section{data: {target: "#modal_popup", toggle: 'modal', remote: true}, href: "/sections/new?subject_id=#{subj.id}", title: 'Add New Section'}
+                        %i.fa.fa-lg.fa-plus
+                    - if can? :edit, subj
+                      %a.edit-subject{data: {target: "#modal_popup", toggle: 'modal', url: edit_subject_path(subj.id, format: :js)}, title: 'Edit Subject'}
+                        %i.fa.fa-lg.fa-edit
+                    - if can?(:subject_admin, Subject) || can?(:edit_subject_outcomes, subj)
+                      %a.assign-los{href: edit_subject_outcomes_subject_path(subj.id), title: 'Edit Subject Outcomes'}
+                        %i.fa.fa-lg.fa-lightbulb-o
+                      / %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: edit_subject_outcomes_subject_path(subj.id, format: :js)}, title: 'Link to Edit Subject Outcomes'}
+                      /   %i.fa.fa-lg.fa-lightbulb-o
+              %tbody.tbody-body{id: "subj_body_#{subj.id}"}
+                - subj.sections.each do |s|
+                  %tr{id: "sect_#{s.id}"}
+                    %td.sect-section
+                      =s.line_number
+                    %td.sect-teacher
+                      - if s.teachers.count > 0
+                        - s.teachers.each_with_index do |t,ix|
+                          - if can?(:show, s)
+                            %a{href: teacher_path(t.id), title: 'Teacher Dashboard'}
+                              - if ix > 0
+                                =', '
+                              =t.full_name
+                          - else
+                            =t.full_name
+                    %td.sect-students=s.active_students.count
+                    %td.text-center
+                      - if can?(:show, s)
+                        %a{href: "#{class_dashboard_section_path(s.id)}", title: 'Section Dashboard'}
+                          %i.fa.fa-dashboard.fa-lg
+                        %a{href: "#{section_path(s.id)}", title: 'Tracker Page'}
+                          %i.fa.fa-check.fa-lg
+                      - if can? :edit, s
+                        %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_section_path(s.id, format: :js)}, title: 'Edit Section'}
+                          %i.fa.fa-lg.fa-edit

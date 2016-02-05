@@ -1,0 +1,108 @@
+<div id="placeholder">
+  <div>
+    <img id="tools" src="/assets/tools.png" section_id="{{id}}" subsection_id="0">
+    <!-- TODO: is_teacher and subsection_id -->
+    <div id="section_label" class="inline_block">
+      {{name}}: {{line_number}}
+      <br>
+      {{teacher_names}}
+    </div>
+  </div>
+  <div id="marking_periods">
+    <div id="mp_all" class="mp">All</div>
+    <div id="mp_1" class="mp">1</div>
+    <div id="mp_2" class="mp">2</div>
+    <div id="mp_3" class="mp">3</div>
+    <div id="mp_4" class="mp">4</div>
+  </div>
+</div>
+<div id="section_message">
+  Section Message
+  <button id="edit_section_message" type="button" data_template="sections/edit_section_message" data_url="sections/{{id}}">Edit</button>
+  <i>
+    {{message}}
+  </i>
+</div>
+<div id="white_space_top"></div>
+<div id="white_space_left"></div>
+<div id="gradebook">
+  <div id="roster_row">
+    <table id="roster">
+      <tr>
+        <td id="blank">
+          <div></div>
+        </td>
+          {{#each students}}
+            <th class="student">
+              <div id="student_{{[0]}}" data_template="students/show" data_url="students/{{[0]}}.json">
+                {{[1]}}
+                <br>
+                {{[2]}}
+              </div>
+            </th>
+          {{/each}}
+      </tr>
+    </table>
+  </div>
+  <div id="gradebook_spacer"></div>
+  <div id="grades_left">
+    {{#each data}}
+      <table id="section_outcome_left_{{[0]}}" class="section_outcome">
+        <thead>
+          <tr>
+            <th class="name" style="overflow: hidden;">
+              <span class="section_outcome_toggle">-</span>
+              <!-- TODO: make a + or - depending on toggle status -->
+              <span id="section_outcome_{{[0]}}"
+                    class="section_outcome_name"
+                    title="{{[1]}}"
+                    data_template="section_outcomes/rate"
+                    data_url="section_outcomes/{{[0]}}.json sections/{{../id}}.json">
+                    {{[1]}}
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="section_outcome_evidences_left_{{[0]}}" class="evidence ui-sortable">
+          {{#each [3]}}
+            <tr id="evidence_left_row_{{[0]}}" class="evidence">
+              <td id="evidence_{{[0]}}" class="name" style="overflow: hidden;">
+                <span class="evidence_name"
+                      data_template="evidences/rate"
+                      data_url="evidences/{{[2]}}/rate.json">
+                  {{[1]}}
+                </span>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/each}}
+  </div>
+  <div id="grades_right" class="ui-sortable">
+    {{#each data}}
+      <table id="section_outcome_table_right_{{[0]}}" class="section_outcome s_o_right">
+        <thead>
+          <tr class="section_outcome">
+            {{#each [2]}}
+              <th class="r s_o_r" id="s_o_r_{{[1]}}">
+                {{[0]}}
+              </th>
+            {{/each}}
+          </tr>
+        </thead>
+        <tbody>
+          {{#each [3]}}
+            <tr id="evidence_right_row_{{[0]}}" class="evidence">
+              {{#each [4]}}
+                <td class="r e_r" id="e_r_{{[2]}}" c="{{#if [1]}}t{{else}}f{{/if}}">
+                  {{[0]}}
+                </td>
+              {{/each}}
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/each}}
+  </div>
+</div>

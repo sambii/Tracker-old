@@ -1,0 +1,105 @@
+
+- content_for(:title, 'Staff Bulk Upload')
+- content_for(:page_name, 'Staff Bulk Upload')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :staff_bulk_entry
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Maintenance"
+  %h2.h1.page-title
+    %strong="Staff Bulk Upload"
+
+.row
+  .col-sm-12
+    .block.block-alt-style.full
+
+      .block-content-full
+        = form_tag(bulk_update_staff_users_path, multipart: true) do
+          / display any errors
+          -# if @errors[:base]
+          -# #form-errors.ui-error.text-center=@errors[:base]
+
+          / Only show file input if stage 1, or errors exist for rerun
+          - if @stage == 1 || @errors.count > 0 || @error_list.count > 0 || @preview
+            #ask-filename
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Staff Upload File:'
+                %input#file{type: 'file', name: 'file'}
+                / = file_field_tag :file
+                %span.ui-error="#{@errors[:filename] if @errors[:filename].present?}"
+            #show-upload.display-none
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Preview Mode?'
+                %input{type: 'checkbox', name: 'preview', checked: 'checked'}
+              .row.text-center
+                %button#upload.btn.btn-primary{type: 'submit'}='Upload'
+
+          .upload-output
+            / show chosen filename
+            #show-filename{class: ( (@stage > 1 ) ? '' : 'display-none')}
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Filename:'
+                %span=@filename
+
+            / if past stage 1, show any errors
+            #show-filename{class: ( (@stage > 1 ) ? '' : 'display-none')}
+              - if @error_list && @error_list.length > 0
+                .row.ui-error='Lines with Duplicated Emails Errors by email address'
+                - @error_list.each do |k, v|
+                  .row.ui-error= "#{v}"
+              - if @errors.count == 0 && @records.present?
+                - if @preview
+                  %h3="Preview of #{@records.count} Staff bulk upload."
+                - else
+                  %h3="Bulk create of #{@records.count} Staff records successful!"
+              - if !(@any_errors || @preview)
+                .row.text-center
+                  %a.btn.btn-primary.show_report_btn{href: 'javascript: void(0);'}='Show entered report'
+- if @stage > 1 && @records
+  #show-details.row.upload-output{class: (@any_errors || @preview ? '' : 'hidden_report')}
+    .col-sm-12
+      .block.block-alt-style.full
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th= 'Line'
+                - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                  %th= 'First Name'
+                  - if @school.has_flag?(School::USE_FAMILY_NAME)
+                    %th= 'Family Name'
+                  - else
+                    %th= 'Last Name'
+                - else
+                  - if @school.has_flag?(School::USE_FAMILY_NAME)
+                    %th= 'Family Name'
+                  - else
+                    %th= 'Last Name'
+                  %th= 'First Name'
+                %th= 'Acronym'
+                %th= 'Email'
+                %th= 'Position'
+                %th= 'Errors'
+            %tbody.tbody-body
+              - @records.each_with_index do |rx, ix|
+                %tr
+                  %td="#{ix+2}"
+                  - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                    %td=rx[UsersController::COL_FNAME]
+                    %td=rx[UsersController::COL_LNAME]
+                  - else
+                    %td=rx[UsersController::COL_LNAME]
+                    %td=rx[UsersController::COL_FNAME]
+                  %td=rx[UsersController::COL_ACR]
+                  %td=rx[UsersController::COL_EMAIL]
+                  %td=rx[UsersController::COL_POSIT]
+                  %td
+                    %span.ui-error=rx[UsersController::COL_ERROR]
+                    - if !@rollback
+                      %span.ui-success=rx[UsersController::COL_SUCCESS]
+

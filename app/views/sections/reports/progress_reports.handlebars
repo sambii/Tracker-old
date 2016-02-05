@@ -1,0 +1,62 @@
+<div id="popup_form">
+  <h3>Generate Progress Reports</h3>
+  <form accept-charset="UTF-8" action="/sections/{{current_section_id}}.pdf" method="get">
+  <input type="hidden" name="report" value="progress_reports">
+  <table class="report">
+    <tr>
+      <th colspan=3>Select Marking Periods</th>
+    </tr>
+    <tr>
+      <td colspan=3>
+        {{#each marking_periods}}
+          <input type="checkbox" name="marking_periods[]" 
+              value="{{this}}" checked> 
+            {{this}} &nbsp;&nbsp;
+        {{/each}}
+      </td>
+    </tr>
+    <tr>
+      <td colspan=3>
+        <input type="checkbox" name="print_unrated" value="1" checked>
+          Print unrated outcomes only if they have associated evidence.
+        <br>
+        <input type="checkbox" name="print_unrated" value="2">
+          Print unrated outcomes even if they don't have evidence.
+				<br>
+				<input type="checkbox" name="summary" value="1">
+					Print learning outcomes and ratings only. (No evidence!)
+        </td>
+    <tr>
+      <th colspan=3>Add Message (optional)</th>
+    </tr>
+    <tr>
+      <td colspan=3>
+        <textarea id="message" name="message" style="width: 95%"></textarea>
+      </td>
+    </tr>
+    <tr>
+      <th colspan=3>Select Students</th>
+    </tr>
+    <tr>
+      <td colspan=3><input type="checkbox" checked="checked" toggle_class="student"> Select All / None</td>
+    </tr>
+    <tr>
+      <th>Select</th>
+      <th>Last Name</th>
+      <th>First Name</th>
+    </tr>
+    {{#each students}}
+      <tr>
+        <td><input class="student" type="checkbox" name="student_id[]" checked="checked" value="{{id}}"></td>
+        <td>{{last_name}}</td>
+        <td>{{first_name}}</td>
+      </tr>
+    {{/each }}
+    <tr>
+      <td colspan=3>
+        <button type="submit" value="commit">Generate Progress Reports</button>
+      </td>
+    </tr>
+  </table>
+  </form>
+</div>

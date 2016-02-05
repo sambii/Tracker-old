@@ -1,0 +1,9 @@
+= content_for(:head) do
+  :javascript
+    $.getJSON("/sections/#{@section.id}/show_experimental.json", function (data) {
+      template = Handlebars.templates["sections/show"];
+      $(document).ready(function () {
+        $("#scrolling_body").append(template(data));
+        section_show_loaded();
+      });
+    });

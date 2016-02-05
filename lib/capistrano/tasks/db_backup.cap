@@ -1,0 +1,43 @@
+desc "Backup the database"
+namespace :db do
+	task :backup do
+		on roles(:db) do |host|
+			backup_path = "#{fetch(:deploy_to)}/backups"
+			execute :mkdir, "-p #{backup_path}"
+			basename = 'database'
+			
+			username, password, database, host, adapter = get_remote_database_config(fetch(:rails_env))
+			debug "#{username}, #{password}, #{database}, #{adapter}"
+
+			abort "Fatal Error! Only MySQL databases are supported for db backup. Exiting!" unless adapter == "mysql2" 
+
+			filename = "#{basename}_#{fetch(:stage)}_#{database}_#{Time.now.strftime '%Y-%m-%d_%H:%M:%S'}.sql.bz2"
+			debug "We will backup to file: #{backup_path}/#{filename}"
+
+			hostcmd = host.nil? ? '' : "-h #{host}" 
+			execute :mysqldump, "-u #{username} --password='#{password}' --databases #{database} #{hostcmd} | bzip2 -9 > #{backup_path}/#{filename}"
+
+			purge_old_backups "#{basename}", "#{backup_path}"
+		end
+	end
+
+    def get_remote_database_config(db)      
+      remote_config = capture("cat #{shared_path}/config/database.yml")
+      database = YAML::load(remote_config)
+      return database["#{db}"]['username'], database["#{db}"]['password'], database["#{db}"]['database'], database["#{db}"]['host'], database["#{db}"]['adapter']    
+    end
+
+    def purge_old_backups(basename,backup_path)
+      max_keep = fetch(:keep_db_backups, 5).to_i
+      # capture the files into an array. Reorder the array so the newest files are on top of the stack
+      backup_files = capture("ls -t #{backup_path}/#{basename}*").split.reverse
+      if max_keep >= backup_files.length
+        info "No old database backups to clean up"
+      else
+        info "Keeping #{max_keep} of #{backup_files.length} database backups"
+        #Doing Ruby Array subtraction here. Remove the files at the bottom of the stack.
+        delete_backups = (backup_files - backup_files.last(max_keep)).join(" ") 
+        execute :rm, "-rf #{delete_backups}"
+      end
+    end
+end

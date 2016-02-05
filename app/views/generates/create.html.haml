@@ -1,0 +1,13 @@
+
+- content_for(:title, 'Generate Reports')
+- content_for(:page_name, 'Generate Reports')
+- content_for(:page_class, 'generate-reports misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - if @section.nil?
+    - breadcrumb :current
+  - else
+    - breadcrumb :section_generate_reports, @section
+  = help_gen_breadcrumbs
+
+= render 'form'

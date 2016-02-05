@@ -1,0 +1,28 @@
+
+- content_for(:title, 'Edit Staff')
+- content_for(:page_name, 'Edit Staff')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-md-3
+    .col-md-6
+      %h1.h3.page-title.text-center
+        %strong='Staff Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Edit Staff'
+    .col-md-3
+
+.row
+  .col-sm-3.col-md-3.col-lg-3
+  .col-sm-6.col-md-6.col-lg-6
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          =@user.full_name
+      .block-content-full
+        =form_for @user do |f|
+          - @errors = @user.errors
+          = render 'form'
+  .col-sm-3.col-md-3.col-lg-3

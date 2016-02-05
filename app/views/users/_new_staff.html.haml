@@ -1,0 +1,28 @@
+
+- content_for(:title, 'Create Staff Member')
+- content_for(:page_name, 'Create Staff Member')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Staff Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Create Staff Member'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          =@user.full_name
+      .block-content-full
+        =form_for(@user, remote: true) do |f|
+          - @errors = @user.errors
+          = render 'form'
+  .col-sm-1

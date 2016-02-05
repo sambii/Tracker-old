@@ -1,0 +1,8 @@
+<canvas id="pie_chart"
+        class="Chart"
+        width="200"
+        height="200"
+        chart-data=
+            '<%= "[{\"value\":\"#{ratings.count { |a| a[1] == "H" }}\",\"color\":\"#336688\"},{\"value\":\"#{ratings.count { |a| a[1] == "P"}}\",\"color\":\"#338866\"},{\"value\":\"#{ratings.count { |a| a[1] == "N" }}\",\"color\":\"#C23030\"}]" %>'
+        chart-type="Pie">
+</canvas>

@@ -1,0 +1,56 @@
+
+- content_for(:title, 'View Staff')
+- content_for(:page_name, 'View Staff')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Staff Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='View Staff'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          =@user.full_name
+      .block-content-full
+        .page-form.alternate-highlight
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Staff ID:'
+            %span.col-sm-7=@user.xid
+          %fieldset.span-group
+            %label.col-sm-5.control-label='First Name:'
+            %span.col-sm-7=@user.first_name
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Last Name:'
+            %span.col-sm-7=@user.last_name
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Email:'
+            %span.col-sm-7=@user.email
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Username:'
+            %span.col-sm-7=@user.username
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Street Address:'
+            %span.col-sm-7=@user.street_address
+          %fieldset.span-group
+            %label.col-sm-5.control-label='City:'
+            %span.col-sm-7=@user.city
+          %fieldset.span-group
+            %label.col-sm-5.control-label='State:'
+            %span.col-sm-7=@user.state
+          %fieldset.span-group
+            %label.col-sm-5.control-label='Zip Code:'
+            %span.col-sm-7=@user.zip_code
+          %fieldset.text-center
+            .col-sm-12
+              %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+  .col-sm-1

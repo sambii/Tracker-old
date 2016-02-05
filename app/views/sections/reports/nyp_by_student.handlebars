@@ -1,0 +1,19 @@
+<div id="popup_form">
+  <h3>NYP by Student</h3>
+  <table class="report">
+    {{#each students}}
+    <tr>
+      <th>{{last_name}}, {{first_name}}</th>
+    </tr>
+    <tr>
+      {{#each not_yet_proficients}}
+        <tr>
+          <td>
+             {{name}}
+          </td>
+        </tr>
+      {{/each}}
+    </tr>
+    {{/each}}
+  </table>
+</div>

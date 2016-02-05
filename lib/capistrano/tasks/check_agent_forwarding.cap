@@ -1,0 +1,10 @@
+desc "Check Agent forwarding"
+task :check_agent_forwarding do
+	on roles(:all) do |host|
+		if test("env | grep SSH_AUTH_SOCK")
+			info "Agent forwarding IS up to #{host}"
+		else
+			error "Agent forwarding IS NOT up to #{host}"
+		end
+	end
+end

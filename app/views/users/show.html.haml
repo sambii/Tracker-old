@@ -1,0 +1,3 @@
+%div
+  - @user.role_symbols.each do |role|
+    = render(role.to_s.pluralize + '/dashboard')

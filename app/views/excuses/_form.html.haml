@@ -1,0 +1,15 @@
+.page-form
+  - if @errors[:base] && @errors[:base] != []
+    %fieldset.input-group
+      %div.ui-error.text-center=@errors[:base]
+  %fieldset.input-group
+    %label.col-sm-3.control-label{for: 'attendance_type_code'}='Code:'
+    = f.text_field(:code, class: 'col-sm-6')
+    %span.ui-error.col-sm-3="#{@errors[:code] if @errors[:code].present?}"
+  %fieldset.input-group
+    %label.col-sm-3.control-label{for: 'attendance_type_description'}='Description:'
+    = f.text_field(:description, class: 'col-sm-6')
+    %span.ui-error.col-sm-3="#{@errors[:description] if @errors[:description].present?}"
+  %fieldset.text-center
+    - if can? :update, Excuse
+      = f.submit(I18n.translate('action_titles.save'), class: 'btn btn-sm btn-primary')

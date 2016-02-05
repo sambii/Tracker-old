@@ -1,0 +1,18 @@
+%table.report
+  %thead
+    %tr
+      %th Subject
+      %th Academic Discipline
+      %th # of Sections
+      %th Manage Learning Outcomes
+  %tbody
+    - @subjects.each do |subject|
+      %tr
+        %td
+          %a{href: edit_subject_path(subject.id)}
+            %i.fa.fa-lg.fa-edit
+            = subject.name
+        %td= subject.discipline.name
+        %td= subject.sections.count
+        %td= link_to "Manage #{subject.name} Learning Outcomes", edit_subject_outcomes_subject_path(subject)
+%p= link_to "Back to Dashboard", current_user

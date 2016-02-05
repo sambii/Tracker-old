@@ -1,0 +1,34 @@
+.edit_subject_outcomes_form
+  %h1.text-center
+    = "Edit Learning Outcomes for:"
+    = link_to "#{@subject.name}", subject_path(@subject)
+    = " (Discipline: #{@subject.discipline.name})"
+  .row
+    .col-md-3
+    .col-md-6
+      %p{style: 'color: #a22'}
+        Note: When revising the wording of existing learning outcomes, try not to change the
+        *meaning* of the learning outcome, as these changes will carry over into all sections
+        and students that have that learning outcome, including other teachers' classes and
+        students' ratings from previous years.
+    .col-md-3
+  .row
+    .col-md-12
+      .sectioned-list
+        .row.header-row
+          %h4.pull-left='Learning Outcomes'
+          #add_new_lo.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+            %i.fa.fa-lg.fa-plus
+          / %button.cloner{clone_type: 'span', type: 'button'} Add Learning Outcome
+        = form_for @subject, url: update_subject_outcomes_subject_path(@subject) do |f|
+          %ul#current_los
+            - @subject.subject_outcomes.each_with_index do |subjo, ix|
+              %li.row
+                %input{type: 'text', name: "subject[subject_outcomes_attributes][#{ix}][name]", value: "#{subjo.name}"}
+                %input{type: 'hidden', name: "subject[subject_outcomes_attributes][#{ix}][id]", value: "#{subjo.id}"}
+          .row
+            .col-md-12
+              %button.pull-right.btn.btn-primary{type: "submit"}='Update Subject'
+        %ul#blank_lo.display-none
+          %li.row
+            %input{type: "text", name: 'subject[subject_outcomes_attributes][xxseqxx][name]', value: "", size: '70'}

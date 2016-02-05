@@ -1,0 +1,55 @@
+license.txt
+
+
+Copyright (c) 2016 21st Century Partnership for STEM Education (21PSTEM)
+
+
+PARLO Tracker - Terms and conditions
+
+
+License Grant: Licensor hereby grants Licensee a Non-assignable & non-transferable, Pepetual, Non-commercial, Including the rights to create but not distribute derivative works, Non-exclusive license, all with accordance with the terms set forth and other legal restrictions set forth in 3rd party software used while running Software.
+
+
+Limited: Licensee may use Software for the purpose of:
+Running Software on Licensee’s Website[s] and Server[s];
+Allowing the Egyptian Ministry of Education to run Software on Licensee’s Website[s] and Server[s];
+
+
+This license is granted perpetually, as long as you do not materially breach it.
+
+
+Non Assignable & Non-Transferable: Licensee may not assign or transfer his rights and duties under this license.
+
+
+Non-Commercial: Licensee may not use Software for commercial purposes. for the purpose of this license, commercial purposes means that a 3rd party has to pay in order to access Software or that the Website that runs Software is behind a paywall.
+
+
+Upgrades, Updates and Fixes: Licensor may provide Licensee, from time to time, with Upgrades, Updates or Fixes.
+
+
+Liability:  To the extent permitted under Law, The Software is provided under an AS-IS basis. Licensor shall never, and without any limit, be liable for any damage, cost, expense or any other payment incurred by Licensee as a result of Software’s actions, failure, bugs and/or any other interaction between The Software  and Licensee’s end-equipment, computers, other software or any 3rd party, end-equipment, computer or services.  Moreover, Licensor shall never be liable for any defect in source code written by Licensee when relying on The Software or using The Software’s source code.
+
+
+Intellectual Property: Licensor hereby warrants that The Software does not violate or infringe any 3rd party claims in regards to intellectual property, patents and/or trademarks and that to the best of its knowledge no legal action has been taken against it for any infringement or violation of any 3rd party intellectual property rights.
+
+
+No-Warranty: The Software is provided without any warranty; Licensor hereby disclaims any warranty that The Software shall be error free, without defects or code which may cause damage to Licensee’s computers or to Licensee, and that Software shall be functional. Licensee shall be solely liable to any damage, defect or loss incurred as a result of operating software and undertake the risks contained in running The Software on License’s Server[s] and Website[s].
+
+
+Indemnification: Licensee hereby warrants to hold Licensor harmless and indemnify Licensor for any lawsuit brought against it in regards to Licensee’s use of The Software in means that violate, breach or otherwise circumvent this license, Licensor's intellectual property rights or Licensor's title in The Software. Licensor shall promptly notify Licensee in case of such legal action and request Licensee’s consent prior to any settlement in relation to such lawsuit or claim.
+
+
+Parts of the software are provided under separate licenses, as follows:
+
+ProUI is licensed under 'Tracker + ProUI Extended License + Distribution to an Entity' (http://themeforest.net/user/jbroglie?pm_key=MTM1MjAzNw%3D%3D%0A).
+ *  21PSTEM has the extra permission to distribute its product (using ProUI) to an Entity (MOE of Egypt), so they can host it and make it available to their users.
+ *  No extra licenses of ProUI will be required as long as the Entity hosts Tracker and provides it as is.
+ *  A regular license of ProUI of $20 would be required if the Entity would like to modify Tracker to meet its own needs.
+ *  ProUI CSS will only be distributed in a minified version (proui_tracker_min.css), to ensure that the open source code has the correct version of ProUI CSS, while at the same time making it diffucult to reverse engineer the ProUI Template.  The minified CSS file will additionally include ProUI Credits and Licensing information.
+ *  It is not allowed for someone to completely separate the User Interface (CSS styles - UI elements), stripping out all Tracker's core code with the purpose of creating a completely new web application based on Tracker's ProUI based User Interface.
+
+Bootstrap v3.1.1 under MIT license.
+
+Jquery v1.11.1 under MIT License.
+
+Font Awesome v4.0.3 under MIT License.

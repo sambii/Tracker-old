@@ -1,0 +1,63 @@
+
+- content_for(:title, 'Create Section Outcome')
+- content_for(:page_name, 'Create Section Outcome')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :new_section, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Tracker Maintenance"
+  %h2.h1.page-title
+    %strong="Create Section"
+.row.indent-row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      // Learning Outcome Title
+      .block-title.text-center
+        %h2
+          %i.fa.fa-bar-chart
+          ='Create Section'
+      .row
+        %form{:action => "/sections", :method => "post"}
+          - @errors = @section.errors
+          %input{:type=>"hidden", :name=>"authenticity_token", :value=>form_authenticity_token.to_s}
+          %fieldset.input-group
+            %label.col-md-3.control-label{for: 'section_school_id'}='School:'
+            / currently only allow entry to current school for system administrators
+            / %select.col-md-5.select-select2{id: 'school_id', name: "school_id", placeholder: 'Select School:'}
+            /   %option{value: ""}= ""
+            /   - @schools.each do |sch|
+            /     %option{value: "#{sch.id}", selected: (@school.id == sch.id)}= "#{sch.name}"
+            / %span.ui-required{title: 'Required'}='*'
+            / %span.ui-error="#{@errors[:school_id] if @errors[:school_id].present?}"
+            %span.col-md-5=@school.name
+          %fieldset.input-group
+            %label.col-md-3.control-label{for: 'section_subject_id'}='Subject:'
+            %select.col-md-5.select-select2{id: 'section_subject_id', name: "section[subject_id]", placeholder: 'Select Subject:'}
+              %option{value: ""}= ""
+              - @subjects.each do |subj|
+                %option{value: "#{subj.id}", selected: (@section.subject_id == subj.id)}= "#{subj.name}"
+            %span.ui-required{title: 'Required'}='*'
+            %span.ui-error="#{@errors[:subject_id] if @errors[:subject_id].present?}"
+          %fieldset.input-group
+            %label.col-md-3.control-label{for: "section_teaching_assignments_attributes_0_teacher_id"}='Teacher:'
+            %select.col-md-5.select-select2{id: "section_teaching_assignments_attributes_0_teacher_id", name: "section[teaching_assignments_attributes][0][teacher_id]", placeholder: 'Select Teacher:'}
+              %option{value: ""}= ""
+              - @teachers.each do |t|
+                %option{value: "#{t.id}", selected: (current_user.id == t.id)}= "#{t.full_name}"
+            %span.ui-required{title: 'Required'}='*'
+            %span.ui-error="#{@errors[:subject_id] if @errors[:subject_id].present?}"
+          %fieldset.input-group
+            %label.col-md-3.control-label{for: "section_identifier"}='Section Identifier:'
+            %input.col-md-5.select-select2{id: "section_identifier", name: "section[line_number]", placeholder: 'Enter Section Identifier:', type: 'text'}
+            %span.ui-required{title: 'Required'}='*'
+            %span.ui-error="#{@errors[:subject_id] if @errors[:subject_id].present?}"
+          %fieldset.input-group
+            %span.col-md-3=''
+            %span.col-md-5
+              %button{:type => "submit", :value => "commit"} Add Section

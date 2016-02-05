@@ -1,0 +1,81 @@
+%div#student_report_div
+  %table.student_report{style: "border-spacing: 8px;"}
+    %thead
+      %tr
+        %td#dont_reply_back{colspan: 3}
+          %h3{style: "text-decoration: underline; text-align:center; border-bottom: 1px solid #035; border-right: 1px solid #035;"} Please do not reply to this email message
+      %tr
+        %th.student_name{colspan: 3, style: "font-size: 1.3em; color: #035; background-color: #adf; border-bottom: 1px solid #035; border-right: 1px solid #035;"}= @student.full_name
+      %tr
+        %th.student_section_name{colspan: 3, style: "font-size: 1.1em; color: #035; background-color: #adf; border-bottom: 1px solid #035; border-right: 1px solid #035;"}= [@section.full_name, @section.teacher_names].join(": ")
+      %tr
+        - if @section.message.present?
+          %td#section_message{colspan: 3, style: "background-color: #f55;"}
+            %h3 Section Announcement
+            %p= @section.message
+      %tr
+        %td#ratings_summary{colspan: 3}
+          %h3{style: "text-decoration: underline; text-align:center; border-bottom: 1px solid #035; border-right: 1px solid #035;"} Ratings Summary
+      %tr
+        %td{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"} # High Performance
+        %td{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"}= @section_outcome_ratings.count { |a| a[1] == "H"}.to_s + " / " + @section_outcome_ratings.count { |a| a[1] != "U"}.to_s
+        %td#letter_grade{rowspan: 3, style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"}
+          - if @section.grading_algorithm.present?
+            %p#grade_heading Letter Grade
+            %p#grade{style: "text-align: center; font-size: 3em; font-family: sans-serif;"}= @student.section_grade @section.id
+      %tr
+        %td{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"} # Proficient or Better
+        %td{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"}= @section_outcome_ratings.count { |a| a[1] == "P" or a[1] == "H"}.to_s + " / " + @section_outcome_ratings.count { |a| a[1] != "U"}.to_s
+      %tr
+        %td{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"} # Not Yet Proficient
+        %td{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"}= @section_outcome_ratings.count { |a| a[1] == "N"}.to_s + " / " + @section_outcome_ratings.count { |a| a[1] != "U"}.to_s
+    - @section.section_outcomes.each do |section_outcome|
+      %tbody.section_outcome{mps: "#{section_outcome.marking_period_array.join("")}"}
+        %tr
+          %th.student_section_outcome{style: "color: #035; background-color: #adf; border-bottom: 1px solid #035; border-right: 1px solid #035;"}
+            %div{title: section_outcome.name, class: "#{'essential' if section_outcome.essential}"}
+              = section_outcome.shortened_name
+              %div.student_marking_periods{style: "float: right; padding-left: 2px; padding-right: 2px;"}
+                - @marking_periods.each do |mp|
+                  - if section_outcome.marking_period_array.include? mp
+                    %span.student_included_mp{style: "color: #035;"}= mp
+                  - else
+                    %span.student_excluded_mp{style: "color: #bef;"}= mp
+          %th.student_section_outcome_rating{colspan: 2, style: "color: #035; background-color: #adf; border-bottom: 1px solid #035; border-right: 1px solid #035;"}
+            %div
+              - case @section_outcome_ratings[section_outcome.id]
+                - when "H"
+                  High Performance
+                - when "P"
+                  Proficient
+                - when "N"
+                  Not Yet Proficient
+                - else
+                  Unrated
+        - section_outcome.evidence_section_outcomes.each do |evidence|
+          - unless evidence.reassessment == true and @evidence_ratings[evidence.id][:flagged] == false
+            %tr.evidence
+              %td.student_evidence{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"}
+                %div{title: evidence.name}
+                  - if evidence.reassessment
+                    %span.reassessment R
+                  = evidence.shortened_name
+                  %span.assignment_date{style: "float: right;"}= evidence.assignment_date
+                  %br
+                  %span.student_evidence_description{style: "color: #333; font-size: 0.8em; margin-left: 10px; padding: 0;"}= evidence.description
+                  %br
+                  %span.student_evidence_attachments
+                    - evidence.evidence_hyperlinks.each do |evidence_hyperlink|
+                      %img{src: "/assets/hyperlink.png"}
+                      = link_to evidence_hyperlink.title, evidence_hyperlink.hyperlink
+                      %br
+                    - evidence.evidence_attachments.each do |evidence_attachment|
+                      %img{src: "/assets/attachment.png"}
+                      = link_to evidence_attachment.name, evidence_attachment.attachment.url
+                      %br
+              %td.student_evidence_rating{style: "border-bottom: 1px solid #035; border-right: 1px solid #035;"}
+                %div
+                  = @evidence_ratings[evidence.id][:rating]
+              %td.student_evidence_comment{style: "border-bottom: 1px solid #035; border-right: 1px solid #035; width: 200px;"}
+                %div
+                  = @evidence_ratings[evidence.id][:comment]

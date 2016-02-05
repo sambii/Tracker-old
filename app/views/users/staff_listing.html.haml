@@ -1,0 +1,132 @@
+
+- content_for(:title, 'Staff Listing')
+- content_for(:page_name, 'Staff Listing')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :staff_listing
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Staff Listing"
+  %h2.h1.page-title
+    %strong="All Staff for #{@school.name}"
+
+.block-section.indent-block
+  .row.height-30
+    .pull-left
+      %a#collapse-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Collapse All'}
+        %i.fa.fa-lg.fa-caret-right
+      %a#expand-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Expand All'}
+        %i.fa.fa-lg.fa-caret-down
+      %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-filter
+      %a.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+        %i.fa.fa-lg.fa-print
+      %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-download
+      - if can? :create, Teacher
+        %a#add-staff.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_staff_new_user_path(format: :js)}, title: 'Add Staff'}
+          %i.fa.fa-lg.fa-plus-square
+      - if can? :bulk_upload_staff, User
+        %a#upload-staff.btn.btn-sm.btn-primary{href: bulk_upload_staff_users_path(), title: 'Bulk Upload Staff'}
+          %i.fa.fa-lg.fa-user
+          %i.fa.fa-lg.fa-upload
+      - if can? :enter_bulk, TeachingAssignment
+        %a#bulk-enter-teaching-assignments.btn.btn-sm.btn-primary{ href: enter_bulk_teaching_assignments_path(), title: 'Bulk Enter Teaching Assignments'}
+          %i.fa.fa-lg.fa-user
+          %i.fa.fa-lg.fa-stack-overflow
+
+.row
+  .col-sm-12
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+          %thead.table-title
+            %tr
+              %th= 'ID'
+              - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                %th= 'First Name'
+                - if @school.has_flag?(School::USE_FAMILY_NAME)
+                  %th= 'Family Name'
+                - else
+                  %th= 'Last Name'
+              - else
+                - if @school.has_flag?(School::USE_FAMILY_NAME)
+                  %th= 'Family Name'
+                - else
+                  %th= 'Last Name'
+                %th= 'First Name'
+              %th= 'Role(s)'
+              %th= 'Sections'
+              %th= 'Email'
+              %th{colspan: 6}= ''
+          - start_letter = ''
+          - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+            - grouping = @staff.group_by(&:first_name_initial)
+          - else
+            - grouping = @staff.group_by(&:last_name_initial)
+          - grouping.each do |lead, staff|
+            %tbody.tbody-header.show-tbody{class: (true ? 'show-tbody-body' : '' )}
+              - start_letter = lead
+              %tr.height-30
+                %td{colspan: 16}
+                  .clearfix
+                    %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
+                      %i.fa.fa-caret-down.fa-lg
+                    / %a.pull-left.lmargin5{href: "javascript:void(0)"}
+                    %strong.pull-left.lmargin5="#{start_letter}"
+            %tbody.tbody-body.alt-rows
+              - staff.each do |s|
+                - deact_class = s.active ? 'active' : 'deactivated'
+                - if s.teacher? && s.active?
+                  - assignments = Teacher.find(s.id).sections.current.count
+                - else
+                  - assignments = ''
+                %tr{class: deact_class, id: "user_#{s.id}"}
+                  %td.user-xid=s.xid
+                  - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-first-name=s.first_name
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-last-name=s.last_name
+                  - else
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-last-name=s.last_name
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-first-name=s.first_name
+                  %td.user-roles=s.role_symbols.join(' ')
+                  %td.text-center.user-assignment-count=assignments
+                  %td.user-email=s.email
+                  %td
+                    %a{href: "/users/#{s.id}"}
+                      %i.fa.fa-lg.fa-dashboard
+                  - if s.role_symbols.include?(:teacher)
+                    %td
+                      %a{href: "/users/#{s.id}/sections_list"}
+                        %i.fa.fa-lg.fa-check
+                  - else
+                    %td
+                      %i.fa.fa-lg.fa-fw
+                  %td.text-center
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: user_path(s.id, format: :js)}}
+                      %i.fa.fa-lg.fa-ellipsis-h
+                  %td.text-center
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_user_path(s.id, format: :js)}}
+                      %i.fa.fa-lg.fa-edit
+                  %td.text-center.clicable-icon{data: {target: "#modal_popup", toggle: 'modal', url: security_user_path(s.id, format: :js)}}
+                    %i.fa.fa-lg.fa-unlock
+                  %td.text-center
+                    %div.show-if-active
+                      %a#remove-staff{href: "/users/#{s.id}.js?commit=active&#{{active: false}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}}
+                        %i.fa.fa-lg.fa-times-circle
+                    %div.show-if-deactivated
+                      %a#restore-staff{href: "/users/#{s.id}.js?commit=active&#{{active: true}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}}
+                        %i.fa.fa-lg.fa-undo
+

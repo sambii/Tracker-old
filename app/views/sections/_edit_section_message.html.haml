@@ -1,0 +1,40 @@
+
+- content_for(:title, 'Edit Section Message')
+- content_for(:page_name, 'Edit Section Message')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Section Message for:'
+      %h2.h1.page-title.text-center
+        %strong
+          =@section.name
+          = ' - '
+          =@section.line_number
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          ='Section Message'
+      .block-content-full
+        =form_for(@section, remote: true, url: update_section_message_section_path(@section)) do |f|
+          - @errors = @section.errors
+          .page-form
+            - if @errors[:base] && @errors[:base] != []
+              %div.ui-error.text-center=@errors[:base]
+            %fieldset.input-group
+              %label.col-sm-2.control-label='Message:'
+              %textarea.col-sm-8{id: 'section_message', name: 'section[message]', rows: 2}
+                =@section.message
+              %span.ui-error.col-sm-2="#{@errors[:message] if @errors[:message].present?}"
+            %fieldset.text-center
+              %button.btn.btn-primary{name: 'commit', type: "submit"}='Update Section Message'
+  .col-sm-1

@@ -1,0 +1,85 @@
+
+- content_for(:title, 'Attendance Maintenance')
+- content_for(:page_name, 'Attendance Maintenance')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :attend_maint
+  = help_gen_breadcrumbs
+
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Attendance Maintenance'
+  %h2.h1.page-title
+    %strong=@school.name
+
+/ First Row
+.row.indent-row
+  .col-sm-6.col-lg-6
+    / Attendance Types Block
+    .block.block-alt-style
+      .block-title.text-center
+        %h2='Attendance Types'
+        - if can? :create, AttendanceType
+          %a#show-at-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_attendance_type_path(format: :js)}}
+            %i.fa.fa-lg.fa-plus
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th='Description'
+              %th{colspan: 2}='Actions'
+          %tbody
+            - @attendance_types.each do |at|
+              - deact_class = at.active ? 'active' : 'deactivated'
+              %tr{class: deact_class, id: "attendance_type_#{at.id}"}
+                %td#attendance-type-description=at.description
+                %td
+                  - if can? :update, at
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_attendance_type_path(at.id, format: :js)}, title: 'Edit'}
+                      %i.fa.fa-lg.fa-edit
+                %td
+                  - if can? :update, at
+                    %div.show-if-active
+                      %a#remove-item{href: "/attendance_types/#{at.id}.js?#{{active: false}.to_query('attendance_type')}", data: {method: :put, remote: true, confirm: 'Are you sure?'}, title: 'Deactivate'}
+                        %i.fa.fa-lg.fa-times-circle
+                    %div.show-if-deactivated
+                      %a#restore-item{href: "/attendance_types/#{at.id}.js?#{{active: true}.to_query('attendance_type')}", data: {method: :put, remote: true, confirm: 'Are you sure?'}, title: 'Restore'}
+                        %i.fa.fa-lg.fa-undo
+    / END Attendance Types Block
+  .col-sm-6.col-lg-6
+    / Attendance Types Block
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2='Excuses'
+        - if can? :create, Excuse
+          %a#show-excuse-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_excuse_path(format: :js)}}
+            %i.fa.fa-lg.fa-plus
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th='Code'
+              %th='Description'
+              %th{colspan: 2}='Actions'
+          %tbody
+            - @excuses.each do |ex|
+              - deact_class = ex.active ? 'active' : 'deactivated'
+              %tr{class: deact_class, id: "excuse_#{ex.id}"}
+                %td=ex.code
+                %td=ex.description
+                %td
+                  - if can? :update, ex
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_excuse_path(ex.id, format: :js)}}
+                      %i.fa.fa-lg.fa-edit
+                %td
+                  - if can? :update, ex
+                    %div.show-if-active
+                      %a#remove-item{href: "/excuses/#{ex.id}.js?#{{active: false}.to_query('excuse')}", data: {method: :put, remote: true, confirm: 'Are you sure?'}}
+                        %i.fa.fa-lg.fa-times-circle
+                    %div.show-if-deactivated
+                      %a#restore-item{href: "/excuses/#{ex.id}.js?#{{active: true}.to_query('excuse')}", data: {method: :put, remote: true, confirm: 'Are you sure?'}}
+                        %i.fa.fa-lg.fa-undo
+/ END First Row

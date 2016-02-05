@@ -1,0 +1,66 @@
+
+- content_for(:title, 'Proficiency Bar Charts by Subject')
+- content_for(:page_name, 'Proficiency Bar Charts by Subject')
+- content_for(:page_class, 'generate-reports misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :prof_bar_chart_subject
+  = help_gen_breadcrumbs
+
+.header-block.col-sm-12.col-lg-8
+  %h1.h3.page-title
+    %strong="Generate Reports"
+  %h2.h1.page-title
+    %strong="Proficiency Bar Charts by Subject"
+  .row
+    %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-filter
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+  .row
+    %table.table
+      %thead
+        %tr
+          %th='Subject'
+      %tbody
+        %tr
+          %td='All'
+.row
+  .col-sm-12.col-lg-8
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th='Subject Name'
+              %th{col_span: 4}='Proficiency Bar Chart'
+          %tbody
+            - @by_date.each do |srd_k, srd_v|
+              - Rails.logger.debug("*** srd_k = #{srd_k}")
+              - Rails.logger.debug("*** srd_v = #{srd_v.inspect.to_s}")
+              - s_ratings = srd_v[:ratings]
+              - total_ratings = s_ratings[:H] + s_ratings[:P] + s_ratings[:N] + s_ratings[:U]
+              - if total_ratings > 0
+                %tr
+                  %td=srd_v[:subject].name
+                  - pixel_width = 300
+                  %td{style: "width: #{pixel_width+11}px;"}
+                    - if total_ratings > 0
+                      .flat-bar-chart{style: "width: 100%;"}
+                        .high-rating-bar.progress-bar{style: "width: #{(s_ratings[:H]*pixel_width/total_ratings).floor}px"}=s_ratings[:H]
+                        .prof-rating-bar.progress-bar{style: "width: #{(s_ratings[:P]*pixel_width/total_ratings).floor}px"}=s_ratings[:P]
+                        .nyp-rating-bar.progress-bar{style: "width: #{(s_ratings[:N]*pixel_width/total_ratings).floor}px"}=s_ratings[:N]
+                        .unrated-rating-bar.progress-bar{style: "width: #{(s_ratings[:U]*pixel_width/total_ratings).floor}px"}=s_ratings[:U]
+            %tr
+              %td='Total'
+              - pixel_width = 300
+              %td{style: "width: #{pixel_width+11}px;"}
+                - total_ratings = @school_ratings[:H] + @school_ratings[:P] + @school_ratings[:N] + @school_ratings[:U]
+                .flat-bar-chart{style: "width: 100%;"}
+                  .high-rating-bar.progress-bar{style: "width: #{(@school_ratings[:H]*pixel_width/total_ratings).floor}px"}=@school_ratings[:H]
+                  .prof-rating-bar.progress-bar{style: "width: #{(@school_ratings[:P]*pixel_width/total_ratings).floor}px"}=@school_ratings[:P]
+                  .nyp-rating-bar.progress-bar{style: "width: #{(@school_ratings[:N]*pixel_width/total_ratings).floor}px"}=@school_ratings[:N]
+                  .unrated-rating-bar.progress-bar{style: "width: #{(@school_ratings[:U]*pixel_width/total_ratings).floor}px"}=@school_ratings[:U]
+  .col-sm-0.col-lg-4

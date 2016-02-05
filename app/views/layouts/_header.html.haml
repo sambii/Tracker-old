@@ -1,0 +1,50 @@
+/ Header Navigation
+%ul.nav.navbar-nav-custom
+  / Main Sidebar Toggle Button
+  %li#head-sidebar-toggle
+    %a{href: "javascript:void(0)"}
+      %i.fa.fa-bars.fa-fw
+  / END Main Sidebar Toggle Button
+  %li#head-app-name
+    .navbar-nav-custom-content
+      %span.app-name="Tracker | "
+  %li#head-current-school
+    .navbar-nav-custom-content.hidden-xs
+      - if @current_school.id.nil?
+        %a{href: schools_path}='Select a School'
+      - else
+        - if can? :switch, School
+          %a{href: schools_path, title: 'Switch School'}
+            %i.fa.fa-lg.fa-building-o
+        %span.text-muted{title: (can?(:switch, School) ? 'Current School' : '')}= "#{@current_school.name}"
+/ END Left Header Navigation
+/ Right Header Navigation
+%ul.nav.navbar-nav-custom.pull-right
+  / dashboard dropdown for all users but students and parents
+  - if !current_user.student? && !current_user.parent?
+    %li#head-dashboard-selector
+      .navbar-nav-custom-content
+        - if (!@section.nil? && !@section.id.nil? && current_page?(controller: 'sections', action: 'show', id: @section.id)) ? 'selected' : false
+          %a{href: "#{class_dashboard_section_path(@section.id)}"}
+            %i.fa.fa-dashboard
+
+        %strong.hidden-xs Dashboard:
+        %select#subject.select-select2{onchange: 'location=this.options[this.selectedIndex].value;', style: "width: 200px;"}
+          %option{value: ''}=''
+          %option{value: "#{root_path}"}= "Summary"
+          - if @current_school.id == nil
+            %option{value: "#{schools_path}"}= "No Subjects, Choose a School"
+          - @toolkit_subjects.each do |s|
+            - is_sel = (current_page?(controller: 'subjects', action: 'show', id: s.id)) ? 'selected' : false
+            %option{value: "#{subject_path(s.id)}", selected: is_sel}= "#{s.name}"
+          - @toolkit_current_sections.each do |s|
+            - is_sel = (current_page?(controller: 'sections', action: 'class_dashboard', id: s.id)) ? 'selected' : false
+            %option{value: "#{class_dashboard_section_path(s.id)}", selected: is_sel}= "#{s.subject.name} - #{s.line_number}"
+  / User Dropdown
+  %li#head-user-dropdown.dropdown
+    %a.dropdown-toggle{"data-toggle" => "dropdown", href: "javascript:void(0)"}
+      = @current_user.first_name.blank? ? @current_user.username : @current_user.first_name
+      %i.fa.fa-caret-down
+    %ul.dropdown-menu.dropdown-custom.dropdown-menu-right
+      = render 'layouts/header_dropdown'
+/ END Header Navigation

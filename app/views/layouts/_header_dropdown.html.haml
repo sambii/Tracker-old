@@ -1,0 +1,27 @@
+-#%li.dropdown-header.text-center Regular User Contextual Menu
+-#%li
+  %a{href: "javascript:void(0)"}
+    %i.fa.fa-clock-o.fa-fw.pull-right
+    %span.badge.pull-right 10
+    Updates
+  %a{href: "javascript:void(0)"}
+    %i.fa.fa-envelope-o.fa-fw.pull-right
+    %span.badge.pull-right 5
+    Messages
+  %a{href: "javascript:void(0)"}
+    %i.fa.fa-magnet.fa-fw.pull-right
+    %span.badge.pull-right 3
+    Subscriptions
+  %a{href: "javascript:void(0)"}
+    %i.fa.fa-question.fa-fw.pull-right
+    %span.badge.pull-right 11
+    FAQ
+-#%li.divider
+%li
+  %a{href: "#{profile_user_path(current_user)}"}
+    %i.fa.fa-cog.fa-fw.pull-right
+    Settings
+  %a{href: "#{destroy_user_session_path}"}
+    %i.fa.fa-power-off.fa-fw.pull-right
+    Logout
+= content_for?(:header_contextual_dropdown) ? yield(:header_contextual_dropdown) : ""

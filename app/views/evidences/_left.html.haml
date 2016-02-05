@@ -1,0 +1,15 @@
+%tr.evidence.left{id: "evidence_left_row_#{evidence.id}"}
+  %td.name{id: "evidence_#{evidence.id}", style:"overflow: hidden;'"}
+    - if evidence.reassessment
+      %span.reassessment R
+    %span.evidence_name{ data: {url: "/evidences/#{evidence.evidence_id}/rate.js", toggle: 'modal', target: '#modal_popup'}, title: "#{evidence.description}"}= evidence.shortened_name
+    = link_to "link to popup", rate_evidence_path(evidence.evidence_id, format: :js), data: {remote: true, toggle: 'modal', target: '#modal_popup'}
+    %span.evidence_x x
+    %span.evidence_section_outcome{data_template: "evidence_section_outcomes/edit_section_outcome", data_url: "sections/#{evidence.section.id}.json evidence_section_outcomes/#{evidence.id}.json"}
+      = image_tag 'gear.png'
+    %span.evidence_e{data_template: "evidences/edit_name_and_description", data_url: "evidences/#{evidence.evidence_id}.json"} edit
+    %span.assignment_date{data_template: "evidences/edit_assignment_date", data_url: "evidences/#{evidence.evidence_id}.json"}= evidence.assignment_date
+    %span.evidence_attachments{data_template: "evidences/edit_evidence_attachments", data_url: "evidences/#{evidence.evidence_id}.json"}
+      = image_tag 'attachment.png'
+      = evidence.evidence_attachments.size + evidence.evidence_hyperlinks.size
+    %span.evidence_type{data_template: "evidences/edit_evidence_type", data_url: "evidences/#{evidence.evidence_id}.json"}= evidence.evidence_type.name

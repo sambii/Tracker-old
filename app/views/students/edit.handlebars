@@ -1,0 +1,107 @@
+<div id="popup_form">
+  <form id="edit_student" accept-charset="UTF-8" action="/students/{{id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <table>
+      <tbody>
+      <tr>
+        <td>
+          <label for="student_xid">Student ID</label>
+        </td>
+        <td>
+          <input type="text" name="student[xid]" id="student_xid" value="{{xid}}"/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_first_name">First Name</label>
+        </td>
+        <td>
+          <input type="text" name="student[first_name]" id="student_first_name" value="{{first_name}}" />
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_last_name">Last Name</label>
+        </td>
+        <td>
+          <input type="text" name="student[last_name]" id="student_last_name" value="{{last_name}}"/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_grade_level">Grade Level</label>
+        </td>
+        <td>
+          <input type="text" name="student[grade_level]" id="student_grade_level" value="{{grade_level}}"/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_street_address">Street Address</label>
+        </td>
+        <td>
+          <input type="text" name="student[street_address]" id="student_street_address" value="{{street_address}}"/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_city">City</label>
+        </td>
+        <td>
+          <input type="text" name="student[city]" id="student_city" value="{{city}}"/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_state">State</label>
+        </td>
+        <td>
+          <input type="text" name="student[state]" id="student_state" value="{{state}}"/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_zip_code">Zip Code</label>
+        </td>
+        <td>
+          <input type="text" name="student[zip_code]" id="student_zip_code" value="{{zip_code}}"/>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_race">Race</label>
+        </td>
+        <td>
+          <select name="student[race]" id="student_race">
+            <option value=""></option>
+            <option value="American Indian">American Indian</option>
+            <option value="Asian / Pacific Islander">Asian / Pacific Islander</option>
+            <option value="Black">Black</option>
+            <option value="Hispanic">Hispanic</option>
+            <option value="White">White</option>
+            <option value="Multi-Racial">Multi-Racial</option>
+            <option value="Other">Other</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="student_special_ed">Special Education</label>
+        </td>
+        <td>
+          <select name="student[special_ed]" id="student_special_ed">
+            <option value="false">False</option>
+            <option value="true">True</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          <button type="submit" value="commit">Update Student</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </form>
+</div>

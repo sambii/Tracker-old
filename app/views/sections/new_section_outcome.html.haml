@@ -1,0 +1,52 @@
+
+- content_for(:title, 'Add Section Outcome')
+- content_for(:page_name, 'Add Section Outcome')
+- content_for(:page_class, 'add-section-outcome')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :add_learning_outcome, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Tracker Page Maintenance"
+  %h2.h1.page-title
+    %strong
+      ="Add Learning Outcome for:"
+      / = link_to "#{@section.name} - #{@section.line_number}", section_path(@section)
+      %a{href: "#{section_path(@section.id)}"}
+        %i.fa.fa-check.fa-lg
+        = "#{@section.name} - #{@section.line_number}"
+.row
+  .col-md-12
+    .sectioned-list
+      .row.header-row
+        %h4.text-center='Available Learning Outcomes'
+      %ul
+        // - @inactive_section_outcomes.each do |iso|
+        - @avail_subject_outcomes.each do |asubjo|
+          - so = @subjo_so[asubjo.id]
+          %li.row{id: "iso_#{so.id}"}
+            //%form{action: "/section_outcomes", method: "post"}
+            = form_for( so) do |f|
+              %span.lo-name.pull-left="#{asubjo.name}"
+              %input{type: 'hidden', name: "section_outcome[section_id]", value: "#{@section.id}"}
+              %input{type: 'hidden', name: "section_outcome[active]", value: "true"}
+              %input{type: 'hidden', name: "section_outcome[subject_outcome_id]", value: "#{so.subject_outcome_id}"}
+              %button.pull-right.btn.btn-primary{name: 'commit', type: "submit"}
+                %i.fa.fa-lg.fa-plus
+
+              %field_set.pull-right
+                - @marking_periods.each do |mp|
+                  %label.pull-left="#{mp}:"
+                  %input.pull-left{:id => "s_#{@section.id}_so_#{so.id}_#{mp}", :name => "mp[]", :type => "checkbox", :value => "#{mp}", :checked => (so.marking_period_set?(mp) ? 'checked' : nil)}
+                  =''
+              %span.pull-right='Change Marking Periods to:'
+- if @is_subject_manager
+  .row
+    .col-md-12
+      .sectioned-list
+        .row.header-row
+          %h4.text-center
+            %a{:href => "/subjects/#{@section.subject_id}/edit_subject_outcomes"}='Edit Learning Outcomes'

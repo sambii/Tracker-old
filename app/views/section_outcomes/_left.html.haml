@@ -1,0 +1,19 @@
+/ Declare Variables
+- id = section_outcome.id
+
+%table.section_outcome{id: "section_outcome_table_left_#{id}"}
+  %thead
+    %tr
+      %th.name{style: "overflow: hidden", class: "#{'essential' if section_outcome.essential}"}
+        %span.section_outcome_toggle= section_outcome.minimized ? "+" : "-"
+        %span.section_outcome_name{id: "section_outcome_#{id}", data_url: "section_outcomes/#{id}.json sections/#{section_outcome.section_id}.json", data_template: "section_outcomes/rate", title: section_outcome.name}
+          = section_outcome.shortened_name
+        %span.section_outcome_x
+          x
+        %span.section_outcome_marking_periods
+          = marking_periods section_outcome
+  %tbody.evidence{id: "section_outcome_evidences_left_#{id}"}
+    -if not section_outcome.minimized
+      = render partial: 'evidences/left', collection: get_evidence_section_outcomes(id), as: 'evidence', locals: {section_outcome: section_outcome}
+    -else
+      %tr{id: "empty_evidence_left_#{id}"}

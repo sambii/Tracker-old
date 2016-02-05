@@ -1,0 +1,5 @@
+if ("<%= params[:source_controller] %>" == "sections" && "<%= params[:source_action] %>" == "show") {
+  render_data_template('<div data_url="sections/<%= @section.try(:id) %>/new_enrollment" data_template="sections/new_enrollment"></div>');
+} else {
+  location.reload();
+}

@@ -1,0 +1,30 @@
+%div#placeholder
+  %div
+    %img#tools{src: '/assets/tools.png', section_id: "#{@section.id}", subsection_id: "#{params[:subsection] != "All" ? params[:subsection].to_i : 0}", is_teacher: "#{current_user.teacher?}" }
+    %div.inline_block#section_label
+      = @section.name + ": " + @section.line_number
+      %br/
+      = @section.teacher_names
+  -# = render 'marking_periods'
+  -# = render 'subsections' if @section.school.subsection == true
+%div#section_message
+  Section Message
+  %button#edit_section_message{type: "button", data_template: "sections/edit_section_message", data_url: "sections/#{@section.id}"} (edit)
+  %i
+    = @section.message
+%div#white_space_top
+%div#white_space_left
+%div#gradebook
+  %div#roster_row
+    %table#roster
+      %tr
+        %td#blank
+          %div
+        - @students.each do |student|
+          %th.student
+            %div{id: "student_#{student.id}", data_template: "students/show", data_url: "students/#{student.id}.json"}= (student.last_name + ",<br>" + student.first_name).html_safe
+  %div#gradebook_spacer
+  %div#grades_left
+    = render partial: 'section_outcomes/left', collection: @section.section_outcomes, as: 'section_outcome'
+  %div#grades_right
+    = render partial: 'section_outcomes/right', collection: @section.section_outcomes, as: 'section_outcome'

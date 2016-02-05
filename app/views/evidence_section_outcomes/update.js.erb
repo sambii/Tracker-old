@@ -1,0 +1,10 @@
+if ("<%= params[:source_controller] %>" == "sections" && "<%= params[:source_action] %>" == "show") {
+  var left;
+  var right;
+  left  = $("#evidence_left_row_<%= @evidence_section_outcome.id %>").detach();
+  right = $("#evidence_right_row_<%= @evidence_section_outcome.id %>").detach();
+  $(left).appendTo($("#section_outcome_evidences_left_<%= @evidence_section_outcome.section_outcome_id %>"));
+  $(right).appendTo($("#section_outcome_evidences_right_<%= @evidence_section_outcome.section_outcome_id %>"));
+} else {
+  location.reload();
+}

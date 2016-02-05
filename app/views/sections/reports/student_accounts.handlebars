@@ -1,0 +1,56 @@
+<div id="popup_form">
+<h2>Student Account Information</h2>
+<p><a href="/sections/{{current_section_id}}.pdf?report=student_accounts">View as PDF</a></p>
+  <table class="report" style="font-size: 0.8em;">
+    <thead>
+    <tr>
+      <th colspan=5>Student</th>
+      <th colspan=6>Parent</th>
+    </tr>
+    <tr>
+      <th>Name</th>
+      <th>Username</th>
+      <th>Temporary<br /> Password</th>
+      <th># Sign Ins</th>
+      <th>Last Sign In</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Subscription<br />Status</th>
+      <th>Temporary<br />Password</th>
+      <th># Sign Ins</th>
+      <th>Last Sign In</th>
+    </tr>
+    </thead>
+    <tbody>
+      {{#each students}}
+        <tr>
+          <td>{{last_name}}, {{first_name}}</td>
+          <td>{{username}}</td>
+          <td id="user_{{id}}_password">
+            {{#if temporary_password}}
+              {{temporary_password}}
+            {{else}}
+              <a href="/users/{{id}}/set_temporary_password" data-remote="true">Reset Password</a>
+            {{/if}}
+          </td>
+          <td>{{sign_in_count}}</td>
+          <td>{{last_sign_in_at}}</td>
+          {{#with parent}}
+            <td>{{username}}</td>
+            <td id="user_{{id}}_email">{{email}}</td>
+            <td>{{subscription_status}}</td>
+            <td id="user_{{id}}_password">
+              {{#if temporary_password}}
+                {{temporary_password}}
+              {{else}}
+                <a href="/users/{{id}}/set_temporary_password" data-remote="true">Reset Password</a>
+              {{/if}}
+            </td>
+            <td>{{sign_in_count}}</td>
+            <td>{{last_sign_in_at}}</td>
+          {{/with}}
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

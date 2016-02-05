@@ -1,0 +1,53 @@
+<div id="popup_form">
+  <form id="new_student" accept-charset="UTF-8" action="/students" method="post" data-remote="true">
+    {{authenticity_token}}
+    <table>
+      <tr>
+        <td><label for="student_school_id">School: </label></td>
+        <td>
+          <select id="student_school_id" name="student[school_id]" select_url="schools"></select>
+          <script type="text/javascript">
+            populate_select($("#student_school_id"));
+          </script>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="student_xid">Student ID: </label></td>
+        <td><input id="student_xid" name="student[xid]" type="text"></td>
+      </tr>
+      <tr>
+        <td><label for="student_first_name">First Name: </label></td>
+        <td><input id="student_first_name" name="student[first_name]" type="text"></td>
+      </tr>
+      <tr>
+        <td><label for="student_last_name">Last Name: </label></td>
+        <td><input id="student_last_name" name="student[last_name]" type="text"></td>
+      </tr>
+      <tr>
+        <td><label for="student_gender">Gender: </label></td>
+        <td>
+          <select id="student_gender" name="student[gender]">
+            <option></option>
+            <option value="F">Female</option>
+            <option value="M">Male</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="student_grade_level">Grade Level: </label></td>
+        <td>
+          <select id="student_grade_level" name="student[grade_level]">
+            <option></option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="10">11</option>
+            <option value="10">12</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2><button type="submit" value="commit">Add Student</button></td>
+      </tr>
+    </table>
+  </form>
+</div>

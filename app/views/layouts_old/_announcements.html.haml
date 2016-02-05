@@ -1,0 +1,7 @@
+- announcements = Announcement.unrestricted.current.not_hidden(cookies.signed[:hidden_announcement_ids])
+- if announcements.length > 0
+  %div#announcements
+    - announcements.each do |announcement|
+      %div.announcement{id: "announcement_#{announcement.id}"}
+        = announcement.content
+        = link_to "hide", hide_announcement_path(announcement), remote: true

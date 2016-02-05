@@ -1,0 +1,58 @@
+.modal-message#modal-message
+%form{id: "popup_form", action: "/evidences/#{@evidence.id}", autocomplete: "off", "data-remote" => "true", method: "put"}
+  .modal-header
+    %button.close{"aria-hidden" => "true", "data-dismiss" => "modal", type: "button"} ×
+    %h3
+      = "OBSOLETE RATE EVIDENCE PAGE FOR #{@evidence.name}"
+      %button.btn.btn-success{type: "submit"} Save
+
+  .modal-body#modal-body
+    %table
+      - @enrollments.each_with_index do |e, i_esor|
+        %tr
+          %td= e.student.full_name
+        - @evidence_ratings[e.student_id].each_with_index do |(er_key, er_value),i_eso|
+          %tr
+            %td
+              = @eso_section_outcomes[er_key][:name]
+              %input{name: "evidence[evidence_section_outcomes_attributes][#{i_eso}][id]", type: "hidden", value: "#{er_key}"}/
+              %input{name: "evidence[evidence_section_outcomes_attributes][#{i_eso}][section_outcome_id]", type: "hidden", value: "#{@eso_section_outcomes[er_key][:id]}"}/
+              %input{name: "evidence[evidence_section_outcomes_attributes][#{i_eso}][evidence_section_outcome_ratings_attributes][#{i_esor}][id]", type: "hidden", value: "#{er_value[:id]}"}/
+              %input{name: "evidence[evidence_section_outcomes_attributes][#{i_eso}][evidence_section_outcome_ratings_attributes][#{i_esor}][student_id]", type: "hidden", value: "#{e.student_id}"}/
+            %td
+              \# rating field
+              %input.evidence_rating{autcomplete: "off", id: "rating_#{i_eso}", name: "evidence[evidence_section_outcomes_attributes][#{i_eso}][evidence_section_outcome_ratings_attributes][#{i_esor}][rating]", size: "2", value: "#{er_value[:rating]}"}/
+            %td
+              \# comment field
+              %input{id: "comment_#{i_eso}", name: "evidence[evidence_section_outcomes_attributes][#{i_esor}][evidence_section_outcome_ratings_attributes][#{i_eso}][comment]", size: "20", value: "#{er_value[:comment]}"}/
+  .modal-footer
+    %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} Close
+    %button.btn.btn-success{type: "submit"} Save
+
+
+
+-#  <td><input name='evidence[evidence_section_outcomes_attributes][#{i}][id]' value='#{evidence_section_outcome.id}' type='hidden'>
+-#  <input name='evidence[evidence_section_outcomes_attributes][#{i}][section_outcome_id]' value='#{evidence_section_outcome.section_outcome_id}' type='hidden'>
+-#  -#  # scripted: unless rating.id == undefined
+-#  -#    <input name='evidence[evidence_section_outcomes_attributes][#{i}][evidence_section_outcome_ratings_attributes][#{j}][id]' value='#{rating.id}' type='hidden'>
+-#  <input name='evidence[evidence_section_outcomes_attributes][#{i}][evidence_section_outcome_ratings_attributes][#{j}][student_id]' value='#{student.id}' type='hidden'>
+
+
+-#  <form accept-charset="UTF-8" method="put" action="/evidences/{{id}}" data-remote="true" autocomplete="off">
+-#    {{authenticity_token}}
+-#    {{current_controller_action}}
+-#    <h3>Rate {{name}}</h3>
+-#    <input id="global_rating" type="text" size=2>
+-#    <input type="button" value="Apply Rating" onclick="$('.evidence_rating').each(function(index, element) { if ($(element).val() == '') { $(element).val($('#global_rating').val()) } });">
+-#    <span style="font-size: 0.8em">(Will not overwrite any ratings that have already been assigned!)</span>
+-#    <div>
+-#      {{#with students}}
+-#        {{evidence_student_table ..}}
+-#      {{/with}}
+-#    </div>
+-#    <input type="submit" value="Rate Evidence" />
+-#  </form>
+-#
+-#<script type="text/javascript">
+-#    CopyDown.initialize("#popup_form");
+-#</script>

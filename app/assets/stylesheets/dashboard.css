@@ -1,0 +1,49 @@
+
+ul#active_sections > li, ul#other_options > li {
+  background-color: #58a;
+  border: 1px solid #035;
+  margin: 4px;
+  overflow: hidden;
+  padding: 3px;
+}
+
+ul#active_sections li a:hover, ul#other_options li a:hover {
+  background-color: #8ad;
+}
+
+ul#active_sections li a, ul#other_options li a {
+  color: white;
+  padding: 0;
+  display: block;
+  text-decoration: none;
+}
+
+ul#active_sections li a:hover, ul#other_options li a:hover {
+  cursor: pointer;
+}
+
+ul#active_sections li span a {
+  color: #035;
+}
+
+ul.subsections {
+  float: right;
+}
+
+li.subsection {
+  border: 1px solid #035;
+  float: left;
+  margin-left: 3px;
+  padding: 0;
+}
+
+li.subsection a {
+  display: block;
+  text-align: center;
+  width: 14px;
+}
+
+li.subsection a:hover {
+  background-color: #035;
+  color: white;
+}

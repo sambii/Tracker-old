@@ -1,0 +1,12 @@
+.page-form
+  - if @errors[:base] && @errors[:base] != []
+    %fieldset.input-group
+      %div.ui-error.text-center=@errors[:base]
+  %fieldset.input-group
+    %label.col-sm-3.control-label{for: 'attendance_type_description'}='Description:'
+    = f.text_field(:description, class: 'col-sm-6')
+    %span.ui-error.col-sm-3="#{@errors[:description] if @errors[:description].present?}"
+  %fieldset.text-center
+    / %button.btn.btn-sm.btn-primary{name: 'commit', type: "submit"}='Update Student'
+    - if can? :update, AttendanceType
+      = f.submit(I18n.translate('action_titles.save'), class: 'btn btn-sm btn-primary')

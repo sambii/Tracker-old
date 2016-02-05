@@ -1,0 +1,16 @@
+# Note: this migration was not done.
+# first attempt was without text limit and index length specification, as it caused problems with mysql.
+# second attempt, the index length was ignored.
+class LoDescToText < ActiveRecord::Migration
+  def up
+    remove_index :subject_outcomes, :name => 'altered_subject_outcomes_multi'
+    change_column :subject_outcomes, :description, :text, limit: 2048
+    add_index "subject_outcomes", ["subject_id", "description"], :name => "altered_subject_outcomes_multi", :length => {:description => 255}
+  end
+
+  def down
+    remove_index :subject_outcomes, :name => 'altered_subject_outcomes_multi'
+    change_column :subject_outcomes, :description, :string
+    add_index "subject_outcomes", ["subject_id", "description"], :name => "altered_subject_outcomes_multi"
+  end
+end

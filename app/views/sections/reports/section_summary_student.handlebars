@@ -1,0 +1,42 @@
+<div id="popup_form">
+  <h2>Summary of {{full_name}} by Student</h2>
+  <table class="report">
+    <thead>
+      <tr>
+        <td colspan=4>
+          <canvas class="Chart"
+                  chart-type="Pie"
+                  chart-data='[{"value":"{{count_ratings/H}}","color":"#336688"},{"value":"{{count_ratings/P}}","color":"#338866"},{"value":"{{count_ratings/N}}","color":"#C23030"}]'
+                  width=300
+                  height=250>
+          </canvas>
+        </td>
+      </tr>
+      <tr>
+        <th>Student Name</th>
+        <th># HP</th>
+        <th># P</th>
+        <th># NYP</th>
+        {{#if grade}}
+          <th>Snapshot</th>
+        {{/if}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each students}}
+        <tr>
+          <td class="centered">{{last_name}}, {{first_name}}</td>
+          <td class="centered">{{count high_performances}}</td>
+          <td class="centered">{{count proficients}}</td>
+          <td class="centered">{{count not_yet_proficients}}</td>
+        </tr>
+      {{/each}}
+      <tr>
+        <th>Total</th>
+        <th>{{count_ratings/H}}</th>
+        <th>{{count_ratings/P}}</th>
+        <th>{{count_ratings/N}}</th>
+      </tr>
+    </tbody>
+  </table>
+</div>

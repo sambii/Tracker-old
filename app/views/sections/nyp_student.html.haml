@@ -1,0 +1,66 @@
+
+- content_for(:title, 'Not Yet Proficient by Student Report')
+- content_for(:page_name, 'Not Yet Proficient By Student Report')
+- content_for(:page_class, 'generate-reports misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :rpt_nyp_student, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Generate Reports"
+  %h2.h1.page-title
+    %strong="Not Yet Proficient by Student"
+  .row
+    %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-filter
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+    %a#collapse-all-groups.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-caret-right
+    %a#expand-all-groups.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-caret-down
+  .row
+    %table.table
+      %thead
+        %tr
+          %th='Subject'
+          %th='Sections'
+          %th='Learning Outcomes'
+      %tbody
+        %tr
+          %td=@section.name
+          %td=@section.line_number
+          %td='All'
+.row
+  .col-sm-12.col-lg-8
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          %i.fa.fa-check
+          ='NYP by Student'
+      .block-content-full
+        #nyp-by-student.panel-group.expand-collapse-group
+          - @section.enrollments.alphabetical.each do |e|
+            - los = e.student.section_outcomes_by_rating("N", @section.id)
+            - if los.count > 0
+              .panel.panel-default
+                .panel-heading.group-header.show-group.show-body
+                  .panel-heading-sign=los.count
+                  %h4.panel-title
+                    %a.toggle-group-body
+                      %i.fa.fa-caret-right.fa-lg
+                    %a.arrow-cursor{href: "javascript:void(0)"}
+                      %strong=e.student.full_name
+                #stud_123.group-body
+                  .panel-body.remove-padding
+                    %table.table.table-vcenter.remove-margin
+                      %tbody
+                        - los.each do |lo|
+                          %tr
+                            %td=lo[:name]
+  .col-sm-0.col-lg-4

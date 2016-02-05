@@ -1,0 +1,74 @@
+- title = 'Teacher Assignments Bulk Entry'
+- content_for(:title, title)
+- content_for(:page_name, title)
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :teaching_assignment_bulk_entry
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Maintenance"
+  %h2.h1.page-title
+    %strong=title
+  .row
+    %a#collapse-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Collapse All'}
+      %i.fa.fa-lg.fa-caret-right
+    %a#expand-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Expand All'}
+      %i.fa.fa-lg.fa-caret-down
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+%br
+.row
+  .col-sm-12
+    = form_tag(update_bulk_teaching_assignments_path) do
+      .row.text-center
+        %button#save.text-button{type: 'submit'}='SAVE'
+      .row.text-center
+        %span.ui-error='WARNING: THIS CAN BE DONE ONCE ON A SECTION, WITH NO PRE-EXISTING TEACHER ASSIGNMENTS!'
+      .block.block-alt-style.full
+        .block-title
+          %h2
+            %i.fa.fa-lg.fa-caret-right
+            ='Discipline : Subject'
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+            %thead.table-title
+              %tr
+                %th= 'Section'
+                %th= 'Teacher'
+            - row = 0
+            - if @disciplines.count > 0
+              - @disciplines.each do |disc|
+                - if disc.subjects.count > 0
+                  - disc.subjects.each do |subj|
+                    %tbody.tbody-header.show-tbody{id: "subj_header_#{subj.id}", class: (true ? 'show-tbody-body' : '' )}
+                      %tr.height-30
+                        %td{colspan: 3}
+                          .clearfix
+                            %a.toggle-tbody.pull-left{href: "javascript:void(0)", id: "subj_header_#{subj.id}_a"}
+                              %i.fa.fa-caret-down.fa-lg
+                            %a{href: subject_path(subj.id), title: 'Subject Dashboard'}
+                              %strong.pull-left.lmargin5="#{disc.name} : #{subj.name}"
+                    %tbody.tbody-body{id: "subj_body_#{subj.id}"}
+                      - subj.sections.each do |s|
+                        %tr{id: "sect_#{s.id}"}
+                          %td.text-right.sect-section
+                            =s.line_number
+                          %td.sect-teacher
+                            - if s.teachers.count == 0
+                              %fieldset.input-group
+                                %label.col-sm-5.control-label{for: "teaching_assignment_attributes[#{subj.id}][#{s.id}]"}
+                                  ='Teacher:'
+                                  %select#section-assignment-teacher-id.select-select2{name: "teaching_assignment_attributes[#{subj.id}][#{s.id}]", data: {placeholder: "select Teacher"}}
+                                    %option{value: ''}
+                                    = options_from_collection_for_select(@teachers, 'id', 'full_name')
+
+      .row.text-center
+        %button#save.text-button{type: 'submit'}='SAVE'
+      .row.text-center
+        %span.ui-error='WARNING: THIS CAN BE DONE ONCE ON A SECTION, WITH NO PRE-EXISTING TEACHER ASSIGNMENTS!'

@@ -1,0 +1,65 @@
+
+  table.report {
+    border-spacing: 4px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  table.report th {
+    background: #adf;
+    box-shadow: 2px 2px 3px #035;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px white;
+  }
+
+  table.report td {
+    background: white;
+    box-shadow: 2px 2px 3px #035;
+    color: #035;
+    padding: 3px;
+  }
+
+  /* to show errors in table view of records */
+/*  table.report tr.field_with_errors td.error_description {
+    color: #f00;
+  }
+  table.report tr.field_with_errors td {
+    background-color: #fcc;
+  }
+*/
+
+  table.report td.deactivated {
+    text-decoration: line-through;
+  }
+}
+div.progress {
+  height: 14px;
+  width: 200px;
+}
+
+div.progress_bar {
+  height: 100%;
+  float: left;
+}
+
+div.progress_bar:hover {
+  opacity: 0.7;
+}
+
+div.not_yet_proficient_bar {
+  background-color: #c23030;
+  border-bottom: 6px solid #f47272;
+  color: white;
+}
+
+div.proficient_bar {
+  background-color: #386;
+  border-bottom: 6px solid #6a9;
+  color: white;
+}
+
+div.high_performance_bar {
+  background-color: #368;
+  border-bottom: 6px solid #69a;
+  color: white;
+}

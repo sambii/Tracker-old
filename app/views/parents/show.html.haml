@@ -1,0 +1,17 @@
+
+- content_for(:title, 'Parent Dashboard')
+- content_for(:page_name, 'Parent Dashboard')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Dashboard"
+  %h2.h1.page-title
+    %strong="Parent of: #{@student.full_name}"
+  - si_time = (@student.current_sign_in_at.nil?) ? 'Never' : @student.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
+  %span="(Latest student signin time at: #{si_time})"
+=render('students/dashboard')

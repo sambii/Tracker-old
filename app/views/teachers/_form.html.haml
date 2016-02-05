@@ -1,0 +1,20 @@
+%div.form
+  = form_for @teacher do |f|
+    %div.fieldset
+      - if @teacher.persisted?
+        %p.bold School
+        %p= @teacher.school.name
+      - else
+        = f.label :school_id
+        = f.select :school_id, [], {}, select_url: "schools", sel: params[:school_id]
+    %div.fieldset
+      = f.label :first_name
+      = f.text_field :first_name
+    %div.fieldset
+      = f.label :last_name
+      = f.text_field :last_name
+    %div.fieldset
+      = f.label :email
+      = f.text_field :email
+    %div.submit
+      = f.submit

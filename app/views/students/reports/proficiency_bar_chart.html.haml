@@ -1,0 +1,57 @@
+
+- content_for(:title, 'Proficiency Bar Charts By Student')
+- content_for(:page_name, 'Proficiency Bar Charts By Student')
+- content_for(:page_class, 'generate-reports misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :prof_bar_chart
+  = help_gen_breadcrumbs
+
+.header-block.col-sm-12.col-lg-8
+  %h1.h3.page-title
+    %strong="Generate Reports"
+  %h2.h1.page-title
+    %strong="Proficiency Bar Charts By Student"
+  .row
+    %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-filter
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+  .row
+    %table.table
+      %thead
+        %tr
+          %th='Subject'
+          %th='Sections'
+          %th='Students'
+      %tbody
+        %tr
+          %td='All'
+          %td='All'
+          %td='All'
+.row
+  .col-sm-12.col-lg-8
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th='Grade Level'
+              %th='Student Name'
+              %th{col_span: 4}='Proficiency Bar Chart'
+          %tbody
+            - @students.each do |student|
+              - total_ratings = student.ratings_count('H') + student.ratings_count('P') + student.ratings_count('N')
+              - if total_ratings > 0
+                %tr
+                  %td=student.grade_level
+                  %td=student.full_name
+                  - pixel_width = 300
+                  %td{style: "width: #{pixel_width+11}px;"}
+                    .flat-bar-chart{style: "width: 100%;"}
+                      .high-rating-bar.progress-bar{style: "width: #{(student.ratings_count('H')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('H')} of #{total_ratings}"}
+                      .prof-rating-bar.progress-bar{style: "width: #{(student.ratings_count('P')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('P')} of #{total_ratings}"}
+                      .nyp-rating-bar.progress-bar{style: "width: #{(student.ratings_count('N')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('N')} of #{total_ratings}"}
+  .col-sm-0.col-lg-4

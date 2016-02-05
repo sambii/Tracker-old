@@ -1,0 +1,7 @@
+%div.form
+  = form_for(@discipline) do |f| 
+    %div.fieldset
+      = f.label :name
+      = f.text_field :name
+    %div.submit
+      = f.submit

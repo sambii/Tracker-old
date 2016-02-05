@@ -1,0 +1,28 @@
+
+- content_for(:title, 'Edit Excuse')
+- content_for(:page_name, 'Edit Excuse')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Attendance Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Edit Excuse'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          =@excuse.description
+      .block-content-full
+        =form_for(@excuse, remote: true) do |f|
+          - @errors = @excuse.errors
+          = render 'form', f: f
+  .col-sm-1

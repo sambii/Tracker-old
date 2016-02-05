@@ -1,0 +1,33 @@
+=form_for @subject, remote: true do |f|
+  - @errors = @subject.errors
+  .page-form.alternate-highlight
+    - if @errors[:base] && @errors[:base] != []
+      %div.ui-error.text-center=@errors[:base]
+    %fieldset.input-group
+      %label.col-sm-5.control-label{for: 'subject[school_id]'}='School:'
+      %input#subject_school_id{type: 'hidden', name: 'subject[school_id]', value: @school.id}
+      %span{name: 'subject_school_name]'}=@school.name
+      %span.ui-error="#{@errors[:school_id] if @errors[:school_id].present?}"
+    %fieldset.input-group
+      %label.col-sm-5.control-label{for: 'subject[school_id]'}='Discipline:'
+      %select#subject-discipline-id.select-select2{name: "subject[discipline_id]", data: {placeholder: "select Discipline"}}
+        %option{value: ''}
+        = options_from_collection_for_select(@disciplines, 'id', 'name', @subject.discipline_id)
+      %span.ui-required{title: 'Required'}='*'
+      %span.ui-error="#{@errors[:discipline_id] if @errors[:discipline_id].present?}"
+    %fieldset.input-group
+      %label.col-sm-5.control-label= 'Name:'
+      %input#subject-name{name: 'subject[name]', value: @subject.name}
+      %span.ui-required{title: 'Required'}='*'
+      %span.ui-error="#{@errors[:name] if @errors[:name].present?}"
+    %fieldset.input-group
+      %label.col-sm-5.control-label{for: 'subject[subject_manager_id]'}='Subject Manager:'
+      %select#subject_subject_manager_id.select-select2{name: "subject[subject_manager_id]", placeholder: 'Select Subject Manager:'}
+        %option{value: ""}
+        = options_from_collection_for_select(@teachers, 'id', 'full_name', @subject.subject_manager_id)
+      / %span.ui-required{title: 'Required'}='*'
+      %span.ui-error="#{@errors[:subject_manager_id] if @errors[:subject_manager_id].present?}"
+    %fieldset.text-center
+      / = f.submit
+      %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+      %button.btn.btn-primary{name: 'commit', type: "submit"}='Save'

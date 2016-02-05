@@ -1,0 +1,13 @@
+.row
+  .col-md-12
+    %h3='Options'
+    %ul
+      %li= link_to "Manage Academic Disciplines", disciplines_path
+      %li= link_to "Create New Announcement", new_announcement_path
+      %li= link_to "Manage Schools", schools_path
+    - if session[:school_context].blank?
+      %h3='Select a School'
+      %ul
+        - School.order(:name).all.each do |school|
+          %li
+            = link_to school.name, school

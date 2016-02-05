@@ -1,0 +1,29 @@
+
+- content_for(:title, 'Edit School')
+- content_for(:page_name, 'Edit School')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Edit School'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h3
+          ='Edit School'
+      .block-content-full
+        =form_for(@school, remote: true) do |f|
+          - @errors = @school.errors
+          .page-form.alternate-highlight
+            = render 'form'
+  .col-sm-1

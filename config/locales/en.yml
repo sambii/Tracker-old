@@ -1,0 +1,103 @@
+# Sample localization file for English. Add more files in this directory for other locales.
+# See http://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
+
+en:
+  action_titles:
+    index: "Index"
+    list: "List"
+    listing: "Listing"
+    show: "Show"
+    view: "View"
+    edit: "Edit"
+    update: "Update"
+    updated: "Updated"
+    new: "New"
+    create: "Create"
+    created: "Created"
+    delete: "Delete"
+    deleted: "Deleted"
+    save: "Save"
+    saved: "Saved"
+  actions:
+    # update: "Update"
+    # save: "Save"
+  values:
+    active_true: 'Active'
+    active_false: 'Inactive'
+  navigations:
+    dashboard:
+      title: 'Dashboard'
+      link: "Back to Dashboard"
+      items:
+  nav:
+    dashboard:
+      subjects_list: 'List All Subjects'
+    subjects_show:
+      manage_los: 'Manage Learning Outcomes for this subject'
+  responses:
+    are_you_sure: "Are you sure?"
+  warnings:
+    date_change_warning: '(Note: if you change the date, it will not save any changes)'
+  success:
+    was_created: " was successfully created!"
+  alerts:
+    success: ' Success!'
+    successfully: 'Successfully '
+    had_errors: 'Errors trying to '
+    errors_see_below: 'ERRORS! See below:'
+  errors:
+    date_not_in_school_year: 'Date not in School Year'
+    missing_school_year: 'Missing School Year'
+    invalid_date: 'Invalid Date'
+    end_date_before_start_date: 'must be more recent than the start date.'
+    invalid_school: 'Invalid school'
+    invalid_school_id: 'Invalid school ID %{id}'
+    invalid_school_pick_one: 'Invalid school, please pick a school'
+    invalid_school_id_pick_one: 'Invalid school ID %{id}, please pick a school'
+    cant_be_blank: "can't be blank."
+    cannot_delete_attendance_record: "Attendance record delete not allowed."
+    timeout: 'You are logged out.'
+    unauthorized: 'You requested a page you are not allowed to see.'
+    timeout_or_unauthorized: 'You were logged out or you requested a page you are not allowed to see.'
+    is_invalid: 'is an invalid value.'
+    item_is_invalid: '%{item} is an invalid value.'
+    is_required: 'is a required field.'
+    must_pick_one_item: 'must pick at least one %{item}'
+  models:
+    attendance:
+      name: "Attendance"
+      plural_name: "Attendance"
+      fields:
+        school: 'School'
+        subject: 'Subject'
+        section: 'Section'
+        user: 'User'
+        student: 'Student'
+        school_year: 'School Year'
+        attendance_date: 'Date'
+        excuse: 'Excuse'
+        attendance_type: 'Type'
+        comment: 'Comment'
+    attendance_type:
+      name: "Attendance Type"
+      plural_name: "Attendance Types"
+      fields:
+        school: 'School'
+        description: 'Description'
+        active: 'Active'
+    excuse:
+      name: "Excuse"
+      plural_name: "Excuses"
+      fields:
+        school: 'School'
+        code: 'Code'
+        description: 'Description'
+        active: 'Active'
+    user:
+      username: "User Name"
+      full_name: "Full Name"
+      first_name: "First Name"
+      last_name: "Last Name"
+      email: "Email Address"
+    # school_year:
+    #   name: "School Year"

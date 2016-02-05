@@ -1,0 +1,76 @@
+
+- if @errors[:base] && @errors[:base] != []
+  %div.ui-error.text-center=@errors[:base]
+%fieldset.input-group
+  %label.col-sm-5.control-label='Name:'
+  %input{id: 'school_name', name: 'school[name]', value: @school.name}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:name] if @errors[:name].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Acronym:'
+  %input{id: 'school_acronym', name: 'school[acronym]', value: @school.acronym}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:acronym] if @errors[:acronym].present?}"
+-# %fieldset.input-group
+-#  %label.col-sm-5.control-label='Street Address:'
+-#  %input{id: 'school_street_address', name: 'school[street_address]', value: @school.street_address}
+-#  %span.ui-error="#{@errors[:street_address] if @errors[:street_address].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='City / Town:'
+  %input{id: 'school_city', name: 'school[city]', value: @school.city}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:city] if @errors[:city].present?}"
+-# %fieldset.input-group
+-#  %label.col-sm-5.control-label='State:'
+-#  %input{id: 'staff_state', name: 'school[state]', value: @school.state}
+-#  %span.ui-error="#{@errors[:state] if @errors[:state].present?}"
+-# %fieldset.input-group
+-#  %label.col-sm-5.control-label='Zip Code:'
+-#  %input{id: 'staff_zip_code', name: 'school[zip_code]', value: @school.zip_code}
+-#  %span.ui-error="#{@errors[:zip_code] if @errors[:zip_code].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Marking Periods:'
+  %input{id: 'school_marking_periods', name: 'school[marking_periods]', value: @school.marking_periods}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@errors[:marking_periods] if @errors[:marking_periods].present?}"
+
+%fieldset.input-group
+  %label.col-sm-5.control-label='Surname:'
+  %input{type: 'hidden', name: "school[flag_pars][#{School::USE_FAMILY_NAME}]", value: 'false'}
+  %input.pull-left{:name => "school[flag_pars][#{School::USE_FAMILY_NAME}]", :type => "checkbox", checked: @school.has_flag?(School::USE_FAMILY_NAME)}
+  %label.checkbox-right-label.pull-left="Use Family Name"
+  %span.ui-error="#{@errors[School::USE_FAMILY_NAME] if @errors[School::USE_FAMILY_NAME].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='User Sort by:'
+  %input{type: 'hidden', name: "school[flag_pars][#{School::USER_BY_FIRST_LAST}]", value: 'false'}
+  %input.pull-left{:name => "school[flag_pars][#{School::USER_BY_FIRST_LAST}]", :type => "checkbox", checked: @school.has_flag?(School::USER_BY_FIRST_LAST)}
+  %label.checkbox-right-label.pull-left="First/Last"
+  %span.ui-error="#{@errors[School::USER_BY_FIRST_LAST] if @errors[School::USER_BY_FIRST_LAST].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Grade in Subject Name:'
+  %input{type: 'hidden', name: "school[flag_pars][#{School::GRADE_IN_SUBJECT_NAME}]", value: 'false'}
+  %input.pull-left{:name => "school[flag_pars][#{School::GRADE_IN_SUBJECT_NAME}]", :type => "checkbox", checked: @school.has_flag?(School::GRADE_IN_SUBJECT_NAME)}
+  %label.checkbox-right-label.pull-left="Yes"
+  %span.ui-error="#{@errors[School::GRADE_IN_SUBJECT_NAME] if @errors[School::GRADE_IN_SUBJECT_NAME].present?}"
+
+%div.ui-error.text-center='Use Rollover Process to go to next year'
+%fieldset.input-group
+  %label.col-sm-5.control-label='Start Date:'
+  %input.input-mm{id: 'school_start_mm', name: 'school_year[start_mm]', value: @school_year.start_mm}
+  %span='-'
+  %input.input-yyyy{id: 'school_start_yyyy', name: 'school_year[start_yyyy]', value: @school_year.start_yyyy}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@school_year.errors[:starts_at] if @school_year.errors[:starts_at].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='End Date:'
+  %input.input-mm{id: 'school_end_mm', name: 'school_year[end_mm]', value: @school_year.end_mm}
+  %span='-'
+  %input.input-yyyy{id: 'school_end_yyyy', name: 'school_year[end_yyyy]', value: @school_year.end_yyyy}
+  %span.ui-required{title: 'Required'}='*'
+  %span.ui-error="#{@school_year.errors[:ends_at] if @school_year.errors[:ends_at].present?}"
+
+
+%fieldset.text-center
+  -# %input{type: :hidden, name: 'school[id]', value: @school.id}
+  %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+  %button.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'

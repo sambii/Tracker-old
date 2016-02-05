@@ -1,0 +1,17 @@
+
+- content_for(:title, 'New Evidence')
+- content_for(:page_name, 'New Evidence')
+- content_for(:page_class, 'add-edit-evidence')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :new_evidence, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Tracker Page Maintenance"
+  %h2.h1.page-title
+    %strong
+      ="Add Evidence"
+= render 'evidences/add_edit_form'

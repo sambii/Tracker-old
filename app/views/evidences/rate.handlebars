@@ -1,0 +1,19 @@
+<div id="popup_form" confirm_exit="true">
+  <form accept-charset="UTF-8" method="put" action="/evidences/{{id}}" data-remote="true" autocomplete="off">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <h3>Rate {{name}}</h3>
+    <input id="global_rating" type="text" size=2>
+    <input type="button" value="Apply Rating" onclick="$('.evidence_rating').each(function(index, element) { if ($(element).val() == '') { $(element).val($('#global_rating').val()) } });">
+    <span style="font-size: 0.8em">(Will not overwrite any ratings that have already been assigned!)</span>
+    <div>
+      {{#with students}}
+        {{evidence_student_table ..}}
+      {{/with}}
+    </div>
+    <input type="submit" value="Rate Evidence" />
+  </form>
+</div>
+<script type="text/javascript">
+    CopyDown.initialize("#popup_form");
+</script>

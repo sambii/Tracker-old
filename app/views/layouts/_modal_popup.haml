@@ -1,0 +1,19 @@
+%div#modal_popup.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "modal_popup_layout", role: "dialog", tabindex: "-1"}
+  .modal-dialog
+    .spinner
+      .fa.fa-spinner.fa-spin.fa-4x
+    .modal-content#modal_content
+      .modal-message#modal-message
+      .modal-header
+        %button.close{"aria-hidden" => "true", "data-dismiss" => "modal", type: "button"} ×
+        - if content_for?(:modal_title)
+          %h4#modal-title.modal-title= yield(:modal_title)
+      .modal-body#modal-body
+        %p Loading...
+      / .modal-footer
+      /   %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} Close
+      /   %button.btn.btn-primary{type: "button"} Save changes
+/ #modal_waiting.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "modal_popup_layout", role: "dialog", tabindex: "-1"}
+/   .modal-dialog
+/     .modal-content
+/       / %i.fa.fa-5x.fa-spinner.fa-spin

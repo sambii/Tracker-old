@@ -1,0 +1,23 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" action="/sections/{{current_section_id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <table>
+      <thead>
+        <tr>
+          <th><h3>Edit Section Message</h3></th>
+        </tr>
+      </thead>
+      <tr>
+        <td>
+          <textarea id="section_message" name="section[message]" rows="4" cols="40">{{message}}</textarea>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <button type="submit" value="commit">Update Section Message</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>

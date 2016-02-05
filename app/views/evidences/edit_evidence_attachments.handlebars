@@ -1,0 +1,108 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" id="edit_evidence" action="/evidences/{{id}}" method="post" enctype="multipart/form-data" >
+    {{authenticity_token}}
+    <input name="_method" type="hidden" value="put" />
+    {{current_controller_action}}
+    <h4>Attached Files and Hyperlinks maintenance for {{shortened_name}} - {{assignment_date}} {{reassessment}}</h4>
+    <table>
+        <tr>
+          <td>Current Files</td>
+          <td>
+            <table class="report">
+              <tr>
+                <th>Attached File</th>
+                <th>Remove?</th>
+              </tr>
+              {{#each evidence_attachments}}
+                <tr id="evidence_attachment_{{id}}">
+                  <td>
+                    <a href="{{url}}">{{name}}</a>
+                  </td>
+                  <td>
+                    <input id="evidence_attachment_{{id}}_remove" name="evidence[evidence_attachments_attributes][{{id}}][_destroy]" type="checkbox" value="1"> Remove
+                    <input name="evidence[evidence_attachments_attributes][{{id}}][id]" type="hidden" value="{{id}}">
+                  </td>
+                </tr>
+              {{/each}}
+            </table>
+          </td>
+        </tr>
+
+      <tr>
+        <td>Add Files</td>
+        <td>
+          <table class="report">
+            <tr>
+              <th>File to Attach</th>
+              <th>Name</th>
+            </tr>
+            <tr>
+              <td>
+                <input type="file" name="evidence[evidence_attachments_attributes][30][attachment]">
+              </td>
+              <td>
+                <input type="text" name="evidence[evidence_attachments_attributes][30][name]">
+              </td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <button class="cloner" clone_type="tr" parent_type="tr" name="button" type="button">Add Another Attachment</button>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>Current Hyperlinks</td>
+        <td>
+          <table class="report">
+            <tr>
+              <th>Attached Hyperlink</th>
+              <th>Remove?</th>
+            </tr>
+            {{#each evidence_hyperlinks}}
+              <tr id="evidence_hyperlink_{{id}}">
+                <td>
+                  <a href="{{hyperlink}}">{{title}}</a>
+                </td>
+                <td>
+                  <input  id="evidence_hyperlink_{{id}}_remove" name="evidence[evidence_hyperlinks_attributes][{{id}}][_destroy]" type="checkbox" value="1"> Remove
+                  <input name="evidence[evidence_hyperlinks_attributes][{{id}}][id]" type="hidden" value="{{id}}">
+                </td>
+              </tr>
+            {{/each}}
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>Add Hyperlinks</td>
+        <td>
+          <table class="report">
+            <tr>
+              <th>Hyperlink to Attach</th>
+              <th>Title</th>
+            </tr>
+            <tr>
+              <td>
+                <input type="text" id="evidence_evidence_hyperlinks_attributes_30_hyperlink" name="evidence[evidence_hyperlinks_attributes][30][hyperlink]" size=100>
+              </td>
+              <td>
+                <input type="text" id="evidence_evidence_hyperlinks_attributes_30_title" name="evidence[evidence_hyperlinks_attributes][30][title]">
+              </td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <button class="cloner" id="clone_hyperlink" clone_type="tr" parent_type="tr" name="button" type="button">Add Another Hyperlink</button>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <button type="submit" name="commit">Update Evidence</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>

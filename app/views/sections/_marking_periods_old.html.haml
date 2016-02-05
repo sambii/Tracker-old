@@ -1,0 +1,4 @@
+%div#marking_periods
+  %div.mp#mp_all{active: (@section.selected_marking_period == 0 ? "true" : "false")} All
+  - @marking_periods.each do |marking_period|
+    %div.mp{id: "mp_#{marking_period}", active: (@section.selected_marking_period == marking_period ? "true" : "false")}= marking_period

@@ -1,0 +1,27 @@
+%div.dashboard
+  %div
+    %h3 School Administrator Dashboard
+    %ul#other_options
+      %li= link_to "List All Teachers", teachers_path
+      %li= link_to I18n.translate('nav.dashboard.subjects_list'), subjects_path
+      %li
+        Students
+        %ul
+          %li= link_to "List All Students", students_path
+          - if @school_administrator.school.subsection == true
+            %li= link_to "Assign Students to Subsections", edit_school_path(id: @school_administrator.school_id, template: "student_subsections")
+      %li= link_to "Manage Users", users_path
+      / TODO: Administrator Reports
+      %li= link_to "Generate Report Cards", 
+          report_card_path
+      %li
+        Reports
+        %ul
+          %li= link_to "Student Proficiency Bars", students_report_path(report: "proficiency_bar_chart")
+          / %li= link_to "Subgroup Proficiencies", school_report_path(id: current_user.school_id, report: "subgroup_proficiencies")
+      %li
+        Attendance
+        %ul
+          %li= link_to "Attendance Report", '/attendances/section_attendance_report.xlsx' 
+          %li= link_to "Attendance Types Maintenance", attendance_types_path
+          %li= link_to "Excuses Maintenance", excuses_path

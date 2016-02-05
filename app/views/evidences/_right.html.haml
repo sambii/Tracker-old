@@ -1,0 +1,3 @@
+%tr.evidence.right{id: "evidence_right_row_#{evidence.id}"}
+  - @student_ids.each do |student_id|
+    %td.r.e_r{id: "e_r_#{@evidence_ratings[section_outcome.id][evidence.evidence_id][student_id][2]}", f: "#{@evidence_ratings[section_outcome.id][evidence.evidence_id][student_id][3]}", c: "#{@evidence_ratings[section_outcome.id][evidence.evidence_id][student_id][1].present?.to_s[0]}"}= @evidence_ratings[section_outcome.id][evidence.evidence_id][student_id][0]

@@ -1,0 +1,67 @@
+
+- content_for(:title, 'Edit Profile')
+- content_for(:page_name, 'Edit Profile')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="User Maintenance"
+  %h2.h1.page-title
+    %strong="Edit Profile"
+.row.indent-row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          %i.fa.fa-bar-chart
+          ='Edit Profile'
+      .row
+        =form_for @user do |f|
+          - @errors = @user.errors
+          %fieldset.input-group
+            %span.col-md-1
+            %label.col-md-3.control-label{for: 'user_email'}='Email:'
+            %input.col-md-5{id: 'user_email', name: "user[email]", placeholder: 'Enter Email Address', value: @user.email}
+            %span.col-md-1.ui-required{title: 'Required'}=''
+            %span.col-md-2.ui-error="#{@errors[:email] if @errors[:email].present?}"
+          - if @user.parent?
+            %fieldset.input-group
+              %span.col-md-1
+              %label.col-md-3.control-label{for: 'user_subscription_status'}='Subscription Status:'
+              %select.col-md-5.select-select2{id: 'section_subject_id', name: "user[subscription_status]", placeholder: 'Select Subscription Status:'}
+                %option{value: "0"}= "Never"
+                %option{value: "weekly"}= "Weekly"
+                %option{value: "biweekly"}= "Twice Per Month"
+                %option{value: "monthly"}= "Monthly"
+              %span.col-md-1.ui-required{title: 'Required'}='*'
+              %span.col-md-2.ui-error="#{@errors[:subscription_status] if @errors[:subscription_status].present?}"
+          %fieldset.input-group
+            %span.col-md-1
+            %label.col-md-3.control-label{for: 'user_password'}='Password:'
+            %input.col-md-5{type: 'password', id: 'user_password', name: "user[password]", placeholder: 'Enter Password'}
+            %span.col-md-1.ui-required{title: 'Required'}=''
+            %span.col-md-2.ui-error="#{@errors[:password] if @errors[:password].present?}"
+          %fieldset.input-group
+            %span.col-md-1
+            %label.col-md-3.control-label{for: 'user_password_confirmation'}='Password Confirmation:'
+            %input.col-md-5{type: 'password', id: 'user_password', name: "user[password_confirmation]", placeholder: 'Enter Password'}
+            %span.col-md-1.ui-required{title: 'Required'}=''
+            %span.col-md-2.ui-error="#{@errors[:password_confirmation] if @errors[:password_confirmation].present?}"
+          %fieldset.input-group
+            %span.col-md-1
+            %label.col-md-8.red='Changing your password will log you out, and you will have to log back in!'
+            %span.col-md-1
+            %span.col-md-2
+          %fieldset.input-group
+            %span.col-md-1
+            %label.col-md-3
+            %span.col-md-5
+              %button{:type => "submit", :value => "commit"}='Update Profile'
+            %span.col-md-1
+            %span.col-md-2
+  .col-md-1

@@ -1,0 +1,122 @@
+
+
+.modal-message#modal-message
+%form{id: "popup_form", action: "/evidence_section_outcomes/#{@evidence.id}", autocomplete: "off", method: "put", enctype: "multipart/form-data", data: {remote: 'true'}}
+  .modal-header.row
+    .pull-right
+      %button.close{"aria-hidden" => "true", "data-dismiss" => "modal", type: "button"}='X'
+      %button.btn.btn-primary{type: "submit"}='Update Evidence'
+    %h3
+      = "Edit Evidence"
+  .modal-body#modal-body
+    .row
+      .col-md-5
+        %fieldset
+          %label{for: 'evidence[reassessment]'}='Reassessment'
+          %input{id: "evidence_reassessment_hidden", name: "evidence[reassessment]", type: "hidden", value: "false"}
+          %input{id: "evidence_reassessment", name: "evidence[reassessment]", type: "checkbox", checked: @evidence.reassessment, value: "true"}
+        %fieldset
+          %label{for: 'evidence[name]'}='Evidence Name'
+          %input{id: 'evidence_name', name: 'evidence[name]', value: "#{@evidence.name}"}
+        %fieldset
+          %label{for: 'evidence[description]'}='Description'
+          %textarea{id: 'evidence_description', name: 'evidence[description]', value: "#{@evidence.description}", rows: 5}
+        %fieldset
+          %label{for: 'evidence[evidence_type_id]'}='Type'
+          =select('evidence', 'evidence_type_id', EvidenceType.all.collect {|t| [t.name, t.id]} )
+        %fieldset
+          %label{for: 'evidence[date]'}='Date'
+          %input#evid-date.input-datepicker-close{id: 'evidence_date', name: 'evidence[date]', type: 'text', placeholder: 'mm/dd/yy', data: {date_format: 'mm/dd/yy'}}
+      .col-md-7.sectioned-list
+        #evid-current-los
+          .row
+            %h4.pull-left.col='Learning Outcomes'
+            #show-los-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+              %i.fa.fa-lg.fa-plus
+          %ul
+            - @esos.each do |eso|
+              %li
+                %span.btn.btn-sm.remove_lo_from_evid.pointer-cursor{data: {so_id: "#{eso.section_outcome_id}"}}
+                  %i.fa.fa-2x.fa-times-circle
+                %span.btn.btn-sm.add_lo_to_evid.pointer-cursor{data: {so_id: "#{eso.section_outcome_id}"}}
+                  %i.fa.fa-2x.fa-plus-circle
+                %span.lo_name
+                  ="#{eso.section_outcome.subject_outcome.name}"
+                %input{type: 'hidden', name: "evidence[evidence_section_outcomes_attributes][0][section_outcome_id]", value: "#{eso.section_outcome_id}"}
+            / %select#evidence_section_outcome_section_outcome_id{name: "evidence_section_outcome[section_outcome_id]", sel: }
+        #evid-other-los.display-none
+          .row
+            %h4.pull-left.col='Adding Learning Outcomes'
+            #hide-los-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+              %i.fa.fa-lg.fa-reply
+          %ul
+            - @other_sos.each do |so|
+              %li
+                %span.btn.btn-sm.remove_lo_from_evid.pointer-cursor{data: {so_id: "#{so.id}"}}
+                  %i.fa.fa-2x.fa-times-circle
+                %span.btn.btn-sm.add_lo_to_evid.pointer-cursor{data: {so_id: "#{so.id}"}}
+                  %i.fa.fa-2x.fa-plus-circle
+                %span.lo-name
+                  ="#{so.subject_outcome.name}"
+            / %select#evidence_section_outcome_section_outcome_id{name: "evidence_section_outcome[section_outcome_id]", sel: }
+    #evid-attachments.sectioned-list
+      .row
+        %h4.pull-left.col='Attachments'
+        #show-attach-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+          %i.fa.fa-lg.fa-plus
+      .row.short_label
+        %input.pull-left{type: "checkbox"}
+        %span.pull-left='Remove Attachments'
+      %ul#evid-attachments-ul
+        - @evidence.evidence_attachments.each do |ea|
+          %li.row
+            %input#remove-attachments.pull-left.remove{name: "evidence[evidence_attachments_attributes][#{ea.id}][_destroy]", type: "checkbox", value: "1"}
+            %span.pull-left
+              ="#{ea.name}"
+            %input.pull-left{name: "evidence[evidence_attachments_attributes][#{ea.id}][id]", type: "hidden", value: "#{ea.id}"}
+    %ul#evid-add-attachments.display-none
+      %li.row
+        %input.pull-left.remove{type: "checkbox", value: "1"}
+        %input.pull-left{type: 'file', name: 'evidence[evidence_attachments_attributes][0][attachment]'}
+        %input.pull-right{type: 'text', name: 'evidence[evidence_attachments_attributes][0][name]'}
+        %label.pull-right='Name'
+    #evid-hyperlinks.sectioned-list
+      .row
+        %h4.pull-left.col='Hyperlinks'
+        #show-hyper-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+          %i.fa.fa-lg.fa-plus
+      .row.short_label
+        %input#remove-hyperlinks.pull-left{type: "checkbox"}
+        %span.pull-left='Remove Hyperlinks'
+      %ul#evid-hyperlinks-ul
+        - @evidence.evidence_hyperlinks.each do |eh|
+          %li.row
+            %input.pull-left.remove{name: "evidence[evidence_hyperlinks_attributes][#{eh.id}][_destroy]", type: "checkbox", value: "1"}
+            %span.pull-left
+              ="#{eh.title}"
+            %input.pull-right{name: "evidence[evidence_hyperlinks_attributes][#{eh.id}][id]", type: "hidden", value: "#{eh.id}"}
+    %ul#evid-add-hyperlinks.display-none
+      %li.row
+        %input.pull-left.remove{type: "checkbox", value: "1"}
+        %input.pull-left{type: 'text', name: 'evidence[evidence_attachments_attributes][0][attachment]'}
+        %input.pull-right{type: 'text', name: 'evidence[evidence_attachments_attributes][0][name]'}
+        %label.pull-right='Name'
+  .modal-footer
+    %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} Close
+    %button.btn.btn-primary{type: "submit"} Update Evidence
+
+
+/ <div id="popup_form">
+/   <form accept-charset="UTF-8" action="/evidence_section_outcomes/{{id}}" method="put" data-remote="true">
+/     {{authenticity_token}}
+/     {{current_controller_action}}
+/     <h3>Edit {{name}} Learning Outcome</h3>
+/     <select id="evidence_section_outcome_section_outcome_id" name="evidence_section_outcome[section_outcome_id]"  sel="{{section_outcome_id}}">
+/       {{#each section_outcomes}}
+/         <option value="{{id}}">{{name}}</option>
+/       {{/each}}
+/     </select>
+/     <br>
+/     <button type="submit" value="commit">Update Evidence Learning Outcome</button>
+/   </form>
+/ </div>

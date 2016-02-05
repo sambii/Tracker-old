@@ -1,0 +1,9 @@
+%table.report
+  %tr
+    %th Discipline Name
+    %th # of Subjects
+  - @disciplines.each do |discipline|
+    %tr
+      %td= link_to discipline.name, discipline
+      %td= discipline.subjects.count
+%p= link_to "Create New Discipline", new_discipline_path

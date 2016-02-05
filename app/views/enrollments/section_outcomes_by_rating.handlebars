@@ -1,0 +1,11 @@
+<div id="popup_form">
+  <h3><span class="link" data_url="students/{{student/id}}.json" data_template="students/show_bar_charts">{{student/first_name}} {{student/last_name}}</span>: {{section/name}}</h3>
+  <h4>Learning Outcomes Rated {{rating}}</h4>
+  <ol>
+    {{#with section}}
+      {{#each section_outcomes}}
+        <li>{{name}}</li>
+      {{/each}}
+    {{/with}}
+  </ol>
+</div>

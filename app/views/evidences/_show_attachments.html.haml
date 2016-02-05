@@ -1,0 +1,36 @@
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %i.fa.fa-check
+        %strong="#{@section.name} - #{@section.line_number}"
+      %h3.h2.page-title.text-center
+        %strong="#{@evidence.name}"
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style
+      .block-title.text-center
+        %h2
+          ="Attachments for: #{@evidence.name}"
+      .block-content-full
+        .page-form.alternate-highlight
+          - @evidence.evidence_attachments.each_with_index do |ea, ix|
+            / prevent expected Array (got Rack::Utils::KeySpaceConstrainedParams) for param `evidence_hyperlinks_attributes' if submitting after error
+            - if !ea.id.nil?
+              %fieldset.input-group
+                %a{href: ea.attachment.url, target: '_blank'}="#{ea.name}"
+          - @evidence.evidence_hyperlinks.each_with_index do |eh, ix|
+            / prevent expected Array (got Rack::Utils::KeySpaceConstrainedParams) for param `evidence_hyperlinks_attributes'  if submitting after error
+            - if !eh.id.nil?
+              %%fieldset.input-group
+                %a{href: eh.hyperlink, target: '_blank'}="#{eh.title}"
+          %fieldset.input-group.text-center
+            %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+  .col-sm-1
+

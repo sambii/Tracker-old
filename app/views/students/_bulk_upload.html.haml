@@ -1,0 +1,132 @@
+
+- content_for(:title, 'Student Bulk Upload')
+- content_for(:page_name, 'Student Bulk Upload')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :student_bulk_entry
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Maintenance"
+  %h2.h1.page-title
+    %strong="Student Bulk Upload"
+
+.row
+  .col-sm-12
+    .block.block-alt-style.full
+
+      .block-content-full
+        = form_tag(bulk_update_students_path, multipart: true) do
+          / display any errors
+          -# if @errors[:base]
+          -#   #form-errors.ui-error.text-right=@errors[:base]
+
+          / Only show file input if stage 1, or errors exist for rerun
+          - if @stage == 1 || @errors.count > 0 || @error_list.count > 0 || @preview
+            #ask-filename
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Student Upload File:'
+                %input#file{type: 'file', name: 'file'}
+                / = file_field_tag :file
+                %span.ui-error="#{@errors[:filename] if @errors[:filename].present?}"
+            #show-upload.display-none
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Preview Mode?'
+                %input{type: 'checkbox', name: 'preview', checked: 'checked'}
+                / = file_field_tag :file
+              .row.text-center
+                %button#upload.btn.btn-primary{type: 'submit'}='Upload'
+
+          .upload-output
+            / show chosen filename
+            #show-filename{class: ( (@stage > 1 ) ? '' : 'display-none')}
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Filename:'
+                %span=@filename
+
+            / if past stage 1, show any errors
+            #show-errors.text-right{class: ( (@stage > 1 ) ? '' : 'display-none')}
+              - if @error_list && @error_list.length > 0
+                .row.ui-error
+                  %h3='Lines with Duplicated Emails Errors by email address'
+                  - @error_list.each do |k, v|
+                    .row.ui-error= "#{v}"
+              - if @error_list_2 && @error_list_2.length > 0
+                .row.ui-error
+                  %h3='Lines with Duplicated Student IDs Errors by Student ID address'
+                  - @error_list_2.each do |k, v|
+                    .row.ui-error= "Student ID #{v}"
+              - if @errors.count == 0 && @records.present?
+                - if @preview
+                  %h3="Preview of #{@records.count} Student bulk upload."
+                - else
+                  %h3="Bulk create of #{@records.count} Student records successful!"
+              - if !(@any_errors || @preview)
+                .row.text-center
+                  %a.btn.btn-primary.show_report_btn{href: 'javascript: void(0);'}='Show entered report'
+- if @stage > 1 && @records
+  #show-details.row.upload-output{class: (@any_errors || @preview ? '' : 'hidden_report')}
+    .col-sm-12
+      .block.block-alt-style.full
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th= 'Line'
+                %th= 'School'
+                %th= 'Student ID'
+                - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                  %th= 'Student First Name'
+                  - if @school.has_flag?(School::USE_FAMILY_NAME)
+                    %th= 'Student Family Name'
+                  - else
+                    %th= 'Student Last Name'
+                - else
+                  - if @school.has_flag?(School::USE_FAMILY_NAME)
+                    %th= 'Student Family Name'
+                  - else
+                    %th= 'Student Last Name'
+                  %th= 'Student First Name'
+                %th= 'Student Email'
+                %th= 'Gender'
+                %th= 'Grade Level'
+                - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                  %th= 'Parent First Name'
+                  - if @school.has_flag?(School::USE_FAMILY_NAME)
+                    %th= 'Parent Family Name'
+                  - else
+                    %th= 'Parent Last Name'
+                - else
+                  - if @school.has_flag?(School::USE_FAMILY_NAME)
+                    %th= 'Parent Family Name'
+                  - else
+                    %th= 'Parent Last Name'
+                  %th= 'Parent First Name'
+                %th= 'Parent Email'
+                %th= "#{'Preview of ' if @preview}Error Messages"
+            %tbody.tbody-body
+              - @records.each_with_index do |rx, ix|
+                %tr
+                  %td="#{ix+2}"
+                  %td=rx[StudentsController::COL_ACR_NAME]
+                  %td=rx[StudentsController::COL_ID_NOTE]
+                  - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                    %td=rx[StudentsController::COL_FNAME]
+                    %td=rx[StudentsController::COL_LNAME]
+                  - else
+                    %td=rx[StudentsController::COL_LNAME]
+                    %td=rx[StudentsController::COL_FNAME]
+                  %td.word-break-all=rx[StudentsController::COL_EMAIL]
+                  %td=rx[StudentsController::COL_GENDER]
+                  %td=rx[StudentsController::COL_GRADE]
+                  %td=rx[StudentsController::COL_PAR_FNAME]
+                  %td=rx[StudentsController::COL_PAR_LNAME]
+                  %td.word-break-all=rx[StudentsController::COL_PAR_EMAIL]
+                  %td
+                    %span.ui-error=rx[StudentsController::COL_ERROR]
+                    - if !@rollback
+                      %span.ui-success=rx[StudentsController::COL_SUCCESS]
+

@@ -1,0 +1,36 @@
+!!!
+/[if lt IE 10] <html class="pre_ie10">
+<!--[if gt IE 9|!(IE)]><!-->
+%html.standard
+  <!--<![endif]-->
+  %head
+    %title PARLO Progress Tracker
+    %link{rel: "shortcut icon", href:"/favicon.ico"}
+    = javascript_tag "var AUTH_TOKEN      = '#{form_authenticity_token}';"
+    = javascript_tag "var CURRENT_USER_ID = '#{current_user.id if current_user}';"
+    = javascript_include_tag "application"
+    = yield(:head)
+    = stylesheet_link_tag    "application", media: "all"
+    = csrf_meta_tag
+
+  %body
+    %div#current_controller= params[:controller]
+    %div#current_action= params[:action]
+    %div#alert= flash[:alert]
+    %div#notice= flash[:notice]
+    %div#wrapper
+      %div#top_bar
+        %div#title
+          %h3 PARLO Progress Tracker
+        %div#sign_in
+          %p
+            = render 'users/universal_form' unless user_signed_in?
+            - if user_signed_in?
+              Currently logged in as
+              = link_to(current_user.username, current_user) + "."
+              = link_to("Edit Profile", edit_user_path(current_user))
+              = link_to("Sign Out", destroy_user_session_path)
+      %div#scrolling_body
+        = render 'layouts/announcements'
+        = yield
+      = render 'layouts/school_context'

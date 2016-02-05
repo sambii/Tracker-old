@@ -1,0 +1,22 @@
+%table.report
+  %thead
+    %tr
+      %th Last Name
+      %th First Name
+      %th Username
+      %th Temporary Password
+      %th Sign In Count
+      %th Last Sign In At
+  %tbody
+  - @users.each do |user|
+    %tr{id: "user_#{user.id}"}
+      %td= user.last_name
+      %td= user.first_name
+      %td= user.username
+      %td{id: "user_#{user.id}_password"}= set_temporary_password(user)
+      %td= user.sign_in_count
+      %td= user.last_sign_in_at
+
+- content_for(:title, 'Section Summary By Student Report')
+- content_for(:page_name, 'Section Summary By Student Report')
+- content_for(:page_class, 'generate-reports misc')

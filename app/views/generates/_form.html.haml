@@ -1,0 +1,96 @@
+/ generates/_form.html.haml
+- @generate.section_id = @section.id if @generate.section_id.blank? && @section.present?
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Generate Reports"
+  %h2.h1.page-title
+    %strong="Report Selection and Criterion"
+.row
+  .col-md-12
+    =form_for @generate do |f|
+      - @errors = @generate.errors
+      %fieldset.input-group
+        %label.col-md-4.control-label='Report Type'
+        %select#generate-type.col-md-5.select-select2{name: "generate[name]", placeholder: 'Select Report to generate:', class: (@generate.errors[:name] ? 'ui_error' : 'no_ui_error' )}
+          %option{id: '', value: '', selected: (@generate.name == ''), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}=''
+          - if can? :section_summary_outcome, Section
+            %option{id: 'ss_by_lo', value: 'ss_by_lo', selected: (@generate.name == 'ss_by_lo'), data: {ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Section Summary by Learning Outcome'
+          - if can? :section_summary_student, Section
+            %option{id: 'ss_by_stud', value: 'ss_by_stud', selected: (@generate.name == 'ss_by_stud'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Section Summary by Student'
+          - if can? :nyp_outcome, Section
+            %option{id: 'nyp_by_lo', value: 'nyp_by_lo', selected: (@generate.name == 'nyp_by_lo'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Not Yet Proficient by Learning Outcome'
+          - if can? :nyp_student, Section
+            %option{id: 'nyp_by_stud', value: 'nyp_by_stud', selected: (@generate.name == 'nyp_by_stud'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Not Yet Proficient by Student'
+          - if can? :student_info_handout, Section
+            %option{id: 'student_info', value: 'student_info', selected: (@generate.name == 'student_info'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Student Information Handout'
+          - if can? :student_info_handout_by_grade, Section
+            %option{id: 'student_info_by_grade', value: 'student_info_by_grade', selected: (@generate.name == 'student_info_by_grade'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Student Information Handout By Grade Level'
+          - if can? :progress_rpt_gen, Section
+            %option{id: 'progress_rpt_gen', value: 'progress_rpt_gen', selected: (@generate.name == 'progress_rpt_gen'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Progress Reports'
+          - if can? :proficiency_bars, Student
+            %option{id: 'proficiency_bars_by_student', value: 'proficiency_bars_by_student', selected: (@generate.name == 'proficiency_bars_by_student'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Proficiency Bars by Student'
+          - if can? :proficiency_bars, Subject
+            %option{id: 'proficiency_bars_by_subject', value: 'proficiency_bars_by_subject', selected: (@generate.name == 'proficiency_bars_by_subject'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Proficiency Bars By Subject'
+          - if can? :progress_meters, Subject
+            %option{id: 'progress_meters_by_subject', value: 'progress_meters_by_subject', selected: (@generate.name == 'progress_meters_by_subject'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Progress Meters by Subject'
+          - if can? :create, ReportCardRequest
+            %option{id: 'report_cards', value: 'report_cards', selected: (@generate.name == 'report_cards'), data: { ask_subjects: 0, ask_grade_level: 1, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Report Cards'
+          - if can? :account_activity_report, User
+            %option{id: 'account_activity', value: 'account_activity', selected: (@generate.name == 'account_activity'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Account Activity Report'
+          - if can? :read, Attendance
+            %option{id: 'section_attendance_xls', value: 'section_attendance_xls', selected: (@generate.name == 'section_attendance_xls'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Attendance Spreadsheet by Sections'
+            %option{id: 'attendance_report', value: 'attendance_report', selected: (@generate.name == 'attendance_report'), data: { ask_subjects: 1, ask_date_range: 1}}='Attendance Report'
+        %span.ui-error="#{@errors[:name] if @errors[:name].present?}"
+      %fieldset.input-group.display-none{id: 'ask-subjects'}
+        %label.col-md-4.control-label='Subject:'
+        %select#subject.col-md-5.select-select2{name: "generate[subject_id]", placeholder: 'Select Subject:'}
+          %option{value: ""}= ""
+          - @subjects.each do |subj|
+            %option{value: "#{subj.id}", selected: (@generate.subject_id == subj.id)}= "#{subj.name}"
+        %span.ui-required{title: 'Required'}='*'
+        %span.ui-error="#{@errors[:subject_id] if @errors[:subject_id].present?}"
+      %fieldset.input-group.display-none{id: 'ask-grade-level'}
+        %label.col-md-4.control-label='Grade Level:'
+        %select#subject-section.col-md-5.select-select2{name: "generate[grade_level]", placeholder: 'Select grade Level:'}
+          %option{value: ""}= ""
+          - (0..12).each do |gl|
+            %option{value: "#{gl}", selected: (@generate.grade_level == gl)}= "#{gl}"
+        %span.ui-error="#{@errors[:grade_level] if @errors[:grade_level].present?}"
+      %fieldset.input-group.display-none{id: 'ask-sections'}
+        %label.col-md-4.control-label='Section:'
+        %select#subject-section.col-md-5.select-select2{name: "generate[section_id]", placeholder: 'Select Section:'}
+          %option{value: ""}= ""
+          - @subject_sections.each do |sect|
+            %option{value: "#{sect.id}", selected: (@generate.section_id == sect.id)}= "#{sect.subject.name} - #{sect.line_number}"
+        %span.ui-error="#{@errors[:section_id] if @errors[:section_id].present?}"
+      %fieldset.input-group.display-none{id: 'ask-los'}
+        %label.col-md-4.control-label='Learning Outcome:'
+        %input.col-md-8{name: 'generate[section_outcome_id]'}
+      %fieldset.input-group.display-none{id: 'ask-student'}
+        %label.col-md-4.control-label='Student:'
+        %select#subject-section.col-md-5.select-select2{name: "generate[student_id]"}
+          %option{value: ""}= "All"
+          - @school_students.each do |stud|
+            %option{value: "#{stud.id}", selected: (@generate.student_id == stud.id)}= "#{stud.full_name}"
+        %span.ui-error="#{@errors[:student_id] if @errors[:student_id].present?}"
+      %fieldset.input-group.display-none{id: 'ask-marking-periods'}
+        %label.col-md-4.control-label='Marking Periods:'
+        .pull-left.value-fields.col-md-8
+          - @marking_periods.each do |mp|
+            %input.checkbox-input.pull-left{id: "mp_#{mp}", :name => "generate[mp][]", :type => "checkbox", :value => "#{mp}"}
+            %label.checkbox-label.pull-left{for: "mp_#{mp}"}="#{mp}"
+      %fieldset.input-group.display-none{id: 'ask-date-range'}
+        %label.col-md-4.control-label='Date Range:'
+        .pull-left.value-fields.col-md-8
+          %input#start-date.input-datepicker-close{data: {date_format: "yyyy-mm-dd"}, placeholder: "yyyy-mm-dd", type: "text", name: "generate[start_date]", value: @range_start}
+          %span.ui-required{title: 'Required'}='*'
+          %span.ui-error="#{@errors[:start_date] if @errors[:start_date].present?}"
+          %span=' thru '
+          %input#end-date.input-datepicker-close{data: {date_format: "yyyy-mm-dd"}, placeholder: "yyyy-mm-dd", type: "text", name: "generate[end_date]", value: @range_end}
+          %span.ui-required{title: 'Required'}='*'
+          %span.ui-error="#{@errors[:end_date] if @errors[:end_date].present?}"
+      %fieldset
+        %button.pull-left.btn.btn-primary{name: 'commit', type: "submit"}='Generate'
+  .col-sm-0.col-lg-4
+

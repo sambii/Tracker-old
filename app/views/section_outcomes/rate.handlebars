@@ -1,0 +1,25 @@
+<div id="popup_form" confirm_exit="true">
+  <form accept-charset="UTF-8" action="/section_outcomes/{{id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <h3>Rate {{shortened_name}}</h3>
+    <span style="font-size: 0.8em;">Batch Rate Unrated Students:</span>
+    <img id="batch-help" src="/assets/help.png" data-placement="bottom" data-trigger="hover" data-title="Batch Rating Learning Outcomes" data-content="Selecting a rating strategy will rate all of the students with *unrated* outcomes based on that piece of evidence. B maps to High Performance; G maps to Proficient; Y and R map to Not Yet Proficient."/>
+    <select id="batch_rating">
+      <option value=""></option>
+      <option value="top">Top Piece of Evidence</option>
+      <option value="bottom">Bottom Piece of Evidence</option>
+      <option value="unrate">Unrate All Students</option>
+    </select>
+    <button id="batch_rate_outcome" type="button">Apply</button>
+    {{section_outcome_student_table}}
+    <input type="submit" value="Rate Outcome" />
+  </form>
+</div>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".rating_div").each(function () {
+      colorEvidence(this);
+    });
+  });
+</script>

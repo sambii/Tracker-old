@@ -1,0 +1,155 @@
+
+- content_for(:title, 'Section Dashboard')
+- content_for(:page_name, 'Section Dashboard')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :section_dashboard, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Dashboard'
+  %h2.h1.page-title
+    %strong
+      ="Section: #{@section.name} - #{@section.line_number}"
+      %a{href: section_path(@section.id)}
+        %i.fa.fa-check
+/ First Row
+.row.indent-row
+  .col-sm-6.col-lg-6
+    / Overall Student Performance Block
+    - # sum overall student performance values
+    - s_ratings = @ratings[@section.id]
+    .block.block-alt-style.full
+      / Learning Outcome Title
+      .block-title.text-center
+        %h2
+          %i.fa.fa-bar-chart
+          Overall Student Performance
+      / END Learning Outcome Title
+      / Learning Outcome Content
+      .row
+        .col-xs-5.text-center
+          / Sparklines plugin used and initialized at the bottom of the page
+          #pie-chart.text-center{data: {px_size: 128, unrated_count: "#{s_ratings[:U]}", red_count: "#{s_ratings[:N]}", green_count: "#{s_ratings[:P]}", blue_count: "#{s_ratings[:H]}"}}
+        .col-xs-7#overall
+          %ul.fa-ul.ul-breath
+            %li
+              %i.fa.fa-circle.fa-li.text-blue
+              .text-normal="#{s_ratings[:H]} - High Performance"
+            %li
+              %i.fa.fa-circle.fa-li.text-green
+              .text-normal="#{s_ratings[:P]} - Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-red
+              .text-normal="#{s_ratings[:N]} - Not Yet Proficient"
+            %li
+              %i.fa.fa-circle.fa-li.text-unrated
+              .text-normal="#{s_ratings[:U]} - Unrated"
+      / END Learning Outcome Content
+    / END Learning Outcome Block
+  .col-sm-6.col-lg-6
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: '2'}='Proficiency Bar Chart'
+          %tbody#prof_bar
+            - shown = 0
+            - @section.section_outcomes.each do |s|
+              - so_ratings = @so_ratings[s.id]
+              - total_ratings = so_ratings[:H] + so_ratings[:P] + so_ratings[:N] + so_ratings[:U]
+              - if total_ratings > 0
+                - shown += 1
+                - if shown > 9
+                  / put 'More' link code here
+                  - break
+                - else
+                  %tr{data: {prof_bar_so_id: "#{s.id}"}}
+                    %td{title: "#{s.name}"}
+                      ="#{s.shortened_name}"
+                    - pixel_width = 300
+                    %td{style: "width: #{pixel_width+11}px;"}
+                      .flat-bar-chart{style: "width: 100%;"}
+                        .high-rating-bar.progress-bar{style: "width: #{(so_ratings[:H]*pixel_width/total_ratings).floor}px"}=so_ratings[:H]
+                        .prof-rating-bar.progress-bar{style: "width: #{(so_ratings[:P]*pixel_width/total_ratings).floor}px"}=so_ratings[:P]
+                        .nyp-rating-bar.progress-bar{style: "width: #{(so_ratings[:N]*pixel_width/total_ratings).floor}px"}=so_ratings[:N]
+                        .unrated-rating-bar.progress-bar{style: "width: #{(so_ratings[:U]*pixel_width/total_ratings).floor}px"}=so_ratings[:U]
+  .col-sm-0.col-lg-2
+/ END First Row
+
+.row.indent-row
+  .col-sm-4.col-lg-4
+    / Students NYP Counts
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.table-clickable-rows
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Students Not Yet Proficient Count'
+          %tbody#nyp_student
+            - shown = 0
+            - @students.each do |st|
+              - st_ratings = @student_ratings[st.id]
+              - if st_ratings[:N] && st_ratings[:N] > 0
+                - shown += 1
+                - if shown > 9
+                  %tr
+                    %td{colspan: 2}
+                      %a{href: nyp_student_section_path(@section.id)}= 'View All'
+                  - break
+                - else
+                  %tr{data: {nyp_student_id: "#{st.id}"}}
+                    %td
+                      %a{href: "#{student_path(st.id)}"}
+                        =st.full_name
+                    %td
+                      %a{href: "#{student_path(st.id)}"}
+                        =st_ratings[:N]
+  .col-sm-4.col-lg-4
+    / Current Week's Evidence
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: 2}="Current Week's Evidence"
+          %tbody#cur_week_evid
+            - shown = 0
+            - @cur_evidences.each do |e|
+              %tr{data: {cur_week_evid_id: "#{e.id}"}}
+                - shown += 1
+                - if shown > 9
+                  / put 'More' link code here
+                  - break
+                - else
+                  %td="#{e.name}"
+                  %td.text-right
+                    %small.text-muted="#{e.evidence_type.name}"
+                    \&bull;
+                    %small="#{e.assignment_date}"
+          %tbody
+  .col-sm-4.col-lg-4
+    / Unrated Learning Outcomes
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: 2}='Unrated Learning Outcomes'
+          %tbody#unrated_los
+            - shown = 0
+            - @section.section_outcomes.each do |s|
+              - s_ratings = @so_ratings[s.id]
+              - total_ratings = s_ratings[:H] + s_ratings[:P] + s_ratings[:N]
+              - if total_ratings == 0
+                - shown += 1
+                - if shown > 9
+                  / put 'More' link code here
+                  - break
+                - else
+                  %tr{data: {unrated_los_so_id: "#{s.id}"}}
+                    %td{colspan: 2}="#{s.name}"

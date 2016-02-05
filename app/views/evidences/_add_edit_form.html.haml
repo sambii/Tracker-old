@@ -1,0 +1,141 @@
+= form_for @evidence, html: {multipart: true} do |f|
+  - @errors = @evidence.errors
+  %input{type: 'hidden', name: "eso_id", value: "#{@eso_id}"}
+  %input{type: 'hidden', name: "section_id", value: "#{@section.id}"}
+  %input{type: 'hidden', name: "evidence[section_id]", value: "#{@section.id}"}
+  .row
+    .col-sm-5
+      .block.block-alt-style.full
+        / Learning Outcome Title
+        .block-title.text-center
+          %h2
+            Evidence
+        %fieldset.input-group
+          %label.col-sm-4.control-label{for: 'evidence[name]'}='Evidence Name'
+          %input{id: 'evidence_name', name: 'evidence[name]', value: "#{@evidence.name}"}
+          %span.ui-required{title: 'Required'}='*'
+          %span#name_error.ui-error="#{@errors[:name] if @errors[:name].present?}"
+        %fieldset.input-group
+          %label.col-sm-4.control-label{for: 'evidence[description]'}='Description'
+          %textarea{id: 'evidence_description', name: 'evidence[description]', rows: 5}= @evidence.description
+          %span.ui-error="#{@errors[:description] if @errors[:description].present?}"
+        %fieldset.input-group
+          %label.col-sm-4.control-label{for: 'evidence[evidence_type_id]'}='Type'
+          =select('evidence', 'evidence_type_id', EvidenceType.all.collect {|t| [t.name, t.id]}, class: 'col-sm-6', :include_blank => true )
+          %span.ui-required{title: 'Required'}='*'
+          %span#type_error.ui-error="#{@errors[:evidence_type_id] if @errors[:evidence_type_id].present?}"
+        %fieldset.input-group
+          %label.col-sm-4.control-label{for: 'evidence[assignment_date]'}='Assignment Date'
+          %input#evid-date.input-datepicker-close{id: 'evidence_assignment_date', name: 'evidence[assignment_date]', value: "#{@evidence.assignment_date}", type: 'text', placeholder: 'yyyy-mm-dd', data: {date_format: 'yyyy-mm-dd'}}
+          %span.ui-required{title: 'Required'}='*'
+          %span#date_error.ui-error="#{@errors[:assignment_date] if @errors[:assignment_date].present?}"
+        %fieldset.input-group
+          %label.col-sm-4.control-label{for: 'evidence[reassessment]'}='Reassessment'
+          %input{id: "evidence_reassessment_hidden", name: "evidence[reassessment]", type: "hidden", value: "false"}
+          %input{id: "evidence_reassessment", name: "evidence[reassessment]", type: "checkbox", checked: @evidence.reassessment, value: "true"}
+          %span.ui-error="#{@errors[:reassessment] if @errors[:reassessment].present?}"
+    .col-sm-7
+      .block.block-alt-style
+        #evid-current-los
+          .block-title.text-center
+            %h2='Learning Outcomes'
+            #show-los-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+              %i.fa.fa-lg.fa-plus
+          %ul
+            %li#error-row{class: (@lo_errors.present? ? '' : 'display-none')}=@lo_errors
+            - @esos.each do |eso|
+              %li.lo-row
+                %span.btn.btn-sm.remove_lo_from_evid.pointer-cursor{data: {so_id: "#{eso.section_outcome_id}", rate_count: "#{eso.evidence_section_outcome_ratings.count}"}}
+                  %i.fa.fa-times-circle
+                %span.btn.btn-sm.add_lo_to_evid.pointer-cursor{data: {so_id: "#{eso.section_outcome_id}"}}
+                  %i.fa.fa-plus-circle
+                %span.lo_name="#{eso.section_outcome.subject_outcome.name}"
+                %input.remove-this-lo.display-none{type: 'hidden', name: "evidence[evidence_section_outcomes_attributes][#{eso.id}][_destroy]", value: "0"}
+                %input.display-none{type: 'hidden', name: "evidence[evidence_section_outcomes_attributes][#{eso.id}][id]", value: "#{eso.id}"}
+        #evid-other-los.display-none
+          .block-title.text-center
+            %h2='Adding Learning Outcomes'
+            #hide-los-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+              %i.fa.fa-lg.fa-reply
+          %ul
+            - @other_sos.each do |so|
+              %li.lo-row
+                %span.btn.btn-sm.remove_lo_from_evid.pointer-cursor{data: {so_id: "#{so.id}"}}
+                  %i.fa.fa-times-circle
+                %span.btn.btn-sm.add_lo_to_evid.pointer-cursor{data: {so_id: "#{so.id}"}}
+                  %i.fa.fa-plus-circle
+                %span.lo-name
+                  ="#{so.subject_outcome.name}"
+                %input.so_ids{type: 'hidden', name: "evidence[evidence_section_outcomes_attributes][x#{so.id}][section_outcome_id]", value: "x#{so.id}"}
+  .row
+    .col-sm-6
+      .block.block-alt-style
+        #evid-attachments
+          .block-title.text-center
+            %h2='Attachments'
+            #show-attach-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+              %i.fa.fa-lg.fa-plus
+          .row.short_label
+            %input#remove-all-attachments.pull-left{type: "checkbox"}
+            %span.pull-left='Remove All/None'
+          %ul#evid-attachments-ul
+            - @evidence.evidence_attachments.each_with_index do |ea, ix|
+              / prevent expected Array (got Rack::Utils::KeySpaceConstrainedParams) for param `evidence_hyperlinks_attributes' if submitting after error
+              - if !ea.id.nil?
+                %li.row
+                  %input.remove-attachment.attach_remove.pull-left.remove{name: "evidence[evidence_attachments_attributes][#{ea.id}][_destroy]", type: "checkbox", value: "1"}
+                  %span.pull-left
+                    %a{href: ea.attachment.url, target: '_blank'}="#{ea.name}"
+                  %input.attach_id.pull-left{name: "evidence[evidence_attachments_attributes][#{ea.id}][id]", type: "hidden", value: "#{ea.id}"}
+        %ul#evid-add-attachments.display-none
+          %li.row
+            %input.attach_remove.pull-left.remove{type: "checkbox", name: 'evidence[evidence_attachments_attributes][xxseqxx][_destroy]', value: "1"}
+            %input.attach_item.pull-left{type: 'file', name: 'evidence[evidence_attachments_attributes][xxseqxx][attachment]'}
+            %span.pull-right
+              %label='Name'
+              %input.attach_name{type: 'text', name: 'evidence[evidence_attachments_attributes][xxseqxx][name]'}
+              %span.ui-required{title: 'Required'}='*'
+    .col-sm-6
+      .block.block-alt-style
+        #evid-hyperlinks
+          .block-title.text-center
+            %h2='Hyperlinks'
+            #show-hyper-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor
+              %i.fa.fa-lg.fa-plus
+          .row.short_label
+            %input#remove-all-hyperlinks.pull-left{type: "checkbox"}
+            %span.pull-left='Remove All/None'
+          %ul#evid-hyperlinks-ul
+            - @evidence.evidence_hyperlinks.each_with_index do |eh, ix|
+              / prevent expected Array (got Rack::Utils::KeySpaceConstrainedParams) for param `evidence_hyperlinks_attributes'  if submitting after error
+              - if !eh.id.nil?
+                %li.row
+                  %input.remove-hyperlink.attach_remove.pull-left.remove{name: "evidence[evidence_hyperlinks_attributes][#{eh.id}][_destroy]", type: "checkbox", value: "1"}
+                  %span.pull-left
+                    %a{href: eh.hyperlink, target: '_blank'}="#{eh.title}"
+                  %input.attach_id.pull-right{name: "evidence[evidence_hyperlinks_attributes][#{eh.id}][id]", type: "hidden", value: "#{eh.id}"}
+        %ul#evid-add-hyperlinks.display-none
+          %li.row
+            %input.attach_remove.pull-left.remove{type: "checkbox", name: 'evidence[evidence_hyperlinks_attributes][xxseqxx][_destroy]', value: "1"}
+            %input.attach_item.pull-left{type: 'text', name: 'evidence[evidence_hyperlinks_attributes][xxseqxx][hyperlink]'}
+            %span.pull-right
+              %label='Name'
+              %input.attach_name{type: 'text', name: 'evidence[evidence_hyperlinks_attributes][xxseqxx][title]'}
+              %span.ui-required{title: 'Required'}='*'
+  - if @sections && @sections.count > 0
+    .row
+      .col-sm-12
+        .sectioned-list
+          .row.header-row
+            %h4='Copy to other Sections:'
+          .row
+            %ul
+              - @sections.each do |sect|
+                %li
+                  %input{:name => "sections[]", :type => "checkbox", :value => sect.id}
+                    = (sect.subject.name + ' - ' + sect.line_number)
+  .row
+    .col-sm-12
+      %a.btn.btn-default{type: "button", href: section_path(@section.id)} Cancel
+      %button.btn.btn-primary{type: "submit"} Save
+

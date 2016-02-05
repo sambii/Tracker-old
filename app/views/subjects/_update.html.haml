@@ -1,0 +1,21 @@
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Edit Subject'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h3
+          ="Edit Subject - #{@subject.name}"
+      .block-content-full
+        = render 'subject_form'
+  .col-sm-1

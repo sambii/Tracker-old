@@ -1,0 +1,30 @@
+
+- content_for(:title, 'Restore Evidence')
+- content_for(:page_name, 'Restore Evidence')
+/ - content_for(:page_class, 'restore-evidence')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :restore_evidence, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Tracker Page Maintenance"
+  %h2.h1.page-title
+    %strong
+      = "Restore Evidence"
+      = link_to "#{@section.name} - #{@section.line_number}", section_path(@section)
+.row
+  .col-md-12
+    .sectioned-list
+      .row.header-row
+        %h4.text-center='Inactive Evidences'
+      %ul
+        - @evidences.each do |e|
+          %li.row{id: "evid_#{e.id}"}
+            = form_for( e, remote: true) do |f|
+              %span.pull-left="#{e.name}"
+              %input{type: 'hidden', name: "evidence[active]", value: "true"}
+              %input{type: 'hidden', name: "evidence[id]", value: "#{e.id}"}
+              %button.pull-right.btn.btn-primary{type: "submit"}='Restore'

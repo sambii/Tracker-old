@@ -1,0 +1,39 @@
+%table.report
+  %thead
+    %tr
+      %th= @school.name
+  %tbody
+    %tr
+      %td
+        %table.report{style: "float: left;"}
+          %thead
+            %th Teachers
+          %tbody
+            - @school.teachers.each do |teacher|
+              %tr
+                %td= link_to teacher.last_name_first, teacher
+            %tr
+              %td= link_to "New Teacher", new_teacher_path(school_id: @school.id)
+        %table.report{style: "float: left;"}
+          %thead
+            %th Subjects
+          %tbody
+            - @school.subjects.each do |subject|
+              %tr
+                %td= link_to subject.name, subject
+            %tr
+              %td= link_to "New Subject", new_subject_path
+    %tr
+      %td= link_to "Manage Users", users_path
+    -# if can? :update, Attendance.new(school_id: @school.id, user_id: current_user.id)
+    -#  %tr
+    -#    %td= link_to "Attendance Maintenance", "/attendances?school_id=#{@school.id}"
+    - if can? :update, AttendanceType
+      %tr
+        %td= link_to "Attendance Report", '/attendances/section_attendance_report.xlsx' 
+    - if can? :update, AttendanceType
+      %tr
+        %td= link_to "Attendance Types Maintenance", attendance_types_path
+    - if can? :update, Excuse
+      %tr
+        %td= link_to "Attendance Excuses Maintenance", excuses_path

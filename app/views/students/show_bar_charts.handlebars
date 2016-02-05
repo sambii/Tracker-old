@@ -1,0 +1,45 @@
+<div id="popup_form">
+  <h3>{{first_name}} {{last_name}} Proficiency Bars</h3>
+  <table class="report">
+    <thead>
+    <tr>
+      <th>Section Name</th>
+      <th>Proficiency Bars</th>
+    </tr>
+    </thead>
+    <tbody>
+      {{#each sections}}
+        <tr>
+          <td>
+            <a href="/enrollments/{{enrollment_id}}">{{name}}</a>
+            <br>
+          </td>
+          <td>
+            <div class="progress">
+              <div data_url="enrollments/{{enrollment_id}}.json?rating=N" data_template="enrollments/section_outcomes_by_rating" class="clickable progress_bar not_yet_proficient_bar" count="{{ratings/N}}" rating="Not Yet Proficient"></div>
+              <div data_url="enrollments/{{enrollment_id}}.json?rating=P" data_template="enrollments/section_outcomes_by_rating" class="clickable progress_bar proficient_bar" count="{{ratings/P}}" rating="Proficient"></div>
+              <div data_url="enrollments/{{enrollment_id}}.json?rating=H" data_template="enrollments/section_outcomes_by_rating" class="clickable progress_bar high_performance_bar" count="{{ratings/H}}" rating="High Performance"></div>
+            </div>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+<script type="text/javascript">
+
+  $("div#popup_form").find(".progress").each(function(i, progress) {
+    total_width = $(progress).width();
+    total_count = 0; // Used to hold the count of total ratings.
+    $(progress).children("div.progress_bar").each(function(j, progress_bar) {
+      total_count += parseInt($(progress_bar).attr('count'));
+    });
+    if (total_count > 0) {
+      $(progress).children("div.progress_bar").each(function(j, progress_bar) {
+        percentage = parseFloat($(progress_bar).attr('count') / total_count);
+        $(this).width(percentage * total_width);
+        $(this).tooltip({title: Math.round(percentage * 100) + "%" + " " + $(this).attr('rating')});
+      });
+    }
+  });
+</script>

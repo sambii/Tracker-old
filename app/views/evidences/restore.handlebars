@@ -1,0 +1,20 @@
+<div id="popup_form">
+  <form accept-charset="UTF-8" id="edit_section" action="/sections/{{current_section_id}}" method="put" data-remote="true">
+    {{authenticity_token}}
+    {{current_controller_action}}
+    <table>
+      <tr>
+        <td><label for="section_inactive_evidences_attributes_0_id">Evidence:</label></td>
+        <td>
+          <select id="section_inactive_evidences_attributes_0_id" name="section[inactive_evidences_attributes][0][id]" select_url="sections/{{current_section_id}}" node="inactive_evidences"></select>
+          <input id="section_inactive_evidences_attributes_0_active" name="section[inactive_evidences_attributes][0][active]" value="true" type="hidden">
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+          <button type="submit" name="commit">Restore Evidence</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>

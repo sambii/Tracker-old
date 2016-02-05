@@ -1,0 +1,93 @@
+
+- content_for(:title, 'Match Old LOs to New LOs')
+- content_for(:page_name, 'Match Old LOs to New LOs')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Match Old LOs to New LOs'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        = form_tag(lo_matching_subject_outcomes_path) do
+
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th{colspan: 12}
+                  = 'Match'
+                  %input{type: 'hidden', name: "school_id", value: @school.id}
+              %tr
+                %th= 'Old Subject'
+                %th= 'Old Grade'
+                %th= 'Old Marking Period'
+                %th= 'Old LO Code'
+                %th= 'Old Description'
+                %th= 'Similarity'
+                %th= 'Match'
+                %th= 'New Course'
+                %th= 'New Grade'
+                %th= 'New Marking Period'
+                %th= 'New LO Code'
+                %th= 'New Description'
+            %tbody.tbody-body
+              - @records3.each_with_index do |set, ix|
+                - rx = set[0]
+                - ry = set[1]
+                - match = set[2]
+                - # Rails.logger.debug("+++ match: rx: #{rx.inspect}")
+                - # Rails.logger.debug("+++ match: ry: #{ry.inspect}")
+                - # Rails.logger.debug("+++ match: match: #{match.inspect}")
+                %tr
+                  - deact_class = (rx[:active] == false ? 'deactivated ' : '')
+                  - # error_class = (rx[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch' || ry[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch') ? 'ui-error' : ''
+                  - error_class = (![''].include?(rx[SubjectOutcomesHelper::PARAM_ACTION]) || !['', 'Add'].include?(ry[SubjectOutcomesHelper::PARAM_ACTION])) ? 'ui-error' : ''
+                  %td{class: "#{deact_class}"}=rx[:subject_name]
+                  %td{class: "#{deact_class}"}=rx[:grade]
+                  %td{class: "#{deact_class}"}=rx[:mp]
+                  %td{class: "#{deact_class}"}=rx[:lo_code]
+                  %td{class: "#{deact_class}"}=rx[:desc]
+                  %td.text-center{class: "#{error_class}"}
+                    - # = ('*' * match[:total_match])
+                    = "#{rx[SubjectOutcomesHelper::PARAM_ACTION]} / #{ry[SubjectOutcomesHelper::PARAM_ACTION]}"
+                  %td.text-center{class: "#{error_class}"}
+                    %input{type: 'hidden', name: "pair[#{ix}][o][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: rx[SubjectOutcomesHelper::PARAM_ACTION]}
+                    %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: ry[SubjectOutcomesHelper::PARAM_ACTION]}
+                    - if rx.length > 0
+                      %input{type: 'hidden', name: "pair[#{ix}][o][rec_id]", value: rx[SubjectOutcomesHelper::COL_DB_ID]}
+                    - if ry.length > 0
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_REC_ID}]", value: ry[SubjectOutcomesHelper::COL_REC_ID]}
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_COURSE_ID}]", value: ry[SubjectOutcomesHelper::COL_COURSE_ID]}
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_COURSE}]", value: ry[SubjectOutcomesHelper::COL_COURSE]}
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_GRADE}]", value: ry[SubjectOutcomesHelper::COL_GRADE]}
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_MP_BITMAP}]", value: ry[SubjectOutcomesHelper::COL_MP_BITMAP]}
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_CODE}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]}
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_NAME}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]}
+                  %td{class: "match-field-#{match[:subj_match]}"}=ry[SubjectOutcomesHelper::COL_COURSE]
+                  %td{class: "match-field-#{match[:grade_match]}"}=ry[SubjectOutcomesHelper::COL_GRADE]
+                  %td{class: "match-field-#{match[:mp_match]}"}=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
+                  %td{class: "match-field-#{match[:code_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
+                  %td{class: "similar-field-#{match[:desc_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
+          .row.text-center
+            .btn.btn.btn-default
+              %a#clear-student-assignments{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
+            - if @not_add_count > 0
+              %button#save.btn.btn-primary.cancel{title: 'Error, Only Adds are currently allowed', name: 'submit_action', value: 'error'}='ERROR'
+            - elsif @mismatch_count > 0
+              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Next Set of Matches', name: 'submit_action', value: 'next'}='NEXT'
+            - else
+              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
+.col-sm-1
+
+
+

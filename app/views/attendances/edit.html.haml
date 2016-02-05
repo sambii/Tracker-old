@@ -1,0 +1,20 @@
+%div.entry
+  %h3
+    = I18n.translate('action_titles.edit')
+    = I18n.translate('models.attendance.name')
+    \-
+    = @school_name
+  = render 'form'
+  %div.entry_links
+    = link_to I18n.translate('action_titles.create'), new_attendance_path
+    \|
+    = link_to I18n.translate('action_titles.view'), attendance_path(@attendance)
+    \|
+    = link_to I18n.translate('action_titles.delete'),
+              @attendance,
+              method: :delete,
+              data: { :confirm => I18n.translate('responses.are_you_sure') }
+    \|
+    = link_to I18n.translate('action_titles.list'), attendances_path
+    \|
+    = link_to I18n.translate('navigations.dashboard.title'), current_user

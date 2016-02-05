@@ -1,0 +1,19 @@
+// modal.haml
+
+%div.modal.fade
+  %div.modal-dialog
+    %div.modal-content
+      %div.modal-header
+        %button.close
+          &times;
+        %h4#modal-title
+          Modal title
+      %div.modal-body
+        %p One Obsolete bootstrap body&hellip;
+        = yield
+      %div.modal-footer
+        %button.btn.btn-default
+          Close
+        %button.btn.btn-primary
+          Save changes
+

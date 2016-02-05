@@ -1,0 +1,9 @@
+%div.form
+  = form_for(@report_card_request, url: report_card_path ) do |f|
+    = render 'shared/error_messages', object: f.object
+    %div.fieldset
+      = f.label :grade_level
+      = f.select :grade_level, options_for_select([ ['12',12],['11',11],['10',10], ['9',9],['8',8],['7',7],['6',6],['5',5],['4',4],['3',3],['2',2],['1',1] ])
+    %dif.fieldset
+      %div.submit
+        = f.submit "Request Report Card"

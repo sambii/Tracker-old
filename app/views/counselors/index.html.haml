@@ -1,0 +1,12 @@
+%table.report
+  %thead
+    %th School Name
+    %th Name
+    %th Username
+    %th Temporary Password
+  - @counselors.each do |counselor|
+    %tr
+      %td= counselor.school.name
+      %td= link_to counselor.last_name_first, counselor
+      %td= counselor.username
+      %td{id: "user_#{counselor.id}_password"}= set_temporary_password(counselor)

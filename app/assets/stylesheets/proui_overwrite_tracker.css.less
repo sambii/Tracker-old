@@ -1,0 +1,1275 @@
+/*
+ * Customized UI styles for the Tracker Page
+ */
+
+@import "tracker-variables.less";
+
+/*
+=================================================================
+CUSTOM STYLES FOR TRACKER PAGE
+=================================================================
+*/
+
+/*
+=============================
+Tracker Page - General
+=============================
+*/
+
+#page-content {
+    padding: 0;
+    padding-left: 0;
+    padding-bottom: 20px; // get correct size of page to prevent miscalculation scrolling
+    &.bulk-rate {
+        background-color: #666;
+    }
+}
+
+#tracker-header {
+    border-bottom: 1px solid #eeeeee;
+    // margin-bottom: 10px;
+    position: fixed; /* vertical scrolling changes */
+    right: 0; /* vertical scrolling changes */
+    left: 200px; /* vertical scrolling changes */
+    z-index: @zindex-navbar-fixed; /* vertical scrolling changes */
+    background-color: @tracker_lt_gray_bg_color; /* vertical scrolling changes */
+    padding-left: 5px; /* vertical scrolling changes - fixed div aligned with rest of page-content */
+    height: 190px; /* set bottom border of fixed header */
+    border-bottom: 1px solid black;
+
+    h1 {
+        margin: 7px 0;
+    }
+
+    #tracker-header-top {
+        overflow: hidden;
+        min-width: 980px;
+        padding: 0;
+    }
+
+    #tracker-header-top-left {
+        max-width: 450px;
+        min-width:450px;
+        float:left;
+        h2 {
+            overflow: hidden;
+            max-height: 20px;
+            max-width: 430px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .row {
+            margin-right: 0;
+        }
+    }
+
+    #tracker-header-top-right {
+        float:left;
+    }
+    #bulk-select-all {
+        width: 30px;
+        height: 33px;
+        margin-right: 5px;
+        #select_all_los {
+            margin-top: 10px;
+        }
+    }
+}
+
+.navbar {
+    z-index: @zindex-over-tracker-header; /* put header dropdowns on top of #tracker-header */
+}
+
+.student-pages-separator {
+    margin-top: 3px;
+    padding-right: 10px;
+}
+
+select#subsection-select {
+    width: 110px;
+}
+
+#page-content.tracker-page .tracker-content {
+    padding: 20px 0 0 0; // get correct size of page to prevent miscalculation scrolling
+}
+
+#page-content.bulk-rate.tracker-page .tracker-content  {
+    background-color: #666;
+    border: 0px solid #666;
+}
+
+.tracker-extra {
+    padding: 10px 10px 30px 0;
+    margin-left: 594px;
+}
+
+.esor {
+    font-size: 16px;
+    text-align: center;
+    border-radius: 0;
+    margin: 0;
+}
+
+#popup-rate-single-lo a, #popup-rate-single-evid a {
+    display:block;
+}
+
+.commented {
+    background-color: #eee; /* @tracker_has_evid_color; */
+}
+
+#filter-options-chosen {
+    padding-top: 5px;
+}
+
+#tracker-comments-students {
+    padding: 3px 0;
+}
+
+#subsection-select {
+    line-height: 10px;
+    height: 10px;
+}
+
+#breadcrumb-flash {
+    /* padding: 0; */
+    border-top: 1px solid #eaedf1;
+    border-bottom: 1px solid #dbe1e8;
+    height: 29px;
+
+    .breadcrumb-top {
+        margin: -1px 0px;
+    }
+    .last {
+        float: left;
+        margin: 5px 0px 5px 15px;
+    }
+}
+#tracker-header #breadcrumb-flash .last {
+    margin: 5px 0px 5px 0px;
+}
+
+.reassess-icon {
+    color: @reassess_icon_color;
+}
+
+.strong {
+    font-weight: bold;
+}
+
+.spaced-buttons {
+    margin: 0 5px;
+    .btn {
+        margin: 0 5px;
+    }
+}
+
+.ellipsis {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.btn a:link, .btn a:visited, .btn a:hover, .btn a:active {
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+}
+.btn.btn-cancel {
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+    background-color: #ddd;
+}
+
+#modal_spinner {
+    vertical-align: middle;
+    text-align: center;
+    .modal-content {
+        width: 70px;
+        height: 70px;
+        margin: auto;
+    }
+}
+
+.modal-header {
+    padding: 0 15px;
+    h3 {
+        margin-left: 10px;
+    }
+    .pull-right {
+        button {
+            padding: 6px 12px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+    }
+}
+
+// layout and background for 'UI list module for modal popup'
+// need to set width of li so ellipsis can work
+#page-content .sectioned-list,
+#modal_content .sectioned-list {
+    background-color: #e0e0e0;
+    .row {
+        background-color: #eee;
+        padding: 5px;
+        margin-left: 0px;
+        margin-right: 0px;
+        list-style-type: none;
+        &.header-row {
+            background-color: #e0e0e0;
+            h4 {
+                margin: 5px 0 0 5px;
+                font-size: 150%;
+                font-weight: bold;
+            }
+        }
+    }
+    ul {
+        background-color: #e0e0e0;
+        list-style-type: none;
+        padding: 0px 5px 5px 5px;
+        li {
+            background-color: #fff;
+            padding: 0px;
+            line-height: 21px;
+            min-height: 29px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            &:nth-child(odd) {
+                background-color: #f6f6f6;
+            }
+            &:nth-child(even) {
+                background-color: #fff;
+            }
+            span {
+                padding: 0;
+                display: inline-block;
+                background-color: transparent;
+                overflow: hidden;
+                vertical-align: middle;
+            }
+            &.row {
+                padding: 0px;
+            }
+            form {
+                line-height: 2em;
+                font-size: 1.3em;
+                padding: 0 10px;
+            }
+        }
+    }
+    .short_label {
+        margin: 0 5px;
+        padding: 5px 0;
+        background-color: #e0e0e0;
+    }
+    table {
+        width: 100%;
+    }
+}
+
+#page-content .unsectioned_list,
+#modal_content .unsectioned_list {
+    padding: 10px;
+    h4 {
+        background-color: #e0e0e0;
+        font-size: 150%;
+        line-height: 140%;
+        font-weight: bold;
+        padding: 10px;
+        margin-top: -10px;
+    }
+}
+
+#page-content .sectioned-list,
+#page-content .unsectioned_list,
+#modal_content .sectioned-list,
+#modal_content .unsectioned_list {
+    .pull-right {
+        margin-left: 5px;
+    }
+    .pull-left {
+        margin-right: 5px;
+    }
+    fieldset {
+        label {
+            width: 39%;
+        }
+        input, textarea, select {
+            width: 59%;
+        }
+    }
+}
+
+#page-content #evid-current-los,
+#page-content #evid-other-los
+#modal_content #evid-current-los,
+#modal_content #evid-other-los {
+    ul {
+        list-style-type: none;
+        padding: 0;
+        margin-left: -15px;
+        margin-right: -15px;
+        margin-top: -15px;
+        li {
+            // set width for ellipsis
+            span.lo-name {
+                width: 230px;
+            }
+        }
+    }
+}
+
+#page-content #evid-current-los,
+#modal_content #evid-current-los {
+    ul li {
+        // color button
+        i {
+            color: red;
+        }
+    }
+    // show correct button
+    .remove_lo_from_evid {
+        display: inline-block;
+    }
+    .add_lo_to_evid {
+        display: none;
+    }
+}
+
+
+
+#page-content #evid-other-los,
+#modal_content #evid-other-los {
+    ul li {
+        // color button
+        i {
+            color: @color_highlight;
+        }
+    }
+    // show correct button
+    .remove_lo_from_evid {
+        display: none;
+    }
+    .add_lo_to_evid {
+        display: inline-block;
+    }
+}
+
+#evid-attachments, #evid-hyperlinks {
+    input[type='text'] {
+        // width: 60%;
+    }
+    span.pull-right input[type='text'] {
+        // width: 35%;
+    }
+}
+
+.edit_subject_outcomes_form {
+    #current_los input[type='text'] {
+        width: 100%;
+    }
+}
+
+.add-section-outcome {
+    ul {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    label {
+        margin-left: 10px;
+    }
+}
+/*
+=============================
+Tracker Table
+=============================
+*/
+// .tracker-table-options {
+//     width: 580px;
+//     padding: 0 5px;
+//     font-weight: normal;
+//     font-size: 13px;
+// }
+.tracker-add-student {
+    position: absolute;
+    left: 525px;
+    top:-18px;
+    z-index: @zindex-over-tracker-header;
+}
+.tracker-remove-student {
+    position: absolute;
+    left: 505px;
+    top:-18px;
+    z-index: @zindex-over-tracker-header;
+}
+#tracker-header-top-left .pagination {
+    display: block;
+    margin: 3px 0 0 10px;
+}
+
+#tracker-table-container-outer {
+    /*margin: 0 -5px 10px -5px;  note possible conflict in the media coding below */
+    margin: -15px 0;
+    position: relative; /* position relative to fixed table headers (th div) */
+
+    #tracker-table-container {
+        /*overflow-x: auto;*/ /* remove horozontal scrolling */
+        overflow-y: auto; /* add vertical scrolling */
+        overflow-x: hidden; /* prevent horozontal scrolling */
+
+        .tracker-table {
+            table-layout: fixed;
+            white-space: nowrap;
+            border-collapse: separate;
+            background-color: @tracker_lt_gray_bg_color;
+            margin-top: 104px;  /* positioning of first row (compared to labels) */
+        }
+    }
+}
+
+.tracker-table th {
+    height: 0;
+    line-height: 0;
+    padding: 0;
+    color: transparent;
+    overflow: hidden;
+    position: relative;
+
+    > div {      /* show inner div */
+        position: fixed;
+        z-index: @zindex-navbar-fixed;
+        color: black;  /* override the th hiding code */
+        line-height: 1; /* override the th hiding code */
+        top: 155px; /* positions th elements in fixed header */
+    }
+}
+
+.tracker-table td {
+    padding: 1px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tracker-table .tbody-header {
+    display: none;
+    td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        background-color: @expand-collapse-header-color;
+        border-top: 1px solid @tracker_cell_bg_color;
+        border-bottom: 1px solid @tracker_cell_bg_color;
+    }
+    &.showLO {
+        display: table-row-group;
+    }
+    &.tbody-open.showLO + .tbody-section {
+        display: table-row-group;
+    }
+}
+
+.tracker-table .tbody-section {
+    display: none;
+
+    td {
+        background-color: #ffffff;
+        border-bottom: 1px solid @tracker_evid_border_color;
+        a {
+            height: 25px;
+            i {
+                margin: 6px 0;
+            }
+        }
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+}
+
+.tracker-table tr td:last-child {
+    width: 100%;
+}
+
+/*
+=============================
+Tracker Table - Rotate Headers
+=============================
+*/
+.tracker-table th.rotate-45 {
+    height: 80px;
+    width: 36px; /* one less to avoid double borders */
+    min-width: 36px; /* one less to avoid double borders */
+    max-width: 36px; /* one less to avoid double borders */
+    position: relative;
+    vertical-align: bottom;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+
+    > div.clone {
+        height: 80px;
+        > div {
+            position: relative;
+            top: -20px; /* vertical adjustment for student names */
+            left: 52px; /* left right positioning of student names */
+            height: 100px; /* height of student names */
+            width: 37px; /* width of student name box - need to adjust positioning as well */
+            color: black; /* #808285; */
+            font-weight: normal;
+            font-size: 12px;
+            background-color: #fff;
+            -ms-transform:skew(-45deg,0deg);
+            -moz-transform:skew(-45deg,0deg);
+            -webkit-transform:skew(-45deg,0deg);
+            -o-transform:skew(-45deg,0deg);
+            transform:skew(-45deg,0deg);
+            overflow: hidden;
+            white-space: nowrap;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            border-top: 1px solid #ddd;
+        }
+    }
+    > div.cloner {
+        display: none;
+    }
+
+    span.name {
+        padding: 4px 12px 0 2px; /* Rotate Headers - adjust padding */
+        -ms-transform:skew(45deg,0deg) rotate(315deg);
+        -moz-transform:skew(45deg,0deg) rotate(315deg);
+        -o-transform:skew(45deg,0deg) rotate(315deg);
+        -webkit-transform:skew(45deg,0deg) rotate(315deg);
+        transform:skew(45deg,0deg) rotate(315deg);
+        position: absolute;
+        bottom: 38px; /* Student name positioning - note left and width and mini/midi modes */
+        left: -44px; /* Student name positioning - note bottom and width and mini/midi modes */
+        display: inline-block;
+        width: 120px; /* Student name length - note bottom and left mini/midi modes */
+        text-align: left;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    span.name.rev {
+        direction: rtl;
+        font-size: 150%
+    }
+
+    span.icon {
+        padding: 2px 0;
+        -ms-transform:skew(45deg,0deg) rotate(0deg);
+        -moz-transform:skew(45deg,0deg) rotate(0deg);
+        -o-transform:skew(45deg,0deg) rotate(0deg);
+        -webkit-transform:skew(45deg,0deg) rotate(0deg);
+        transform:skew(45deg,0deg) rotate(0deg);
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: -14px;
+        display: inline-block;
+        width: 60px;
+        background: #f9fafb;
+        color: #959799;
+        border-bottom: 1px solid #dddddd;
+        text-align: center;
+    }
+}
+
+/*
+=============================
+Tracker Page - Thinner Mode
+=============================
+*/
+
+.tracker-table.thinner-mode th.blue,
+.tracker-table.thinner-mode td.blue,
+.tracker-table.thinner-mode th.green,
+.tracker-table.thinner-mode td.green,
+.tracker-table.thinner-mode th.yellow,
+.tracker-table.thinner-mode td.yellow,
+.tracker-table.thinner-mode th.red,
+.tracker-table.thinner-mode td.red,
+.tracker-table.thinner-mode th.missing,
+.tracker-table.thinner-mode td.missing,
+.tracker-table.thinner-mode th.unrated,
+.tracker-table.thinner-mode td.unrated,
+.tracker-table.thinner-mode th.rotate-45,
+.tracker-table.thinner-mode th.rotate-45 > div {
+    width: 26px;
+    min-width: 26px;
+    max-width: 26px;
+}
+
+.tracker-table.thinner-mode {
+
+    .esor {
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+    th.rotate-45 {
+        > div > div {
+            width: 27px;
+        }
+        span.name {
+            left: -50px;
+        }
+        span.icon {
+            left: -20px;
+        }
+    }
+}
+
+
+/*
+=============================
+Tracker Page - Thin Mode
+=============================
+*/
+
+.tracker-table.thin-mode th.blue,
+.tracker-table.thin-mode td.blue,
+.tracker-table.thin-mode th.green,
+.tracker-table.thin-mode td.green,
+.tracker-table.thin-mode th.yellow,
+.tracker-table.thin-mode td.yellow,
+.tracker-table.thin-mode th.red,
+.tracker-table.thin-mode td.red,
+.tracker-table.thin-mode th.missing,
+.tracker-table.thin-mode td.missing,
+.tracker-table.thin-mode th.unrated,
+.tracker-table.thin-mode td.unrated,
+.tracker-table.thin-mode th.rotate-45,
+.tracker-table.thin-mode th.rotate-45 > div {
+    width: 31px;
+    min-width: 31px;
+    max-width: 31px;
+}
+
+.tracker-table.thin-mode {
+    .esor {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    th.rotate-45 {
+        > div > div {
+            width: 32px;
+        }
+        span.name {
+            left: -47px;
+        }
+        span.icon {
+            left: -17px;
+        }
+    }
+}
+
+/*
+=============================
+Tracker Page - Regular Mode
+=============================
+*/
+
+.tracker-table.regular-mode th.blue,
+.tracker-table.regular-mode td.blue,
+.tracker-table.regular-mode th.green,
+.tracker-table.regular-mode td.green,
+.tracker-table.regular-mode th.yellow,
+.tracker-table.regular-mode td.yellow,
+.tracker-table.regular-mode th.red,
+.tracker-table.regular-mode td.red,
+.tracker-table.regular-mode th.missing,
+.tracker-table.regular-mode td.missing,
+.tracker-table.regular-mode th.unrated,
+.tracker-table.regular-mode td.unrated,
+.tracker-table.regular-mode th.rotate-45,
+.tracker-table.regular-mode th.rotate-45 > div {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+}
+
+.tracker-table.regular-mode {
+    .esor {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    th.rotate-45 {
+        > div > div {
+            width: 37px;
+        }
+        span.name {
+            left: -44px;
+        }
+        span.icon {
+            left: -14px;
+        }
+    }
+}
+
+
+/*
+=============================
+Tracker Page - Wide Mode
+=============================
+*/
+
+.tracker-table.wide-mode th.blue,
+.tracker-table.wide-mode td.blue,
+.tracker-table.wide-mode th.green,
+.tracker-table.wide-mode td.green,
+.tracker-table.wide-mode th.yellow,
+.tracker-table.wide-mode td.yellow,
+.tracker-table.wide-mode th.red,
+.tracker-table.wide-mode td.red,
+.tracker-table.wide-mode th.missing,
+.tracker-table.wide-mode td.missing,
+.tracker-table.wide-mode th.unrated,
+.tracker-table.wide-mode td.unrated,
+.tracker-table.wide-mode th.rotate-45,
+.tracker-table.wide-mode th.rotate-45 > div {
+    width: 41px;
+    min-width: 41px;
+    max-width: 41px;
+}
+
+.tracker-table.wide-mode {
+    .esor {
+        padding-left: 11px;
+        padding-right: 11px;
+    }
+    th.rotate-45 {
+        > div > div {
+            width: 42px;
+        }
+        span.name {
+            left: -41px;
+        }
+        span.icon {
+            left: -11px;
+        }
+    }
+}
+
+/*
+=============================
+Tracker Page - Wider Mode
+=============================
+*/
+
+.tracker-table.wider-mode th.blue,
+.tracker-table.wider-mode td.blue,
+.tracker-table.wider-mode th.green,
+.tracker-table.wider-mode td.green,
+.tracker-table.wider-mode th.yellow,
+.tracker-table.wider-mode td.yellow,
+.tracker-table.wider-mode th.red,
+.tracker-table.wider-mode td.red,
+.tracker-table.wider-mode th.missing,
+.tracker-table.wider-mode td.missing,
+.tracker-table.wider-mode th.unrated,
+.tracker-table.wider-mode td.unrated,
+.tracker-table.wider-mode th.rotate-45,
+.tracker-table.wider-mode th.rotate-45 > div {
+    width: 46px;
+    min-width: 46px;
+    max-width: 46px;
+}
+
+.tracker-table.wider-mode {
+    .esor {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    th.rotate-45 {
+        > div > div {
+            width: 47px;
+        }
+        span.name {
+            left: -38px;
+        }
+        span.icon {
+            left: -8px;
+        }
+    }
+}
+
+
+
+/*
+=============================
+Tracker Page - Specific Cells
+=============================
+*/
+.tracker-table {
+    td.tracker-firstcol {
+        height: 28px;  /* vertical scrolling changes - remove th */
+    }
+
+    .tracker-firstcol {
+        width: 454px;
+
+        > div {
+            width: 450px;
+        }
+    }
+    thead th.tracker-firstcol {
+      height: 80px;
+    }
+}
+
+.tracker-cell-spacer,
+.tracker-cell-toggle,
+.tracker-cell-attachment,
+.tracker-cell-options {
+    float: right;
+    text-align: center;
+    height: 24px;
+    line-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tracker-cell-marking-periods {
+    float: left;
+    text-align: center;
+    height: 24px;
+    line-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: right;
+}
+
+.tracker-cell-check {
+    float: left;
+    text-align: center;
+    height: 24px;
+    line-height: 24px;
+    width: 18px;
+    margin-right: 10px;
+}
+
+.tracker-cell-toggle,
+.tracker-cell-attachment {
+    float: left;
+    width: 30px;
+    color: #59595b;
+    a {
+        display: block;
+    }
+}
+
+.tracker-cell-title {
+    float: left;
+    text-align: left;
+    line-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+    color: @tracker_cell_bg_color;
+}
+.tbody-header .tracker-cell-title {
+    width: 268px;
+}
+.tbody-section .tracker-cell-title {
+    width: 205px;
+}
+/* student tracker page evidence title */
+.tbody-body .tracker-cell-title .eso-evidence-name {
+    white-space: normal;
+}
+
+.tracker-evid-date {
+    float: right;
+    text-align: right;
+    height: 24px;
+    line-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 75px;
+}
+.tracker-evid-date::before {
+    content: '•';
+    padding: 0;
+    margin: 0;
+}
+
+.tracker-evid-type {
+    float: right;
+    text-align: right;
+    height: 24px;
+    line-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 60px;
+}
+
+.tracker-cell-marking-periods {
+    width: 100px;
+    text-align: right;
+}
+
+.tbody-header .tracker-cell-options {
+    width: 52px;
+}
+
+.tbody-section .tracker-cell-options {
+    width: 80px;
+}
+
+.tracker-cell-spacer {
+    width: 30px;
+}
+
+.tracker-cell-toggle > i {
+    -webkit-transition: all 0.15s ease-out;
+    transition: all 0.15s ease-out;
+}
+
+.tbody-open .tracker-cell-toggle > i {
+    -webkit-transform: rotate(270deg);
+    transform: rotate(270deg);
+}
+
+.tracker-cell-title a {
+    color: @tracker_cell_bg_color;
+}
+
+.tbody-section .tracker-cell-title {
+    font-weight: 400;
+    color: @tracker_cell_title_color;
+}
+
+.tracker-cell-marking-periods .pagination {
+    margin:  0;
+}
+
+.tracker-cell-marking-periods .pagination a {
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    background: transparent;
+    color: #999999;
+}
+
+/* attempt to have border on top of LO in student tracker to show up - is ignored ?? */
+// .table-lo-evid tbody.tbody-header {
+//     border-top-width: 2px !important;
+// }
+
+
+.tracker-cell-marking-periods .pagination a:hover {
+    color: #999;
+    // font-weight: 700;
+    background: transparent;
+    cursor: default;
+}
+.tracker-cell-marking-periods .pagination li.active a {
+    color: @tracker_cell_bg_color;
+    font-weight: 700;
+    background: transparent;
+}
+.tracker-table {
+    .tracker-cell-marking-periods .pagination a:hover {
+        color: @tracker_cell_bg_color;
+        font-weight: 700;
+        background: transparent;
+        cursor: pointer;
+    }
+}
+
+.evidence-attachment-row {
+    margin-left: 10px;
+}
+
+.evid-cell {
+    border-left: 1px solid @tracker_evid_border_color;
+    text-align: center;
+    &.highlight-cell {
+        border: 2px solid red;
+    }
+    &.mark-evid-col {
+        border-left: 2px solid red;
+        border-right: 2px solid red;
+    }
+    a {
+        display: block;
+    }
+}
+
+#batch-rating td.bulk-rate.fa-dot-circle-o {
+    color: #aaa;
+}
+
+#batch-rating td {
+    padding: 5px 0;
+    &.active {
+        background-color: @tracker_cell_bg_color !important;
+    }
+}
+
+#batch-rating-evid {
+    margin-left: -10px;
+    i {
+        padding: 10px 3px;
+    }
+    input {
+        margin: -2px 5px;
+    }
+    td.active {
+        background-color: @tracker_cell_bg_color !important;
+    }
+}
+
+.batch-rate-btn {
+    .btn {
+        margin: 0 4px;
+    }
+}
+
+/*
+=============================
+Tracker Page - Colors and standard cell sizes
+=============================
+*/
+
+.tracker-table th.blue,
+.tracker-table td.blue,
+.tracker-table th.green,
+.tracker-table td.green,
+.tracker-table th.yellow,
+.tracker-table td.yellow,
+.tracker-table th.red,
+.tracker-table td.red,
+.tracker-table th.missing,
+.tracker-table td.missing,
+.tracker-table th.unrated,
+.tracker-table td.unrated {
+    width: 36px;
+    height: 24px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    border-left: 1px solid #ffffff;
+    border-right: 1px solid #ffffff;
+}
+
+#batch-rating td.blue,
+#batch-rating td.green,
+#batch-rating td.yellow,
+#batch-rating td.red,
+#batch-rating td.missing,
+#batch-rating td.unrated,
+#batch-rating td#batch-select-row {
+    width: 30px;
+    line-height: 23px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+}
+
+
+.sidebar-nav a:hover > .sidebar-nav-extra-icon,
+.sidebar-nav a.active > .sidebar-nav-extra-icon,
+.sidebar-nav a.open > .sidebar-nav-extra-icon,
+.sidebar-nav li.active > a > .sidebar-nav-extra-icon {
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+
+/*
+=============================
+tracker and batch page
+=============================
+*/
+
+.tracker-table{
+    th.rotate-45 {
+        > div > div {
+            width: 37px;
+        }
+        span.name {
+            left: -44px;
+        }
+        span.icon {
+            left: -14px;
+        }
+    }
+}
+
+#batch-rating td.blue,
+.tracker-table th.blue,
+.tracker-table td.blue,
+th.blue,
+td.blue {
+    background-color: @tracker_rating_blue;
+    color: #fff;
+}
+
+#batch-rating td.green,
+.tracker-table th.green,
+.tracker-table td.green,
+th.green,
+td.green {
+    background-color: @tracker_rating_green;
+    color: #fff;
+}
+
+#batch-rating td.yellow,
+.tracker-table th.yellow,
+.tracker-table td.yellow,
+th.yellow,
+td.yellow {
+    background-color: @tracker_rating_yellow;
+    color: #000;
+}
+
+#batch-rating td.red,
+.tracker-table th.red,
+.tracker-table td.red,
+th.red,
+td.red {
+    background-color: @tracker_rating_red;
+    color: #fff;
+}
+
+#batch-rating td.missing,
+.tracker-table th.missing,
+.tracker-table td.missing,
+th.missing,
+td.missing {
+    background-color: @tracker_rating_missing;
+}
+
+#batch-rating td.unrated,
+.tracker-table th.unrated,
+.tracker-table td.unrated,
+th.unrated,
+td.unrated {
+    background-color: @tracker_rating_unrated;
+    color: #fff;
+}
+
+#batch-rating td.empty,
+.tracker-table th.empty,
+.tracker-table td.empty,
+th.empty,
+td.empty {
+    background-color: @tracker_rating_empty;
+}
+
+#batch-rating td#batch-select-row {
+    background-color: white;
+    color: #000;
+    &.active {
+        color: #fff;
+    }
+}
+
+.text-blue2, .text-blue, .text-blue-lg {
+    color: @tracker_rating_blue;
+}
+
+.text-green2, .text-green, .text-green-lg {
+    color: @tracker_rating_green;
+}
+
+.text-yellow2, .text-yellow {
+    color: @tracker_rating_yellow;
+}
+
+.text-red2, .text-red, .text-red-lg {
+    color: @tracker_rating_red;
+}
+
+.text-missing2, .text-missing {
+    color: @tracker_rating_missing;
+}
+
+.text-unrated2, .text-unrated, .text-unrated-lg {
+    color: @tracker_rating_unrated;
+}
+
+.text-empty2, .text-empty {
+    color: @tracker_rating_empty;
+}
+
+/* colors for LO when shown as text */
+.text-blue-lg, .text-green-lg, .text-red-lg, .text-unrated-lg {
+    font-size: 1.3em;
+}
+/*
+=============================
+Tracker Page - Fixed First Column
+=============================
+*/
+#tracker-table-container-outer.firstcol-fixed {
+    /* position: relative; /* vertical scrolling changes - remove horozontal scrolling */
+}
+
+.firstcol-fixed #tracker-table-container {
+    /*margin-left: 604px; /* vertical scrolling changes - remove horozontal scrolling */
+}
+
+.firstcol-fixed .tracker-table .tracker-firstcol {
+    /* position: absolute; /* vertical scrolling changes - remove horozontal scrolling */
+    /* left: 0; /* vertical scrolling changes - remove horozontal scrolling */
+}
+/*
+=============================
+Screen Size Adjustments
+=============================
+*/
+
+#tracker-header-top {
+    padding-left: 5px;
+}
+
+.breadcrumb-top {
+    padding: 5px;
+}
+
+@media screen and (min-width: 768px) {
+
+    // .page-subtitle {
+    //     padding: 0 10px 10px 0;
+    //     margin: 0;
+    //     border-top: none;
+    //     float: right;
+    // }
+
+    // .tracker-extra {
+    //     margin-left: 584px;
+    // }
+
+    // .tracker-table .tracker-table-options {
+    //     padding: 0 20px;
+    // }
+
+    // .tracker-header {
+    //     padding-left: 20px;
+    // }
+
+    // see proui_overwrite_misc: #page-content .row
+    // #tracker-header-top {
+    //     padding-left: 20px;
+    // }
+
+
+    // .breadcrumb-top {
+    //     padding: 5px 20px;
+    // }
+}
+
+
+

@@ -1,0 +1,84 @@
+
+- content_for(:title, 'Generate Progress Reports')
+- content_for(:page_name, 'Generate Progress Reports')
+- content_for(:page_class, 'generate-reports misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :rpt_progress_gen, @section
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Generate Reports"
+  %h2.h1.page-title
+    %strong="Report Selection and Criterion"
+  .row
+    %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-filter
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-print
+    %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+      %i.fa.fa-lg.fa-download
+  .row
+    %table.table
+      %thead
+        %tr
+          %th='Subject'
+          %th='Sections'
+          %th='Learning Outcomes'
+      %tbody
+        %tr
+          %td=@section.name
+          %td=@section.line_number
+          %td='All'
+%form{"accept-charset" => "UTF-8", :action => "/sections/#{@section.id}.pdf", :method => "get", target: '_blank'}
+  %input{:name => "report", :type => "hidden", :value => "progress_reports"}
+    .row
+      .col-sm-12.col-lg-8
+        .block.block-alt-style.full
+          .block-content-full.rounded-title-container
+            %table.titled-table.table.table-condensed.remove-margin
+              %thead.table-title
+                %tr
+                  %th{colspan: '2'}='Generate Progress Reports'
+              %tbody
+                %tr
+                  %td='Marking Period'
+                  %td
+                    - @marking_periods.each do |mp|
+                      %label.pull-left{for: "mp_#{mp}"}="#{mp}:"
+                      %input.checkbox_padr.pull-left{id: "mp_#{mp}", :name => "marking_periods[]", :type => "checkbox", :value => "#{mp}"}
+                      =''
+                %tr
+                  %td{colspan: '2'}
+                    %input#unrated-1.checkbox_padr.pull-left{:name => "print_unrated", :type => "checkbox", :value => "1"}
+                    %label.pull-left{for: 'unrated-1'}="Print unrated outcomes only if they have associated evidence."
+                %tr
+                  %td{colspan: '2'}
+                    %input#unrated-2.checkbox_padr.pull-left{:name => "print_unrated", :type => "checkbox", :value => "2"}
+                    %label.pull-left{for: 'unrated-2'}="Print unrated outcomes even if they don't have evidence."
+                %tr
+                  %td{colspan: '2'}
+                    %input#summary.checkbox_padr.pull-left{:name => "summary", :type => "checkbox", :value => "1"}
+                    %label.pull-left{for: 'summary'}="Print learning outcomes and ratings only. (No evidence!)"
+                %tr
+                  %td
+                    %label{for: 'message'}='Add Message (optional)'
+                  %td
+                    %textarea#message{:name => "message", rows: '4'}
+                %tr
+                  %td{colspan: '2'}
+                    %input#toggle-all-students.checkbox_padr.pull-left{:checked => "checked", :toggle_class => "student", :type => "checkbox"}
+                    %label.pull-left{for: 'students-select-all-none'}='All / None Student Selector'
+                  %td
+
+                - @section.enrollments.alphabetical.each do |e|
+                  %tr
+                    %td{colspan: '2'}
+                      %input.toggle-student.checkbox_padr.pull-left{:checked => "checked", :name => "student_id[]", :type => "checkbox", :value => "#{e.student.id}", id: "student-#{e.student.id}"}/
+                      %label.pull-left{for: "student-#{e.student.id}"}=e.student.full_name
+                %tr
+                  %td{colspan: '2'}
+                    %button.btn.btn-primary{:type => "submit", :value => "commit"} Generate Progress Reports
+      .col-sm-0.col-lg-4

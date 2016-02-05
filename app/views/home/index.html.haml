@@ -1,0 +1,9 @@
+%p Please sign in.
+%div#new_sign_in
+  %p
+    = render 'users/universal_form' unless user_signed_in?
+    / - if user_signed_in?
+    /   Currently logged in as
+    /   = link_to(current_user.username, current_user) + "."
+    /   = link_to("Edit Profile", edit_user_path(current_user))
+    /   = link_to("Sign Out", destroy_user_session_path)

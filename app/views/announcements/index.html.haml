@@ -1,0 +1,16 @@
+%h3 Listing Announcements
+= link_to "Add Announcement", new_announcement_path
+%table.report
+  %thead
+    %tr
+      %th Start Date
+      %th End Date
+      %th Content
+      %th
+  %tbody
+    - @announcements.each do |announcement|
+      %tr
+        %td= announcement.start_at
+        %td= announcement.end_at
+        %td= announcement.content
+        %td= link_to "edit", edit_announcement_path(announcement)

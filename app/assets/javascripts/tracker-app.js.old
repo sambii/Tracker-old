@@ -1,0 +1,57 @@
+/*
+ *  Document   : tracker_app.js
+ *  Description: Code to customize the app.js code
+ *
+ * must have the following lines to the resizePageContent function in app.js
+ *     TrackerApp.resizePageContent();
+ *
+ * The following line must be called in vendor/assets/javascripts/proui-vN.N/app.js:
+ *
+ *     TrackerApp.resizePageContent();
+ *
+ * 1) inside the resizePageContent function.
+ *    This ensures the the Tracker Page custom resizing code is called whenever the proui resizing code is called.
+ *
+ * 2) inside the handleSidebar function
+ *    - indide the else statement
+ *    - right after all of the modes are checked.
+ *    This ensures the Tracker Page custom resizing code is called on toolkit hide and show actions.
+ *
+ */
+
+var TrackerApp = function() {
+  /* Code to Initialize Tracker */
+  console.log('TrackerApp loaded')
+
+  return {
+    init: function() {
+      console.log('TrackerApp.trackerInit called')
+    },
+
+    /* custom code for Tracker Page resizing.
+        - code to handle position of tracker-table containers.
+        - code to handle the pagination of students.
+    */
+    resizePageContent: function() {
+      /* position of tracker-table containers when page resizes. */
+      var trackerPage = $('#page-content.tracker-page');
+      console.log('TrackerApp.resizePageContent called')
+      if (trackerPage.length > 0) {
+          var sidebarW = $('#sidebar').outerWidth();
+          var trackerHeader = $('#tracker-header');
+          trackerHeader.css('left', sidebarW);
+          console.log('sidebarW = ' + sidebarW)
+      }
+
+      /* pagination of students whdn page resizes. */
+      /* todo */
+
+    }
+  };
+
+}();
+
+/* Initialize app when page loads */
+$(function(){
+  TrackerApp.init();
+});

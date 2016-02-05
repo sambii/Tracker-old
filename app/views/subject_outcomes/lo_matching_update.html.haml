@@ -1,0 +1,56 @@
+
+- content_for(:title, 'Bulk LO Update Matching Report')
+- content_for(:page_name, 'Bulk LO Update Matching Report')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Bulk LO Update Report'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th{colspan: 6}
+                = 'Matching'
+            %tr
+              %th= 'Subject'
+              %th= 'Grade Level'
+              %th= 'Marking Period'
+              %th= 'LO Code'
+              %th= 'Description'
+              %th= 'Action'
+          %tbody.tbody-body
+            - @records4.each do |row|
+              - r = row[0]
+              - action = row[1]
+              %tr
+                / %td=h[SubjectOutcomesHelper::COL_COURSE_ID]
+                %td=r.subject.name
+                %td=r.grade_from_lo_code
+                %td=r.marking_period_string
+                %td=r.lo_code
+                %td=r.description
+                %td
+                  =action
+                  / %span.ui-error=''
+                  / - if !@rollback
+                  /   %span.ui-success=''
+            %tr
+              %td.text-center{colspan: 6}
+                = 'Done'
+.col-sm-1
+
+
+
