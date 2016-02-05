@@ -628,7 +628,19 @@ class SectionsController < ApplicationController
                   sec.line_number = sec_p_hash['value']
                   sec.subject_id = sec_p_hash['subject_id']
                   sec.school_year_id = school_year_id
-                  raise("Errors updating section: #{sec.errors.full_messages}") if !sec.save
+                  if !sec.save
+                    raise("Errors updating section: #{sec.errors.full_messages}")
+                  else
+                    # automatically create Section Outcomes from Subject Outcomes for this subject
+                    subjos = SubjectOutcome.where(subject_id: sec.subject_id, active: true)
+                    subjos.each do |subjo|
+                      secto = SectionOutcome.new
+                      secto.section_id = sec.id
+                      secto.subject_outcome_id = subjo.id
+                      secto.marking_period = subjo.marking_period
+                      raise("Errors updating section outcome: #{secto.errors.full_messages}") if !secto.save
+                    end
+                  end
                 end
               end
             end
