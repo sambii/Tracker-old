@@ -47,11 +47,24 @@
                 %span=@filename
 
             / if past stage 1, show any errors
-            #show-filename{class: ( (@stage > 1 ) ? '' : 'display-none')}
+            #show-errors{class: ( (@stage > 1 ) ? '' : 'display-none')}
               - if @error_list && @error_list.length > 0
-                .row.ui-error='Lines with Duplicated Emails Errors by email address'
+                .ui-error.text-right
+                  ='Lines with Duplicated Emails Errors by email address'
+                  = "&nbsp;".html_safe
                 - @error_list.each do |k, v|
-                  .row.ui-error= "#{v}"
+                  .ui-error.text-right
+                    = "#{v}"
+                    = "&nbsp;".html_safe
+              - if @error_list_1 && @error_list_1.length > 0
+                .ui-error.text-right
+                  %h3
+                    ='Lines with Duplicated Staff IDs Errors by Staff ID'
+                    = "&nbsp;".html_safe
+                  - @error_list_1.each do |k, v|
+                    .ui-error.text-right
+                      = "Staff ID #{v}"
+                      = "&nbsp;".html_safe
               - if @errors.count == 0 && @records.present?
                 - if @preview
                   %h3="Preview of #{@records.count} Staff bulk upload."

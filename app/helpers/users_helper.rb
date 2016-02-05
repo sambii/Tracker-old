@@ -4,6 +4,7 @@ module UsersHelper
 
   # staff file column labels
   COL_SAMPLE = 'Sample'
+  COL_ID = 'Staff ID'
   COL_FNAME = '* First Name'
   COL_FAM_NAME = '* Family Name'
   COL_LAST_NAME = '* Last Name'
@@ -40,9 +41,11 @@ module UsersHelper
       #
       if csv_hash[COL_ACR].blank? && csv_hash[COL_FNAME].blank? && csv_hash[COL_LNAME].blank? && csv_hash[COL_EMAIL].blank? && csv_hash[COL_POSIT].blank?
         # blank row, set indicator
+        Rails.logger.debug("*** record is blank record")
         csv_hash[COL_EMPTY] = true
       #
       elsif csv_hash[COL_SAMPLE].present?
+        Rails.logger.debug("*** record is sample record")
         csv_hash[COL_EMPTY] = true
       else
 # Copyright (c) 2016 21st Century Partnership for STEM Education (21PSTEM)
@@ -94,6 +97,41 @@ module UsersHelper
       return {records: records, error_list: error_list, abort: true}
     end
   end
+
+  # staff bulk upload file stage 2 processing
+  def validate_dup_xids(records)
+    begin
+      error_list = Hash.new
+      records.each_with_index do |rx, ix|
+        # check all records following it for duplicated student IDs
+        if error_list[ix+2] != '-1'
+          records.drop(ix+1).each_with_index do |ry, iy|
+            iyall = iy + ix + 1 # index of the later row being tested
+            # check for duplicated staff IDs
+            if error_list[iyall+2] != '-1' && rx[COL_ID] == ry[COL_ID]
+              Rails.logger.debug("*** checking #{ix+2} - #{rx[COL_ID]}, #{iyall+2} - #{ry[COL_ID]} ")
+              # put or add to end the list of duplicated lines, but only if not listed prior
+              # note storing error_list as 2 relative line numbers for spreadsheet (zero relative to ignoring header line)
+              error_list[ix+2] = (error_list[ix+2].present? ? error_list[ix+2] += ", #{iyall+2}" : "#{rx[COL_ID]} at lines: #{ix+2}, #{iyall+2}")
+              error_list[iyall+2] = '-1'
+              # add the duplicate student id message to this row, if not there already
+              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Staff ID') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Staff ID')
+              # add the duplicate email message to the later row, if not there already
+              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Duplicate Staff ID') if !(records[iyall][COL_ERROR] ||= '').include?('Duplicate Staff ID')
+            end
+          end
+        end
+      end
+      Rails.logger.debug("*** error_list: #{error_list.inspect}")
+      # remove lines matching lines removed with -1 value
+      error_list.delete_if{|_,v| v == '-1'}
+      Rails.logger.debug("*** cleaned error_list: #{error_list.inspect}")
+      return {records: records, error_list: error_list, abort: false}
+    rescue StandardError => e
+      return {records: records, error_list: error_list, abort: true}
+    end
+  end
+
 
   # student bulk upload file stage 4 and 5 processing
   def build_staff(csv_hash)

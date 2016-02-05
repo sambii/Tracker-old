@@ -278,14 +278,27 @@ class UsersController < ApplicationController
           @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
         end
         @records << rhash if !rhash[COL_EMPTY]
+
       end  # end CSV.foreach
 
-      # check for file duplicate Student emails and Student IDs (OK for duplicate parent emails)
+      Rails.logger.debug("*** record count: #{@records.count}")
+
+      # check for file duplicate Staff emails and Staff IDs (OK for duplicate parent emails)
       # loop through all records
-      dup_email_checked = validate_dup_emails(@records)
+
+      dup_xid_checked = validate_dup_xids(@records)
+      @error_list_1 = dup_xid_checked[:error_list]
+      @records1 = dup_xid_checked[:records]
+      @errors[:base] = 'Errors exist - see below!!!:' if dup_xid_checked[:abort] || @error_list_1.length > 0
+
+      Rails.logger.debug("*** records1 count: #{@records1.count}")
+
+      dup_email_checked = validate_dup_emails(@records1)
       @error_list = dup_email_checked[:error_list]
       @records2 = dup_email_checked[:records]
       @errors[:base] = 'Errors exist - see below!!!:' if dup_email_checked[:abort] || @error_list.length > 0
+
+      Rails.logger.debug("*** record2 count: #{@records2.count}")
 
       # stage 3
       @stage = 3
@@ -302,7 +315,7 @@ class UsersController < ApplicationController
           # check all records following it for duplicated email
           if emails.include?(rx[COL_EMAIL])
             @records2[ix][COL_ERROR] = append_with_comma(@records2[ix][COL_ERROR], 'Email in use.')
-            @errors[:base] = 'Errors exist - see below:'
+            @errors[:base] = 'Errors exist - see below!!!'
           end
         end
       end # matching_emails.count > 0
@@ -313,7 +326,7 @@ class UsersController < ApplicationController
       Rails.logger.debug("*** Stage: #{@stage}")
 
       @records2.each_with_index do |rx, ix|
-
+        Rails.logger.debug("*** record2: #{rx.inspect}")
         staff = build_staff(rx)
         if staff.errors.count > 0 || !staff.valid?
           err = @records2[ix]["error"]
