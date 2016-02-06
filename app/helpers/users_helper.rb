@@ -1,3 +1,6 @@
+# Copyright (c) 2016 21st Century Partnership for STEM Education (21PSTEM)
+# see license.txt in this software package
+#
 module UsersHelper
 
   include ApplicationHelper
@@ -48,9 +51,6 @@ module UsersHelper
         Rails.logger.debug("*** record is sample record")
         csv_hash[COL_EMPTY] = true
       else
-# Copyright (c) 2016 21st Century Partnership for STEM Education (21PSTEM)
-# see license.txt in this software package
-#
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing School Acronym') if csv_hash[COL_ACR].blank?
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Not This School') if !csv_hash[COL_ACR].blank? && csv_hash[COL_ACR] != @school.acronym
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing First Name') if csv_hash[COL_FNAME].blank?

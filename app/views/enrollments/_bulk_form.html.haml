@@ -183,7 +183,7 @@
                         / %input.unassign-student-id{type: 'hidden', name: "enrollments_attributes[student_id][#{s.id}]", value: 'create'}
                         %input.unassign-student-id{type: 'hidden', name: "enrollments_attributes[student_id][#{s.id}][action]", value: 'create'}
                         %input.unassign-student-grade{type: 'hidden', name: "enrollments_attributes[student_id][#{s.id}][grade]", value: "#{s.grade_level}"}
-                      %td.user-xid=''
+                      %td.user-xid=s.xid
                       - if @school.has_flag?(School::USER_BY_FIRST_LAST)
                         %td.user-first-name=s.first_name
                         %td.user-last-name=s.last_name

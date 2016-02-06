@@ -248,12 +248,15 @@ class EnrollmentsController < ApplicationController
   def prep_for_bulk_view(params)
     Rails.logger.debug("*** prep_for_bulk_view started")
 
+    school = get_current_school
+
     @disciplines = Discipline.includes(subjects: {sections: :teachers }).order('disciplines.name, subjects.name, sections.line_number')
 
     ta_params = params['enrollments_attributes']
     Rails.logger.debug("*** ta_params: #{ta_params.inspect}")
 
-    @subjects = Subject.where(school_id: current_school_id)
+    sections_subject_id = Section.where(school_year_id: school.school_year_id).pluck(:subject_id)
+    @subjects = Subject.where(school_id: school.id, id: sections_subject_id).order(:name)
     @cur_subject_id = ta_params['subject_id'].to_i if ta_params
     if @cur_subject_id
       @sections = Section.where(subject_id: @cur_subject_id).includes(:subject)

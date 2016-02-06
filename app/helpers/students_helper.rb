@@ -1,3 +1,6 @@
+# Copyright (c) 2016 21st Century Partnership for STEM Education (21PSTEM)
+# see license.txt in this software package
+#
 module StudentsHelper
 
   include ApplicationHelper
@@ -61,9 +64,11 @@ module StudentsHelper
       if csv_hash[COL_ACR].blank? && csv_hash[COL_ID_NOTE].blank? && csv_hash[COL_FNAME].blank? && csv_hash[COL_LNAME].blank? && csv_hash[COL_EMAIL].blank? && csv_hash[COL_GRADE].blank?
         # blank row, set indicator
         csv_hash[COL_EMPTY] = true
-# Copyright (c) 2016 21st Century Partnership for STEM Education (21PSTEM)
-# see license.txt in this software package
-#
+      #
+      elsif csv_hash[COL_SAMPLE].present?
+        Rails.logger.debug("*** record is sample record")
+        csv_hash[COL_EMPTY] = true
+      else
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing School Acronym') if csv_hash[COL_ACR].blank?
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Not This School') if !csv_hash[COL_ACR].blank? && csv_hash[COL_ACR] != @school.acronym
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Student First Name') if csv_hash[COL_FNAME].blank?
