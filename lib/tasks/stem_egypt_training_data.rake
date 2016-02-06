@@ -261,7 +261,7 @@ namespace :stem_egypt_training_data do
 
         # two sections per teacher
         teach = (sect/SECTS_PER_TEACHER).floor
-        puts "assign teacher #{teach}"
+        # puts "assign teacher #{teach}"
 
         # assign a teacher to it
         ta = TeachingAssignment.new()
@@ -593,7 +593,7 @@ namespace :stem_egypt_training_data do
 
     # confirm to go ahead
     input = ''
-    STDOUT.puts "This procedure will create out all Ratings in the Training School, hit enter to continue"
+    STDOUT.puts "This procedure will create Ratings in the Training School, hit enter to continue"
     input = STDIN.gets.chomp
     if input != ""
       puts "!!!!!\nERROR: create_ratings cancelled by user.\n!!!!!"
@@ -605,7 +605,7 @@ namespace :stem_egypt_training_data do
       puts ("add evid, eso, and ratings for # #{so.id} - #{so.section.name} | #{so.section.line_number} @ #{so.position}")
 
       evidence_types.each_with_index do |et, ix|
-        puts "*** et: #{et.name}"
+        # puts "*** et: #{et.name}"
         e = Evidence.create(
           section_id: so.section_id,
           name: "Sample Evidence #{evid_seq} (#{et_levels[ix]})",
@@ -656,7 +656,6 @@ namespace :stem_egypt_training_data do
   end # end create_ratings
 
   task refresh_training_school: :environment do
-    STDOUT.puts "!!!!!\nWARNING - this is not tested code.\n!!!!!"
 
     ###########################################################
     # check to make sure school already exists
@@ -735,7 +734,6 @@ namespace :stem_egypt_training_data do
 
     section_outcomes.each do |so|
       puts ("add ratings for # #{so.id} - #{so.section.name} | #{so.section.line_number} @ #{so.position}")
-
       EvidenceSectionOutcome.where(section_outcome_id: so.id).each do |eso|
         if so.position < 7
           e_type_name = eso.evidence_type.name
@@ -770,11 +768,21 @@ namespace :stem_egypt_training_data do
               end
             end
           end
-
         end
       end
-
     end
+
+    ###########################################################
+    # reset all teacher passwords
+    STDOUT.puts "Resetting teacher passwords."
+    Teacher.where(school_id: school.id).each do |t|
+
+      t.password = 'password'
+      t.password_confirmation = 'password'
+      t.temporary_password = ''
+      t.save
+    end
+    STDOUT.puts "Done"
   end
 
 
