@@ -90,6 +90,7 @@
                 %th= 'Line'
                 %th= 'School'
                 %th= 'Student ID'
+                %th= 'Username'
                 - if @school.has_flag?(School::USER_BY_FIRST_LAST)
                   %th= 'Student First Name'
                   - if @school.has_flag?(School::USE_FAMILY_NAME)
@@ -105,6 +106,7 @@
                 %th= 'Student Email'
                 %th= 'Gender'
                 %th= 'Grade Level'
+                %th= 'Parent Username'
                 - if @school.has_flag?(School::USER_BY_FIRST_LAST)
                   %th= 'Parent First Name'
                   - if @school.has_flag?(School::USE_FAMILY_NAME)
@@ -125,6 +127,7 @@
                   %td="#{ix+2}"
                   %td=rx[StudentsController::COL_ACR_NAME]
                   %td=rx[StudentsController::COL_ID_NOTE]
+                  %td=rx[StudentsController::COL_USERNAME]
                   - if @school.has_flag?(School::USER_BY_FIRST_LAST)
                     %td=rx[StudentsController::COL_FNAME]
                     %td=rx[StudentsController::COL_LNAME]
@@ -134,8 +137,13 @@
                   %td.word-break-all=rx[StudentsController::COL_EMAIL]
                   %td=rx[StudentsController::COL_GENDER]
                   %td=rx[StudentsController::COL_GRADE]
-                  %td=rx[StudentsController::COL_PAR_FNAME]
-                  %td=rx[StudentsController::COL_PAR_LNAME]
+                  %td=rx[StudentsController::COL_PAR_USERNAME]
+                  - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                    %td=rx[StudentsController::COL_PAR_FNAME]
+                    %td=rx[StudentsController::COL_PAR_LNAME]
+                  - else
+                    %td=rx[StudentsController::COL_PAR_LNAME]
+                    %td=rx[StudentsController::COL_PAR_LNAME]
                   %td.word-break-all=rx[StudentsController::COL_PAR_EMAIL]
                   %td
                     %span.ui-error=rx[StudentsController::COL_ERROR]

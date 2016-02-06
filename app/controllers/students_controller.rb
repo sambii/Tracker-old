@@ -233,6 +233,14 @@ class StudentsController < ApplicationController
   def bulk_update
     @preview = true if params['preview']
 
+    school = get_current_school
+
+    # get all usernames in school to manually set usernames
+    usernames = Hash.new
+    User.where(school_id: school.id).each do |u|
+      usernames[u.username] = u
+    end
+
     @stage = 1
     Rails.logger.debug("*** StudentsController.bulk_update started")
     @errors = Hash.new
@@ -301,6 +309,16 @@ class StudentsController < ApplicationController
       @records2.each_with_index do |rx, ix|
 
         student = build_student(rx)
+        # manually generate a valid username. We are in a transaction, and we must manually build a unique one)
+        username = build_unique_username(student, school, usernames)
+        student.username = username
+        # put this username in the usernames hash if not there
+        usernames[student.username] = username
+        rx[COL_USERNAME] = username
+        if rx[COL_PAR_EMAIL].present?
+          rx[COL_PAR_USERNAME] = student.username + "_p"
+          Rails.logger.debug("*** rx[COL_PAR_USERNAME]: #{rx[COL_PAR_USERNAME]}")
+        end
         if student.errors.count > 0 || !student.valid?
           err = @records2[ix]["error"]
           @records2[ix][COL_ERROR] = append_with_comma(@records2[ix][COL_ERROR], student.errors.full_messages.join(', '))
@@ -336,10 +354,13 @@ class StudentsController < ApplicationController
           ActiveRecord::Base.transaction do
             @records2.each_with_index do |rx, ix|
               student = build_student(rx)
+              student.username = rx[COL_USERNAME] # use the username from stage 4
               student.save!
               if rx[COL_PAR_EMAIL].present? && student.parent.present?
+                rx[COL_PAR_USERNAME] = student.username + "_p"
                 parent = build_parent(student, rx)
                 parent.save!
+                @records2[ix][COL_PAR_USERNAME] = student.username + "_p"
               end
               @records2[ix][COL_SUCCESS] = 'Created'
             end # @records2 loop

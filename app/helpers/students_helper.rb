@@ -13,6 +13,7 @@ module StudentsHelper
   COL_ACR_NAME = 'school' # combined acronym and actual school name for report.
   COL_ID = '* Student ID'
   COL_ID_NOTE = '* Student ID  (must be unique)'
+  COL_USERNAME = 'Username'
   COL_FNAME = '* Student First Name'
   COL_FAM_NAME = '* Student Family Name'
   COL_LAST_NAME = '* Student Last Name'
@@ -20,6 +21,7 @@ module StudentsHelper
   COL_EMAIL = '* Student School Email'
   COL_GENDER = 'Gender'
   COL_GRADE = '* Grade Level'
+  COL_PAR_USERNAME = 'Parent Username'
   COL_PAR_FNAME = 'Parent First Name'
   COL_PAR_FAM_NAME = 'Parent Family Name'
   COL_PAR_LAST_NAME = 'Parent Last Name'
@@ -160,7 +162,7 @@ module StudentsHelper
       new_student.xid = csv_hash[COL_ID_NOTE]
       new_student.grade_level = csv_hash[COL_GRADE]
       new_student.gender = csv_hash[COL_GENDER]
-      new_student.set_unique_username
+      # new_student.set_unique_username # Must be manually created (in transaction)
       new_student.set_temporary_password
     rescue
       new_student.errors.add(:base, 'build_student error')
@@ -168,14 +170,28 @@ module StudentsHelper
     return new_student
   end
 
+  # build unique username from student fields and list of existing ones
+  def build_unique_username(student, school, usernames)
+    # student.set_unique_username, remove special characters and replace spaces with .
+    initial_username = (school.acronym + "_" + student.first_name[0] + student.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
+    work_username = initial_username
+    incr = 2
+    until usernames[work_username] == nil
+      work_username = initial_username+(incr.to_s)
+      incr += 1
+    end
+    return work_username
+  end
+
   # student bulk upload file stage 5 processing
-  def build_parent(student, csv_hash)
+  def build_parent(student, rx)
     begin
       # Update Parent fields
       parent = student.parent
       parent.first_name = rx[COL_PAR_FNAME] if rx[COL_PAR_FNAME]
       parent.last_name = rx[COL_PAR_LNAME] if rx[COL_PAR_LNAME]
       parent.email = rx[COL_PAR_EMAIL]
+      parent.username = rx[COL_PAR_USERNAME]
     rescue
       parent.errors.add(:base, 'build_student error')
     end
