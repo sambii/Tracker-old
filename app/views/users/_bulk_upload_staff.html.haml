@@ -87,6 +87,7 @@
             %thead.table-title
               %tr
                 %th= 'Line'
+                %th= 'Username'
                 - if @school.has_flag?(School::USER_BY_FIRST_LAST)
                   %th= 'First Name'
                   - if @school.has_flag?(School::USE_FAMILY_NAME)
@@ -107,6 +108,7 @@
               - @records.each_with_index do |rx, ix|
                 %tr
                   %td="#{ix+2}"
+                  %td=rx[UsersController::COL_USERNAME]
                   - if @school.has_flag?(School::USER_BY_FIRST_LAST)
                     %td=rx[UsersController::COL_FNAME]
                     %td=rx[UsersController::COL_LNAME]

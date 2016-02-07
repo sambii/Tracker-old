@@ -250,11 +250,19 @@ class UsersController < ApplicationController
   # see app/helpers/users_helper.rb for helper functions
   def bulk_update_staff
     @preview = true if params['preview']
+
+    @school = get_current_school
+
+    # get all usernames in school to manually set usernames
+    usernames = Hash.new
+    User.where(school_id: @school.id).each do |u|
+      usernames[u.username] = u
+    end
+
     @stage = 1
     Rails.logger.debug("*** UsersController.bulk_update_staff started")
     @errors = Hash.new
     @error_list = Hash.new
-    @school = get_current_school
     @errors[:base] = 'No current school selected.' if @school.id.blank?
     @records = Array.new
 
@@ -328,6 +336,12 @@ class UsersController < ApplicationController
       @records2.each_with_index do |rx, ix|
         Rails.logger.debug("*** record2: #{rx.inspect}")
         staff = build_staff(rx)
+        # manually generate a valid username. We are in a transaction, and we must manually build a unique one)
+        username = build_unique_username(staff, @school, usernames)
+        staff.username = username
+        # put this username in the usernames hash if not there
+        usernames[staff.username] = username
+        rx[COL_USERNAME] = username
         if staff.errors.count > 0 || !staff.valid?
           err = @records2[ix]["error"]
           @records2[ix][COL_ERROR] = append_with_comma(@records2[ix][COL_ERROR], staff.errors.full_messages.join(', '))
@@ -359,9 +373,8 @@ class UsersController < ApplicationController
         begin
           ActiveRecord::Base.transaction do
             @records2.each_with_index do |rx, ix|
-
-
               staff = build_staff(rx)
+              staff.username = rx[COL_USERNAME] # use the username from stage 4
               staff.save!
               @records[ix][COL_SUCCESS] = 'Created'
             end # @records loop

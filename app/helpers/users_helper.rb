@@ -8,6 +8,7 @@ module UsersHelper
   # staff file column labels
   COL_SAMPLE = 'Sample'
   COL_ID = 'Staff ID'
+  COL_USERNAME = 'Username'
   COL_FNAME = '* First Name'
   COL_FAM_NAME = '* Family Name'
   COL_LAST_NAME = '* Last Name'
@@ -153,12 +154,25 @@ module UsersHelper
       else
         raise('Invalid Role')
       end
-      new_staff.set_unique_username
+      # new_staff.set_unique_username # Must be manually created (in transaction)
       new_staff.set_temporary_password
     rescue StandardError => e
       new_staff.errors.add(:base, " build_staff ERROR: #{e.inspect}")
     end
     return new_staff
+  end
+
+  # build unique username from staff fields and list of existing ones
+  def build_unique_username(staff, school, usernames)
+    # student.set_unique_username, remove special characters and replace spaces with .
+    initial_username = (school.acronym + "_" + staff.first_name[0] + staff.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
+    work_username = initial_username
+    incr = 2
+    until usernames[work_username] == nil
+      work_username = initial_username+(incr.to_s)
+      incr += 1
+    end
+    return work_username
   end
 
 
