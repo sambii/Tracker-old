@@ -249,3 +249,8 @@ crumb :upload_templates do
   link 'Upload Templates'
   parent :root
 end
+
+crumb :school_dashboard do
+  link 'School'
+  parent :root
+end

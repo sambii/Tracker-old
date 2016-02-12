@@ -53,6 +53,8 @@ class UsersController < ApplicationController
     @user.set_unique_username
     @user.set_temporary_password
 
+    @school = get_current_school
+
     set_role(@user, 'system_administrator', params['user']['system_administrator']) if params['user']['system_administrator']
     set_role(@user, 'researcher', params['user']['researcher']) if params['user']['researcher']
     set_role(@user, 'school_administrator', params['user']['school_administrator']) if params['user']['school_administrator']
@@ -65,7 +67,7 @@ class UsersController < ApplicationController
 
     respond_to do |format|
       if @user.errors.count == 0 && @user.save
-        UserMailer.welcome_user(@user).deliver_later # deliver after save
+        UserMailer.welcome_user(@user, @school, get_server_config).deliver # deliver after save
         format.js
       else
         flash[:alert] = "ERROR: #{@user.errors.full_messages}"
@@ -94,6 +96,7 @@ class UsersController < ApplicationController
     end
 
     @user = User.find(params[:id])
+    @school = get_current_school
 
     set_role(@user, 'system_administrator', params['user']['system_administrator']) if params['user']['system_administrator']
     set_role(@user, 'researcher', params['user']['researcher']) if params['user']['researcher']
@@ -114,8 +117,8 @@ class UsersController < ApplicationController
           if @user.reset_password!(@user.password, @user.password_confirmation)
             @user.temporary_password = nil unless @user.temporary_password == @user.password
             @user.save
-            if student_status && params[:user][:password].present? && params[:user][:temporary_password].present?
-              UserMailer.changed_user_password(@user).deliver_later # deliver after save
+            if params[:user][:password].present? && params[:user][:temporary_password].present?
+              UserMailer.changed_user_password(@user, @school, get_server_config).deliver # deliver after save
             end
             format.html { redirect_to(root_path, :notice => 'Password was successfully updated.') }
           else
@@ -195,8 +198,10 @@ class UsersController < ApplicationController
   # Other Methods
   # TODO: Finish this method!
   def set_temporary_password
+    @school = get_current_school
     @user.set_temporary_password
     @user.save
+    UserMailer.changed_user_password(@user, @school, get_server_config).deliver # deliver after save
 
     respond_to do |format|
       format.js
@@ -381,7 +386,7 @@ class UsersController < ApplicationController
               staff.username = rx[COL_USERNAME] # use the username from stage 4
               staff.save!
               @records[ix][COL_SUCCESS] = 'Created'
-              UserMailer.welcome_user(staff).deliver_later # deliver after save
+              UserMailer.welcome_user(staff, @school, get_server_config).deliver # deliver after save
             end # @records loop
             # raise "Testing report output without update."
           end #transaction

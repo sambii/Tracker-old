@@ -42,6 +42,6 @@ Tracker2::Application.configure do
   #                      exception_recipients: "noconnell@21pstem.org")
 
   # Open emails to be sent in a new browser window.
-  #config.action_mailer.delivery_method = :letter_opener
+  config.action_mailer.delivery_method = :letter_opener
 end
 

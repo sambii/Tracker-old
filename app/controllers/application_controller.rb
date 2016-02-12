@@ -473,6 +473,8 @@ class ApplicationController < ActionController::Base
     # return ServerConfig first record (should be only one)
     begin
       @server_config ||= ServerConfig.first
+      @server_config.server_url = request.base_url if @server_config.server_url.blank?
+      Rails.logger.debug("application_controller.get_server_config - @server_config: #{@server_config.inspect}")
       return @server_config
     rescue => e
       Rails.logger.error("ERROR - Cannot read first server_configs record")

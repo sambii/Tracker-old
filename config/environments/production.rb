@@ -59,9 +59,9 @@ Tracker2::Application.configure do
   Paperclip.options[:command_path]      = "/usr/local/bin"
   Paperclip.options[:image_magick_path] = "/usr/local/bin"
 
-  # config.middleware.use(ExceptionNotifier,
-  #                       sender_address: "error_log@parloproject.org",
-  #                       exception_recipients: "trackersupport@21pstem.org")
+  config.middleware.use(ExceptionNotifier,
+                        sender_address: "error_log@parloproject.org",
+                        exception_recipients: "trackersupport@21pstem.org")
 
   ActionMailer::Base.delivery_method  = :sendmail
 

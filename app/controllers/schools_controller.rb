@@ -25,7 +25,7 @@ class SchoolsController < ApplicationController
         Rails.logger.debug("*** return_to: #{session[:return_to]}")
         Rails.logger.debug("*** this_original_url: #{session[:this_original_url]}")
         Rails.logger.debug("*** last_original_url: #{session[:last_original_url]}")
-        format.html { redirect_to session[:last_original_url] }
+        format.html
       else
         format.html { render template }
       end
