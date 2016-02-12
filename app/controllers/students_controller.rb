@@ -105,8 +105,10 @@ class StudentsController < ApplicationController
 
     respond_to do |format|
       if @student.save
+        UserMailer.welcome_user(@student).deliver_later # deliver after save
         @parent = @student.parent
         parent_status = @parent.update_attributes(params[:parent])
+        UserMailer.welcome_user(@parent).deliver_later # deliver after update attributes
         if !parent_status
           flash[:alert] = @parent.errors.full_messages
         end
@@ -152,6 +154,9 @@ class StudentsController < ApplicationController
     reload_student_list = (lname.present? && lname != @student.last_name && lname[0] != @student.last_name[0]) ? true : false
 
     student_status = @student.update_attributes(params[:student])
+    if student_status && params[:student][:password].present? && params[:student][:temporary_password].present?
+      UserMailer.changed_user_password(@student).deliver_later # deliver after save
+    end
     parent_status = true
     @parent = @student.parent
     parent_status = @parent.update_attributes(params[:parent])
@@ -356,11 +361,13 @@ class StudentsController < ApplicationController
               student = build_student(rx)
               student.username = rx[COL_USERNAME] # use the username from stage 4
               student.save!
+              UserMailer.welcome_user(student).deliver_later # deliver after update attributes
               if rx[COL_PAR_EMAIL].present? && student.parent.present?
                 rx[COL_PAR_USERNAME] = student.username + "_p"
                 parent = build_parent(student, rx)
                 parent.save!
                 @records2[ix][COL_PAR_USERNAME] = student.username + "_p"
+                UserMailer.welcome_user(parent).deliver_later # deliver after update attributes
               end
               @records2[ix][COL_SUCCESS] = 'Created'
             end # @records2 loop

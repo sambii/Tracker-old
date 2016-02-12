@@ -35,7 +35,11 @@ class ParentsController < ApplicationController
 
   def update
     respond_to do |format|
-      if @parent.update_attributes(params[:parent])
+      parent_status = @parent.update_attributes(params[:parent])
+      if parent_status
+        if params[:parent][:password].present? && params[:parent][:temporary_password].present?
+          UserMailer.changed_user_password(@parent).deliver_later # deliver after save
+        end
         format.js
       else
         format.js { render js: "alert('Parent could not be updated.');" }
