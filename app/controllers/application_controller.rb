@@ -469,6 +469,17 @@ class ApplicationController < ActionController::Base
     authorize! :read, current_user
   end
 
+  def get_server_config
+    # return ServerConfig first record (should be only one)
+    begin
+      @server_config ||= ServerConfig.first
+      return @server_config
+    rescue ==> e
+      Rails.logger.error("ERROR - Cannot read first server_configs record")
+    end
+  end
+
+
   private
 
   # use public layout if no user is logged in
