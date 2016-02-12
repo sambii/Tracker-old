@@ -474,7 +474,7 @@ class ApplicationController < ActionController::Base
     begin
       @server_config ||= ServerConfig.first
       return @server_config
-    rescue ==> e
+    rescue => e
       Rails.logger.error("ERROR - Cannot read first server_configs record")
     end
   end

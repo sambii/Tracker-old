@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20151214215007) do
+ActiveRecord::Schema.define(:version => 20160211175640) do
 
   create_table "announcements", :force => true do |t|
     t.text     "content"
@@ -337,6 +337,19 @@ ActiveRecord::Schema.define(:version => 20151214215007) do
 
   add_index "sections", ["school_year_id"], :name => "index_sections_on_school_year_id"
   add_index "sections", ["subject_id"], :name => "index_sections_on_subject_id"
+
+  create_table "server_configs", :force => true do |t|
+    t.string   "district_id",         :default => ""
+    t.string   "district_name",       :default => ""
+    t.string   "support_email",       :default => "trackersupport@21pstem.org"
+    t.string   "support_team",        :default => "Tracker Support Team"
+    t.string   "school_support_team", :default => "School IT Support Team"
+    t.string   "server_url",          :default => ""
+    t.string   "server_name",         :default => "Tracker System"
+    t.string   "web_server_name",     :default => "PARLO Tracker Web Server"
+    t.datetime "created_at",                                                    :null => false
+    t.datetime "updated_at",                                                    :null => false
+  end
 
   create_table "subject_outcomes", :force => true do |t|
     t.string   "description"
