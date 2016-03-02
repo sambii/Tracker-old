@@ -110,6 +110,9 @@ FactoryGirl.define do
       school.current_school_year=school_year
       school.save
     end
+    trait :arabic do
+      flags   'use_family_name,user_by_first_last,grade_in_subject_name'
+    end
   end
 
   #for the rare case where you want a school without a school year

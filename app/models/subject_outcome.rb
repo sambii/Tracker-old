@@ -97,10 +97,13 @@ class SubjectOutcome < ActiveRecord::Base
     return read_attribute(:marking_period)
   end
 
-  def grade_from_lo_code
-    parts = read_attribute(:lo_code).split(/\W/)
-    return (parts.length == 3) ? parts[1] : ' '
-  end
+  # unreliable way to get grade from learning outcome. get it from subject name
+  # use: Subject.grade_from_subject_name.
+  # e.g. lo.subject.grade_from_subject_name
+  # def grade_from_lo_code
+  #   parts = read_attribute(:lo_code).split(/\W/)
+  #   return (parts.length == 3) ? parts[1] : ' '
+  # end
 
   # class level helper functions
 

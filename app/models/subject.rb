@@ -138,10 +138,14 @@ class Subject < ActiveRecord::Base
   def subject_name_without_grade
     # assumes the school is set to have subject names with a space and grade level appended to them
     # see school.rb has_flag?(School::GRADE_IN_SUBJECT_NAME)
-    name_split = read_attribute(:name).split(/\W/)
-    return (name_split.length > 0) ? name_split.first(name_split.length - 1) : ''
+    name_split = read_attribute(:name).split(/ /)
+    # note, if name_split length is 1, then there is no grade in the name
+    return (name_split.length > 1) ? name_split.first(name_split.length - 1).join(' ') : name_split[0]
   end
 
-
+  def grade_from_subject_name
+    name_split = read_attribute(:name).split(/ /)
+    return (name_split.length > 1) ? name_split[name_split.length - 1] : ''
+  end
 
 end

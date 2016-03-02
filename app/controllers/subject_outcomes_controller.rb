@@ -174,7 +174,7 @@ class SubjectOutcomesController < ApplicationController
           name: so.name,
           short_desc: so.shortened_description,
           desc: so.description,
-          grade: so.grade_from_lo_code,
+          grade: so.subject.grade_from_subject_name,
           mp: SubjectOutcome.get_bitmask_string(so.marking_period),
           active: so.active
         }
@@ -283,7 +283,7 @@ class SubjectOutcomesController < ApplicationController
       # SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
       SubjectOutcome.where(subject_id: Subject.where(school_id: @school.id).pluck(:id)).each do |so|
         subject_name = @subject_ids[so.subject_id].name
-        old_los_by_lo[so.lo_code] = {db_id: so.id, subject_name: subject_name, subject_id: so.subject_id, lo_code: so.lo_code, name: so.name, short_desc: so.shortened_description, desc: so.description, grade: so.grade_from_lo_code, mp: SubjectOutcome.get_bitmask_string(so.marking_period), active: so.active }
+        old_los_by_lo[so.lo_code] = {db_id: so.id, subject_name: subject_name, subject_id: so.subject_id, lo_code: so.lo_code, name: so.name, short_desc: so.shortened_description, desc: so.description, grade: so.subject.grade_from_subject_name, mp: SubjectOutcome.get_bitmask_string(so.marking_period), active: so.active }
       end
 
       step = 2
