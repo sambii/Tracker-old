@@ -54,5 +54,29 @@ describe Subject do
     it { @subject.grade_from_subject_name.should == '1'}
   end
 
+  describe "when subject name is single word with a grade and semester" do
+    before { @subject.name = 'single 1s2' }
+    it { @subject.subject_name_without_grade.should == 'single' }
+    it { @subject.grade_from_subject_name.should == '1'}
+  end
+
+  describe "when subject name is multiple words with a grade and semester" do
+    before { @subject.name = 'multiple word name 1s2' }
+    it { @subject.subject_name_without_grade.should == 'multiple word name' }
+    it { @subject.grade_from_subject_name.should == '1'}
+  end
+
+  describe "when subject name is single word with a grade and extra semester characters" do
+    before { @subject.name = 'single 1sem2' }
+    it { @subject.subject_name_without_grade.should == 'single' }
+    it { @subject.grade_from_subject_name.should == '1'}
+  end
+
+  describe "when subject name is multiple words with a grade and extra semester characters" do
+    before { @subject.name = 'multiple word name 1sem2' }
+    it { @subject.subject_name_without_grade.should == 'multiple word name' }
+    it { @subject.grade_from_subject_name.should == '1'}
+  end
+
 
 end

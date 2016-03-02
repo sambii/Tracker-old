@@ -145,7 +145,9 @@ class Subject < ActiveRecord::Base
 
   def grade_from_subject_name
     name_split = read_attribute(:name).split(/ /)
-    return (name_split.length > 1) ? name_split[name_split.length - 1] : ''
+    grade_semester = (name_split.length > 1) ? name_split[name_split.length - 1] : ''
+    grade_semester_split = grade_semester.split(/[[:alpha:]]/)
+    return (grade_semester_split.length > 0) ? grade_semester_split[0] : ''
   end
 
 end
