@@ -109,7 +109,7 @@ module UsersHelper
           records.drop(ix+1).each_with_index do |ry, iy|
             iyall = iy + ix + 1 # index of the later row being tested
             # check for duplicated staff IDs
-            if error_list[iyall+2] != '-1' && rx[COL_ID] == ry[COL_ID]
+            if error_list[iyall+2] != '-1' && rx[COL_ID].present? && rx[COL_ID].present? && rx[COL_ID] == ry[COL_ID]
               Rails.logger.debug("*** checking #{ix+2} - #{rx[COL_ID]}, #{iyall+2} - #{ry[COL_ID]} ")
               # put or add to end the list of duplicated lines, but only if not listed prior
               # note storing error_list as 2 relative line numbers for spreadsheet (zero relative to ignoring header line)
