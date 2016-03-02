@@ -40,6 +40,10 @@ module SubjectOutcomesHelper
       else
         # match synonymous fields (and set to primary field)
 
+        # strip leading a trailing spaces in lo_code and name
+        csv_hash[COL_OUTCOME_CODE] = csv_hash[COL_OUTCOME_CODE].strip
+        csv_hash[COL_OUTCOME_NAME] = csv_hash[COL_OUTCOME_NAME].strip
+
         # make sure marking period is filled with either marking period field or semester field.
         if csv_hash[COL_MARK_PER].blank?
           if csv_hash[COL_SEMESTER].present?
