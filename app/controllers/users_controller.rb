@@ -289,14 +289,18 @@ class UsersController < ApplicationController
       @filename = params['file'].original_filename
       # @errors[:filename] = 'Choose file again to rerun'
       # note: 'headers: true' uses column header as the key for the name (and hash key)
-      CSV.foreach(params['file'].path, headers: true) do |row|
-        rhash = validate_csv_fields(row.to_hash)
-        if rhash[COL_ERROR]
-          @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
-        end
-        @records << rhash if !rhash[COL_EMPTY]
+      begin
+        CSV.foreach(params['file'].path, headers: true) do |row|
+          rhash = validate_csv_fields(row.to_hash)
+          if rhash[COL_ERROR]
+            @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
+          end
+          @records << rhash if !rhash[COL_EMPTY]
 
-      end  # end CSV.foreach
+        end  # end CSV.foreach
+      rescue
+        @errors[:filename] = "Error: invalid CSV file."
+      end
 
       Rails.logger.debug("*** record count: #{@records.count}")
 
