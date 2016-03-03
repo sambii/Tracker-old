@@ -1,4 +1,4 @@
-# subjects_sections_listing_spec.rb
+# subject_outcomes_upload_lo_file_spec.rb
 require 'spec_helper'
 
 
