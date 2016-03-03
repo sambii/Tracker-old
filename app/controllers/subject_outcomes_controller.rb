@@ -78,7 +78,23 @@ class SubjectOutcomesController < ApplicationController
         session[:school_context] = @school.id
         set_current_school
       end
+      if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
+        @errors[:base] = 'Error: Bulk Upload is for schools with grade in subject name only.'
+      end
     end
+
+    @subjects = Subject.where(school_id: @school.id)
+
+    # if only processing one subject, look up the subject for matching by name and grade
+    match_subject = nil
+    if params[:subject_id].present?
+      match_subjects = Subject.where(id: params[:subject_id])
+      if match_subjects.count == 0
+        @errors[:subject] = "Error: Cannot find subject"
+      end
+      match_subject = match_subjects.first
+    end
+    Rails.logger.debug("*** match_subject: #{match_subject} = #{match_subject.name.unpack('U' * match_subject.name.length)}") if match_subject
 
     if @errors.count > 0
       Rails.logger.debug("*** @errors: #{@errors.inspect}")
@@ -94,7 +110,6 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** Stage: #{@stage}")
       @subject_ids = Hash.new
       @subject_names = Hash.new
-      @subjects = Subject.where(school_id: @school.id)
       @subjects.each do |s|
         @subject_ids[s.id] = s
         @subject_names[s.name] = s
@@ -110,7 +125,10 @@ class SubjectOutcomesController < ApplicationController
         if rhash[COL_ERROR]
           @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
         end
-        @records << rhash if !rhash[COL_EMPTY]
+        check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
+        matched_subject = match_subject.blank? || match_subject.name == check_subject
+        Rails.logger.debug("*** SS match_subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+        @records << rhash if !rhash[COL_EMPTY] && matched_subject
         ix += 1
       end  # end CSV.foreach
 
@@ -166,6 +184,7 @@ class SubjectOutcomesController < ApplicationController
       db_deact = 0
       SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
         subject_name = @subject_ids[so.subject_id].name
+        matched_subject = match_subject.blank? || match_subject.name == subject_name
         old_los_by_lo[so.lo_code] = {
           db_id: so.id,
           subject_name: subject_name,
@@ -177,7 +196,7 @@ class SubjectOutcomesController < ApplicationController
           grade: so.subject.grade_from_subject_name,
           mp: SubjectOutcome.get_bitmask_string(so.marking_period),
           active: so.active
-        }
+        } if matched_subject
         if so.active
           db_active += 1
         else
@@ -195,15 +214,18 @@ class SubjectOutcomesController < ApplicationController
       iy = 0
       white = Text::WhiteSimilarity.new
       old_los_by_lo.each do |rk, old_rec|
+        Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
         new_match = new_lo_codes_h[rk]
-        # Rails.logger.debug("*** rk: #{rk}, new_match: #{new_match.inspect}")
+        Rails.logger.debug("*** rk: #{rk}, new_match: #{new_match.inspect}")
         old_rec, new_match, matches = lo_match_old_new(old_rec, (new_match ||= {}))
         @records3 << [old_rec, new_match, matches] # output matches for matching report
-        # Rails.logger.debug("*** new_match[COL_REC_ID] #{new_match[COL_REC_ID]}")
+        Rails.logger.debug("*** new_match #{new_match.inspect}")
+        Rails.logger.debug("*** new_match[COL_REC_ID] #{new_match[COL_REC_ID]}")
+        Rails.logger.debug("*** @records[new_match[COL_REC_ID]]] #{@records[new_match[COL_REC_ID]]}")
         @records[new_match[COL_REC_ID]][COL_STATE] = 'match_lo_code' if new_match[COL_REC_ID]
-        # Rails.logger.debug("*** ro: #{old_rec.inspect}")
-        # Rails.logger.debug("*** rn: #{new_match.inspect}")
-        # Rails.logger.debug("*** matches: #{matches.inspect}")
+        Rails.logger.debug("*** ro: #{old_rec.inspect}")
+        Rails.logger.debug("*** rn: #{new_match.inspect}")
+        Rails.logger.debug("*** matches: #{matches.inspect}")
 
         # determine if all actions have been determined (no mismatch actions)
         @mismatch_count += 1 if old_rec[PARAM_ACTION] == 'Mismatch' || (new_match && new_match[PARAM_ACTION] == 'Mismatch')

@@ -37,7 +37,13 @@
                 %input#file{type: 'file', name: 'file'}
                 / = file_field_tag :file
                 %span.ui-error="#{@errors[:filename] if @errors[:filename].present?}"
-
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Subject:'
+                %select{name: "subject_id"}
+                  %option{value: ""}= "All Subjects"
+                  - @subjects.each do |subj|
+                    %option{value: "#{subj.id}"}= "#{subj.name}"
+                %span.ui-error="#{@errors[:subject] if @errors[:subject].present?}"
             #show-upload.display-none
               / %fieldset.input-group
               /   %label.col-sm-4.control-label='Preview Mode?'

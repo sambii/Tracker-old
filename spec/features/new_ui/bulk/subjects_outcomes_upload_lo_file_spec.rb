@@ -110,6 +110,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
 
+      find("#save")
       page.should have_content('Match Old LOs to New LOs')
       page.should have_button("SAVE ALL")
       click_button '#save'
