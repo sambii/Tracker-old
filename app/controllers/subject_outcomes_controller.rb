@@ -125,11 +125,15 @@ class SubjectOutcomesController < ApplicationController
         if rhash[COL_ERROR]
           @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
         end
-        check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
+
+        # filter for selected subject
+        check_subject = "#{rhash[COL_SUBJECT]}"
         matched_subject = match_subject.blank? || match_subject.name == check_subject
-        Rails.logger.debug("*** SS match_subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-        @records << rhash if !rhash[COL_EMPTY] && matched_subject
-        ix += 1
+        if matched_subject
+          Rails.logger.debug("*** SS match_subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+          @records << rhash if !rhash[COL_EMPTY] && matched_subject
+          ix += 1
+        end
       end  # end CSV.foreach
 
       # check for file duplicate LO Codes
