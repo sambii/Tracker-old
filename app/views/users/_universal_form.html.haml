@@ -2,10 +2,10 @@
   = form_for("user", :url => user_session_path) do |f|
     .center-block{style: 'width: 400px'}
       .row
-        .col-sm-6= f.label :username
-        .col-sm-6= f.text_field :username , :size=>'15',:maxlength=>'32'
+        .col-sm-2= f.label :username
+        .col-sm-10= f.text_field :username , :size=>'36'
       .row
-        .col-sm-6= f.label :password
-        .col-sm-6= f.password_field :password , :size=>'15', :maxlength=>'32'
+        .col-sm-2= f.label :password
+        .col-sm-10= f.password_field :password , :size=>'36'
       .row
         .col-sm-12.text-center= f.submit "Sign in"
