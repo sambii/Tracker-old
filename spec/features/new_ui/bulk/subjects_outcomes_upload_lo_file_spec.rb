@@ -5,6 +5,8 @@ require 'spec_helper'
 describe "Subject Outcomes Bulk Upload LOs", js:true do
   before (:each) do
 
+    create_and_load_model_school
+
     # two subjects in @school1
     @section1_1 = FactoryGirl.create :section
     @subject1 = @section1_1.subject
@@ -99,6 +101,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
   def has_bulk_upload_los
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
       within("#ask-filename") do
         # page.should have_content("No File Chosen")

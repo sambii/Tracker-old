@@ -24,6 +24,7 @@ CREATE TABLE "section_outcome_attachments" ("id" INTEGER PRIMARY KEY AUTOINCREME
 CREATE TABLE "section_outcome_ratings" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "rating" varchar(255), "student_id" integer, "section_outcome_id" integer, "created_at" datetime NOT NULL, "updated_at" datetime NOT NULL);
 CREATE TABLE "section_outcomes" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "section_id" integer, "subject_outcome_id" integer, "created_at" datetime NOT NULL, "updated_at" datetime NOT NULL, "position" integer, "marking_period" integer, "active" boolean DEFAULT 't', "minimized" boolean DEFAULT 'f');
 CREATE TABLE "sections" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "line_number" varchar(255), "created_at" datetime NOT NULL, "updated_at" datetime NOT NULL, "subject_id" integer, "message" text, "position" integer, "selected_marking_period" integer, "school_year_id" integer);
+CREATE TABLE "server_configs" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "district_id" varchar(255) DEFAULT '', "district_name" varchar(255) DEFAULT '', "support_email" varchar(255) DEFAULT 'trackersupport@21pstem.org', "support_team" varchar(255) DEFAULT 'Tracker Support Team', "school_support_team" varchar(255) DEFAULT 'School IT Support Team', "server_url" varchar(255) DEFAULT '', "server_name" varchar(255) DEFAULT 'Tracker System', "web_server_name" varchar(255) DEFAULT 'PARLO Tracker Web Server', "created_at" datetime NOT NULL, "updated_at" datetime NOT NULL);
 CREATE TABLE "subject_outcomes" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "description" varchar(255), "position" integer, "subject_id" integer, "created_at" datetime NOT NULL, "updated_at" datetime NOT NULL, "essential" boolean DEFAULT 'f', "marking_period" integer, "lo_code" varchar(255) DEFAULT '', "active" boolean DEFAULT 't');
 CREATE TABLE "subjects" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255), "discipline_id" integer, "created_at" datetime NOT NULL, "updated_at" datetime NOT NULL, "school_id" integer, "subject_manager_id" integer);
 CREATE TABLE "system_administrators" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "first_name" varchar(255), "last_name" varchar(255), "created_at" datetime NOT NULL, "updated_at" datetime NOT NULL);
@@ -346,3 +347,5 @@ INSERT INTO schema_migrations (version) VALUES ('20150729153000');
 INSERT INTO schema_migrations (version) VALUES ('20151013175547');
 
 INSERT INTO schema_migrations (version) VALUES ('20151214215007');
+
+INSERT INTO schema_migrations (version) VALUES ('20160211175640');

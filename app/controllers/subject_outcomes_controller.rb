@@ -81,6 +81,8 @@ class SubjectOutcomesController < ApplicationController
       if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
         @errors[:base] = 'Error: Bulk Upload is for schools with grade in subject name only.'
       end
+    else
+      Rails.logger.error("Error: Missing Model School")
     end
 
     @subjects = Subject.where(school_id: @school.id)
@@ -125,15 +127,11 @@ class SubjectOutcomesController < ApplicationController
         if rhash[COL_ERROR]
           @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
         end
-
-        # filter for selected subject
-        check_subject = "#{rhash[COL_SUBJECT]}"
+        check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
         matched_subject = match_subject.blank? || match_subject.name == check_subject
-        if matched_subject
-          Rails.logger.debug("*** SS match_subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-          @records << rhash if !rhash[COL_EMPTY] && matched_subject
-          ix += 1
-        end
+        Rails.logger.debug("*** SS match_subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+        @records << rhash if !rhash[COL_EMPTY] && matched_subject
+        ix += 1
       end  # end CSV.foreach
 
       # check for file duplicate LO Codes
@@ -188,6 +186,7 @@ class SubjectOutcomesController < ApplicationController
       db_deact = 0
       SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
         subject_name = @subject_ids[so.subject_id].name
+        # is matched_subject if we are processing all subjects or if current subject matches the selected subject
         matched_subject = match_subject.blank? || match_subject.name == subject_name
         old_los_by_lo[so.lo_code] = {
           db_id: so.id,
@@ -200,7 +199,7 @@ class SubjectOutcomesController < ApplicationController
           grade: so.subject.grade_from_subject_name,
           mp: SubjectOutcome.get_bitmask_string(so.marking_period),
           active: so.active
-        } if matched_subject
+        } if matched_subject # only add record if all subjects or the matching selected subject
         if so.active
           db_active += 1
         else
@@ -217,23 +216,28 @@ class SubjectOutcomesController < ApplicationController
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
       iy = 0
       white = Text::WhiteSimilarity.new
+      # process the database records (for all or selected subject)
       old_los_by_lo.each do |rk, old_rec|
         Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
+        # lookup the database lo_code in the new curriculum
         new_match = new_lo_codes_h[rk]
-        Rails.logger.debug("*** rk: #{rk}, new_match: #{new_match.inspect}")
-        old_rec, new_match, matches = lo_match_old_new(old_rec, (new_match ||= {}))
-        @records3 << [old_rec, new_match, matches] # output matches for matching report
-        Rails.logger.debug("*** new_match #{new_match.inspect}")
-        Rails.logger.debug("*** new_match[COL_REC_ID] #{new_match[COL_REC_ID]}")
-        Rails.logger.debug("*** @records[new_match[COL_REC_ID]]] #{@records[new_match[COL_REC_ID]]}")
-        @records[new_match[COL_REC_ID]][COL_STATE] = 'match_lo_code' if new_match[COL_REC_ID]
-        Rails.logger.debug("*** ro: #{old_rec.inspect}")
-        Rails.logger.debug("*** rn: #{new_match.inspect}")
-        Rails.logger.debug("*** matches: #{matches.inspect}")
+        if new_match
+          # fix for when database has no matching code in the input file
+          Rails.logger.debug("*** rk: #{rk}, new_match: #{new_match.inspect}")
+          old_rec, new_match, matches = lo_match_old_new(old_rec, (new_match ||= {}))
+          @records3 << [old_rec, new_match, matches] # output matches for matching report
+          Rails.logger.debug("*** new_match #{new_match.inspect}")
+          Rails.logger.debug("*** new_match[COL_REC_ID] #{new_match[COL_REC_ID]}")
+          Rails.logger.debug("*** @records[new_match[COL_REC_ID]]] #{@records[new_match[COL_REC_ID]]}")
+          # code to mark original records as matched to curruculum by lo_code
+          @records[new_match[COL_REC_ID]][COL_STATE] = 'match_lo_code' if new_match[COL_REC_ID]
+          Rails.logger.debug("*** ro: #{old_rec.inspect}")
+          Rails.logger.debug("*** rn: #{new_match.inspect}")
+          Rails.logger.debug("*** matches: #{matches.inspect}")
 
-        # determine if all actions have been determined (no mismatch actions)
-        @mismatch_count += 1 if old_rec[PARAM_ACTION] == 'Mismatch' || (new_match && new_match[PARAM_ACTION] == 'Mismatch')
-
+          # determine if all actions have been determined (no mismatch actions)
+          @mismatch_count += 1 if old_rec[PARAM_ACTION] == 'Mismatch' || (new_match && new_match[PARAM_ACTION] == 'Mismatch')
+        end
         # determine if any action other than Add has been used (Add only till programming done)
         @not_add_count += 1 if !['', 'Add'].include?(old_rec[PARAM_ACTION])
 

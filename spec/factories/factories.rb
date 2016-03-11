@@ -202,6 +202,11 @@ FactoryGirl.define do
   factory :subject_outcome do
     subject
     sequence(:name) { |n| "Subject Outcome #{n}" }
+    trait :arabic do
+      sequence(:lo_code)        { |n| "#{subject[0...1].upcase}.#{subject.grade_from_subject_name}.#{n}"}
+      sequence(:description)    { |n| "Learning Outcome #{n}"}
+      marking_period            1
+    end
   end
 
   factory :section_outcome do

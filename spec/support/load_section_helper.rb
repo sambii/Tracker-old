@@ -144,5 +144,66 @@ module LoadSectionHelper
     student.parent.save
   end
 
+  def create_and_load_model_school
+    # this needs to be run before any other schools are created, so the ID is 1
+    create_model_school
+    create_training_school
+    model_school_subjects(@model_school)
+  end
+
+  def create_model_school
+    # this needs to be run before any other schools are created, so the ID is 1
+    @model_school = FactoryGirl.build :school, :arabic, marking_periods:"2", name: 'Model School', acronym: 'MOD'
+  end
+
+  def create_training_school
+    # this needs to be run after create_model_school and before any other schools are created, so the ID is 2
+    @model_school = FactoryGirl.build :school, :arabic, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
+  end
+
+  # Create learning outcomes for the Model School Subjects
+  # prerequisite: model_school_subjects
+  def model_school_subjects(model_school)
+    @model_subject_manager = FactoryGirl.build :teacher, school: model_school
+
+    @subj_advisory_1 = FactoryGirl.build :subject, name: 'Advisory 1', subject_manager: @model_subject_manager, school: model_school
+    @so_ad_1_01 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_advisory_1, lo_code: 'AD.1.01', marking_period: '1'
+
+    @subj_advisory_2 = FactoryGirl.build :subject, name: 'Advisory 2', subject_manager: @model_subject_manager, school: model_school
+    @so_ad_2_01 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_advisory_2, lo_code: 'AD.2.01', marking_period: '1'
+    @so_ad_2_02 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_advisory_2, lo_code: 'AD.2.02', marking_period: '2'
+
+    @subj_art_1 = FactoryGirl.build :subject, name: 'Art 1', subject_manager: @model_subject_manager, school: model_school
+    @so_at_1_01 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.01', marking_period: 'Year Long'
+    @so_at_1_02 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.02', marking_period: 'Year Long'
+    @so_at_1_03 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.03', marking_period: '1&2'
+    @so_at_1_04 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.04', marking_period: '1&2'
+
+    @subj_art_2 = FactoryGirl.build :subject, name: 'Art 2', subject_manager: @model_subject_manager, school: model_school
+    @so_at_2_01 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_2, lo_code: 'AT.2.01', marking_period: '1'
+    @so_at_2_02 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_2, lo_code: 'AT.2.02', marking_period: '1'
+    @so_at_2_03 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_2, lo_code: 'AT.2.03', marking_period: '2'
+    @so_at_2_04 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_art_2, lo_code: 'AT.2.04', marking_period: '2'
+
+    @subj_capstone_1s1 = FactoryGirl.build :subject, name: 'Capstone 1s1', subject_manager: @model_subject_manager, school: model_school
+    @cp_1_01 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.01', marking_period: '1'
+    @cp_1_02 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.02', marking_period: '1'
+    @cp_1_03 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.03', marking_period: '1'
+    @cp_1_04 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.04', marking_period: '1'
+
+    @subj_capstone_1s2 = FactoryGirl.build :subject, name: 'Capstone 1s2', subject_manager: @model_subject_manager, school: model_school
+    @cp_1_12 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s2, lo_code: 'CP.1.12', marking_period: '2'
+    @cp_1_13 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s2, lo_code: 'CP.1.13', marking_period: '2'
+    @cp_1_14 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s2, lo_code: 'CP.1.14', marking_period: '2'
+    @cp_1_15 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_1s2, lo_code: 'CP.1.15', marking_period: '2'
+
+    @subj_capstone_3s1 = FactoryGirl.build :subject, name: 'Capstone 3s1', subject_manager: @model_subject_manager, school: model_school
+    @cp_3_01 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.01', marking_period: '1'
+    @cp_3_02 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.02', marking_period: '1'
+    @cp_3_03 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.03', marking_period: '1'
+    @cp_3_04 = FactoryGirl.build :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.04', marking_period: '1'
+
+  end
+
 end
 
