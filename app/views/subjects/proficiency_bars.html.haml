@@ -58,9 +58,10 @@
               - pixel_width = 300
               %td{style: "width: #{pixel_width+11}px;"}
                 - total_ratings = @school_ratings[:H] + @school_ratings[:P] + @school_ratings[:N] + @school_ratings[:U]
-                .flat-bar-chart{style: "width: 100%;"}
-                  .high-rating-bar.progress-bar{style: "width: #{(@school_ratings[:H]*pixel_width/total_ratings).floor}px"}=@school_ratings[:H]
-                  .prof-rating-bar.progress-bar{style: "width: #{(@school_ratings[:P]*pixel_width/total_ratings).floor}px"}=@school_ratings[:P]
-                  .nyp-rating-bar.progress-bar{style: "width: #{(@school_ratings[:N]*pixel_width/total_ratings).floor}px"}=@school_ratings[:N]
-                  .unrated-rating-bar.progress-bar{style: "width: #{(@school_ratings[:U]*pixel_width/total_ratings).floor}px"}=@school_ratings[:U]
+                - if total_ratings > 0
+                  .flat-bar-chart{style: "width: 100%;"}
+                    .high-rating-bar.progress-bar{style: "width: #{(@school_ratings[:H]*pixel_width/total_ratings).floor}px"}=@school_ratings[:H]
+                    .prof-rating-bar.progress-bar{style: "width: #{(@school_ratings[:P]*pixel_width/total_ratings).floor}px"}=@school_ratings[:P]
+                    .nyp-rating-bar.progress-bar{style: "width: #{(@school_ratings[:N]*pixel_width/total_ratings).floor}px"}=@school_ratings[:N]
+                    .unrated-rating-bar.progress-bar{style: "width: #{(@school_ratings[:U]*pixel_width/total_ratings).floor}px"}=@school_ratings[:U]
   .col-sm-0.col-lg-4

@@ -153,11 +153,9 @@ class School < ActiveRecord::Base
   # return_value["Rating"]  Possible values return
   def count_ratings
     return_value = { H: 0, P: 0, N: 0, U: 0 }
-    section_outcome_ratings = SectionOutcomeRating.joins(:section_outcome => :section).where(
-      :section_outcomes => {
-        :active => true
-      }
-    )
+    school_section_ids = Section.where(school_year_id: self.school_year_id).pluck(:id)
+    school_section_outcome_ids = SectionOutcome.where(section_id: school_section_ids, active: true)
+    section_outcome_ratings = SectionOutcomeRating.joins(:section_outcome => :section).where(section_outcome_id: school_section_outcome_ids)
     section_outcome_ratings.each do |section_outcome_rating|
       rating = section_outcome_rating.rating
       unless rating.nil? && rating.length > 0 # make sure we have a value
