@@ -106,10 +106,20 @@ class StudentsController < ApplicationController
 
     respond_to do |format|
       if @student.save
-        UserMailer.welcome_user(@student, @school, get_server_config).deliver # deliver after save
+        begin
+          UserMailer.welcome_user(@student, @school, get_server_config).deliver
+        rescue => e
+          ExceptionNotifier.notify_exception(e)
+          raise InvalidConfiguration, "Missing ServerConfigs record with support_email address"
+        end
         @parent = @student.parent
         parent_status = @parent.update_attributes(params[:parent])
-        UserMailer.welcome_user(@parent, @school, get_server_config).deliver # deliver after update attributes
+        begin
+          UserMailer.welcome_user(@parent, @school, get_server_config).deliver
+        rescue => e
+          ExceptionNotifier.notify_exception(e)
+          raise InvalidConfiguration, "Missing ServerConfigs record with support_email address"
+        end
         if !parent_status
           flash[:alert] = @parent.errors.full_messages
         end

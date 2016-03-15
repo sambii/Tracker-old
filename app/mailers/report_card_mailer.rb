@@ -2,7 +2,7 @@
 # see license.txt in this software package
 #
 class ReportCardMailer < ActionMailer::Base
-	default :from => "no-reply@parloproject.org"
+  default :from => ServerConfig.first.support_email
 
 	def report_success_email(address,grade,full_name,file_attachment,school)
 		@grade = grade

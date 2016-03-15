@@ -2,7 +2,7 @@
 # see license.txt in this software package
 #
 class StudentMailer < ActionMailer::Base
-  default :from => "trackersupport@21pstem.org"
+  default :from => ServerConfig.first.support_email
 
   def show(address, student_id, section_id)
     @student                  = Student.find(student_id)

@@ -1,5 +1,6 @@
 class UserMailer < ActionMailer::Base
-  default :from => 'trackersupport@21pstem.org'
+
+  default :from => ServerConfig.first.support_email
 
   def welcome_user(user, school, server_config)
     @user = user

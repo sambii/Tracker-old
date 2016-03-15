@@ -11,6 +11,14 @@ class ApplicationController < ActionController::Base
   before_filter :set_current_role
   before_filter :toolkit_instances
 
+  if true # unless config.consider_all_requests_local - always do even if development environment
+    rescue_from Exception, :with => :render_error
+    rescue_from ActiveRecord::RecordNotFound, :with => :render_not_found
+    rescue_from ActionController::RoutingError, :with => :render_not_found
+    rescue_from ActionController::UnknownController, :with => :render_not_found
+    rescue_from ActionController::UnknownAction, :with => :render_not_found
+  end
+
   # removed this, as it interferes with debugging
   # # prepend_before_filter :set_school,    if:     :enforce_context?
   # around_filter :profile               if Rails.env == 'development'
@@ -199,6 +207,14 @@ class ApplicationController < ActionController::Base
     match_values = ['thinner-mode', 'thin-mode', 'regular-mode', 'wide-mode', 'wider-mode']
     @cell_size = session[:cell_size] if match_values.include?(session[:cell_size])
     Rails.logger.debug("*** @cell_size = #{@cell_size}")
+
+    Rails.application.config.middleware.use(ExceptionNotification::Rack,
+      email: {
+        sender_address: "error_log@21pstem.org",
+        exception_recipients: "trackersupport@21pstem.org"
+      }
+    )
+    Rails.logger.debug("***  Rails.application.config.middleware: #{Rails.application.config.middleware.inspect}")
   end
 
 
@@ -489,6 +505,31 @@ class ApplicationController < ActionController::Base
     # Rails.logger.debug("*** current_user: #{current_user.inspect.to_s}")
     # Rails.logger.debug("*** layout: #{current_user.nil? ? "public" : "application"}")
     current_user.nil? ? "public" : "application"
+  end
+
+  def exception_send_email
+
+  end
+  unless config.consider_all_requests_local
+    rescue_from Exception, :with => :render_error
+    rescue_from ActiveRecord::RecordNotFound, :with => :render_not_found
+    rescue_from ActionController::RoutingError, :with => :render_not_found
+    rescue_from ActionController::UnknownController, :with => :render_not_found
+    # customize these as much as you want, ie, different for every error or all the same
+    rescue_from ActionController::UnknownAction, :with => :render_not_found
+  end
+  
+  private
+  
+  def render_not_found(exception)
+    render :template => "/errors/404.html.erb", :status => 404
+  end
+  
+  def render_error(exception)
+    # you can insert logic in here too to log errors
+    # or get more error info and use different templates
+    SupportMailer.show(exception).deliver
+    render :template => "/errors/500.html.erb", :status => 500
   end
 
 end

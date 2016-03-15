@@ -36,10 +36,12 @@ Tracker2::Application.configure do
   #  Bullet.alert  = true
   #end
 
-  # Error log email alerts. This may be needed in the future, however there is no current need.
-  #config.middleware.use(ExceptionNotifier,
-  #                      sender_address: "error_log@parloproject.org",
-  #                      exception_recipients: "noconnell@21pstem.org")
+  config.middleware.use ExceptionNotification::Rack,
+    email: {
+      sender_address: "error_log@21pstem.org",
+      exception_recipients: "trackersupport@21pstem.org"
+    }
+  
 
   # Open emails to be sent in a new browser window.
   config.action_mailer.delivery_method = :letter_opener
