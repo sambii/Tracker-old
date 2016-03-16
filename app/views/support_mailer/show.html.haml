@@ -1,0 +1,32 @@
+
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+  %body
+    %h1 
+      ="Exception: #{@ex.exception}"
+    %p
+      = '---------------'
+    %p
+      = 'Backtrace:'
+    %p
+      = '---------------'
+    %p
+      = @ex.backtrace
+    %p
+      = '---------------'
+    %p
+      = 'Session:'
+    %p
+      = '---------------'
+    %p
+      = @sess.inspect
+    %p
+      = '---------------'
+    %p
+      = 'Request:'
+    %p
+      = '---------------'
+    %p
+      = @req.inspect

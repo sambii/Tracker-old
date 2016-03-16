@@ -109,7 +109,7 @@ class StudentsController < ApplicationController
         begin
           UserMailer.welcome_user(@student, @school, get_server_config).deliver
         rescue => e
-          ExceptionNotifier.notify_exception(e)
+          Rails.logger.error("Error: Student Email missing ServerConfigs record with support_email address")
           raise InvalidConfiguration, "Missing ServerConfigs record with support_email address"
         end
         @parent = @student.parent
@@ -117,7 +117,7 @@ class StudentsController < ApplicationController
         begin
           UserMailer.welcome_user(@parent, @school, get_server_config).deliver
         rescue => e
-          ExceptionNotifier.notify_exception(e)
+          Rails.logger.error("Error: Parent Email missing ServerConfigs record with support_email address")
           raise InvalidConfiguration, "Missing ServerConfigs record with support_email address"
         end
         if !parent_status

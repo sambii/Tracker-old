@@ -1,6 +1,6 @@
 class UserMailer < ActionMailer::Base
 
-  default :from => ServerConfig.first.support_email
+  default :from => ServerConfig.find(2).support_email
 
   def welcome_user(user, school, server_config)
     @user = user

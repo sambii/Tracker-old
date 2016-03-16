@@ -36,11 +36,12 @@ Tracker2::Application.configure do
   #  Bullet.alert  = true
   #end
 
-  config.middleware.use ExceptionNotification::Rack,
-    email: {
-      sender_address: "error_log@21pstem.org",
-      exception_recipients: "trackersupport@21pstem.org"
-    }
+  # obsolete - using SupportMailer class
+  # config.middleware.use ExceptionNotification::Rack,
+  #   email: {
+  #     sender_address: "error_log@21pstem.org",
+  #     exception_recipients: "trackersupport@21pstem.org"
+  #   }
   
 
   # Open emails to be sent in a new browser window.
