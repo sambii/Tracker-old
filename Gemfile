@@ -56,7 +56,7 @@ gem 'zip-zip'         # provides compatibility for rubyzip pre 1.0 (for selenium
 gem 'gretel', '~> 3.0.7'    # breadcrumbs
 
 # Send emails to administrator (see config/production.rb) in case of 500 errors.
-gem 'exception_notification', '~> 3.0'
+gem 'exception_notification'
 gem 'letter_opener', group: :development # Opens emails in new window in development.
 
 #need this until we upgrade passenger gem. See: http://stackoverflow.com/questions/15076887/failed-to-build-gem-native-extension-ruby-2-0-upgrade-fastthread
