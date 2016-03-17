@@ -11,13 +11,8 @@ class ApplicationController < ActionController::Base
   before_filter :set_current_role
   before_filter :toolkit_instances
 
-  if true # unless config.consider_all_requests_local - always do even if development environment
-    rescue_from Exception, :with => :render_error
-    rescue_from ActiveRecord::RecordNotFound, :with => :render_not_found
-    rescue_from ActionController::RoutingError, :with => :render_not_found
-    rescue_from ActionController::UnknownController, :with => :render_not_found
-    rescue_from AbstractController::ActionNotFound, :with => :render_not_found
-  end
+  # replacement for ExceptionNotification gem (which uses a hard coded email address)
+  rescue_from Exception, :with => :handle_fatal_error
 
   # removed this, as it interferes with debugging
   # # prepend_before_filter :set_school,    if:     :enforce_context?
@@ -500,18 +495,32 @@ class ApplicationController < ActionController::Base
     current_user.nil? ? "public" : "application"
   end
   
-  def render_not_found(exception)
-    render file: "public/404.html", :status => 404
-  end
+  # def redirect_to_root(exception)
+  #   redirect_to :root
+  # end
   
-  def render_error(ex)
+  def handle_fatal_error(ex)
     # you can insert logic in here too to log errors
     # or get more error info and use different templates
     Rails.logger.error("Error: Error 500 Exception - support email send")
     Rails.logger.error("Exception: #{ex.exception} #{ex.message}")
-    Rails.logger.debug("*** Trace: #{ex.backtrace.join('/n')}")
     SupportMailer.show(ex, request, session).deliver
     # render file: "public/500.html", :status => 500
+    raise "Fatal Error"
   end
+
+  # Possible approach to capturing various other problematic errors
+  # needs review
+  # # capturing ugly errors by overriding the AbstractController::Base process method
+  # def process(action, *args)
+  #   super
+  # # capture ActonNotFound errors and redirect to :root (user dashboard page)
+  # rescue AbstractController::ActionNotFound
+  #   flash[:alert]
+  #   respond_to do |format|
+  #     format.all { redirect_to :root }
+  #   end
+  # end
+
 
 end

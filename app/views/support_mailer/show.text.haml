@@ -1,3 +1,24 @@
-="Exception: #{@ex.exception}"
-="Backtrace: #{@ex.backtrace}"
-="Inspect: #{@ex.inspect}"
+="#{@server_config.web_server_name} Exception:"
+="#{@ex.exception}"
+= "Original Url: #{@req.original_url}"
+= "Method: #{@req.request_method}"
+= "Remote IP: #{@req.remote_ip}"
+= "Request Parameters: #{@req.request_parameters.inspect}"
+
+= '---------------'
+= 'Backtrace:'
+= '---------------'
+= @ex.backtrace
+
+= '---------------'
+= 'Session:'
+= '---------------'
+- @sess.each do |k,v|
+  = "#{k.inspect} -> #{v.inspect}".html_safe
+
+= '---------------'
+= 'Request Environment:'
+= '---------------'
+- @req.env.each do |k,v|
+  - unless k == 'action_controller.instance'
+    = "#{k.inspect} -> #{v.inspect}".html_safe

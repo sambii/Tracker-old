@@ -5,28 +5,41 @@
     %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
   %body
     %h1 
-      ="Exception: #{@ex.exception}"
+      ="#{@server_config.web_server_name} Exception:"
+    %h2 
+      ="#{@ex.exception}"
+    %h4
+      = "Original Url: #{@req.original_url}"
+    %h4
+      = "Method: #{@req.request_method}"
+    %h4
+      = "Remote IP: #{@req.remote_ip}"
+    %h4
+      = "Request Parameters: #{@req.request_parameters.inspect}"
     %p
       = '---------------'
-    %p
-      = 'Backtrace:'
-    %p
-      = '---------------'
-    %p
-      = @ex.backtrace
-    %p
-      = '---------------'
-    %p
-      = 'Session:'
+      %br
+        = 'Backtrace:'
+      %br
+        = '---------------'
+      %br
+        = @ex.backtrace
     %p
       = '---------------'
-    %p
-      = @sess.inspect
+      %br
+        = 'Session:'
+      %br
+        = '---------------'
+      - @sess.each do |k,v|
+        %br
+          = "#{k.inspect} -> #{v.inspect}"
     %p
       = '---------------'
-    %p
-      = 'Request:'
-    %p
-      = '---------------'
-    %p
-      = @req.inspect
+      %br
+        = 'Request Environment:'
+      %br
+        = '---------------'
+      - @req.env.each do |k,v|
+        - unless k == 'action_controller.instance'
+          %br
+            = "#{k.inspect} -> #{v.inspect}"

@@ -1,2 +1,2 @@
-class InvalidConfiguration < Exception
+class NullParameterException < Exception
 end

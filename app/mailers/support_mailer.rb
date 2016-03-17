@@ -5,13 +5,14 @@ class SupportMailer < ActionMailer::Base
   default from: ServerConfig.first.support_email, to: ServerConfig.first.support_email
 
   def show(ex, req, sess)
+    server_config = ServerConfig.first
+    web_server_name = server_config.web_server_name
     Rails.logger.debug("*** support_mailer.rb Exception: #{ex.exception} #{ex.message}")
     Rails.logger.debug("*** support_mailer.rb Trace: #{ex.backtrace.join('/n')}")
-    server_url = ServerConfig.first.server_url
-    server_url = req.base_url if server_url.blank?
     @ex = ex
     @req = req
     @sess = sess
-    mail(subject: "exception for server: #{server_url}")
+    @server_config = server_config
+    mail(subject: "exception for server: #{web_server_name}")
   end
 end
