@@ -2,6 +2,8 @@
 module LoadSectionHelper
   def load_test_section(section, teacher)
 
+    @server_config = FactoryGirl.create :server_config
+
     @teaching_assignment = FactoryGirl.create :teaching_assignment, teacher: teacher, section: section
 
     @student   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: '1'
