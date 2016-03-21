@@ -20,7 +20,7 @@
 .row.indent-row
   .col-sm-6.col-lg-6
     / Overall Student Performance Block
-    .block.block-alt-style.full
+    #overall.block.block-alt-style.full
       / Learning Outcome Title
       .block-title.text-center
         %h2
@@ -48,7 +48,7 @@
       / END Learning Outcome Content
     / END Learning Outcome Block
   .col-sm-6.col-lg-6
-    .block.block-alt-style.full
+    #proficiency.block.block-alt-style.full
       .block-content-full.rounded-title-container
         %table.titled-table.table.table-bordered.table-condensed.remove-margin
           %thead.table-title
@@ -70,7 +70,7 @@
               - else
                 %tr
                   %td
-                    %a{href: subject_path(subject.id)}
+                    %a{href: subject_path(subject.id), id: "prof-subj-#{subject.id}"}
                       ="#{subject.name}"
                   - pixel_width = 300
                   %td{style: "width: #{pixel_width+11}px;"}
@@ -85,7 +85,7 @@
 .row.indent-row
   .col-sm-6.col-lg-6
     / Active Classes Block
-    .block.block-alt-style.full
+    #learning.block.block-alt-style.full
       .block-content-full.rounded-title-container
         %table.titled-table.table.table-bordered.table-condensed.remove-margin
           %thead.table-title
@@ -108,7 +108,7 @@
               - else
                 %tr
                   %td{:style => "width: 150px;"}
-                    %a{href: subject_path(subject.id)}
+                    %a{href: subject_path(subject.id), id: "learning-subj-#{subject.id}"}
                       ="#{subject.name}"
                   %td.active
                     / .table-progress{:style => "width: #{width}%;"}=display if width >= 15
@@ -125,7 +125,7 @@
                           =" out of #{grand_total}"
   .col-sm-6.col-lg-6
     / Recent Activity Block
-    .block.block-alt-style.full
+    #recent.block.block-alt-style.full
       .block-content-full.rounded-title-container
         %table.titled-table.table.table-bordered.table-condensed.remove-margin.table-clickable-rows
           %thead.table-title

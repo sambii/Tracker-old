@@ -8,6 +8,7 @@ describe "School Admin Dashboard", js:true do
     @teacher = FactoryGirl.create :teacher, school: @section.school
     @school_administrator = FactoryGirl.create :school_administrator, school: @section.school
     load_test_section(@section, @teacher)
+    @subject = @section.subject
   end
 
   describe "as teacher" do
@@ -65,32 +66,34 @@ describe "School Admin Dashboard", js:true do
   end
 
   def school_admin_dashboard_is_valid
-    visit school_administrator_path(@teacher.id)
+    visit school_administrator_path(@school_administrator.id)
     assert_equal("/school_administrators/#{@school_administrator.id}", current_path)
+
+    # Note overall lo counts should == prof bar counts for each color
+    
     within("#overall") do
-      page.should have_content('6 - High Performance')
-      page.should have_content('6 - Proficient')
-      page.should have_content('6 - Not Yet Proficient')
-      page.should have_content('6 - Unrated')
+      page.should have_content('9 - High Performance')
+      page.should have_content('9 - Proficient')
+      page.should have_content('9 - Not Yet Proficient')
+      page.should have_content('9 - Unrated')
     end
 
-    within("#prof_bar") do
-      page.should have_css('div.high-rating-bar', text: '6')
-      page.should have_css('div.prof-rating-bar', text: '6')
-      page.should have_css('div.nyp-rating-bar', text: '6')
-      page.should have_css('div.unrated-rating-bar', text: '6')
+    within("#proficiency") do
+      page.should have_css('div.high-rating-bar', text: '9')
+      page.should have_css('div.prof-rating-bar', text: '9')
+      page.should have_css('div.nyp-rating-bar', text: '9')
+      page.should have_css('div.unrated-rating-bar', text: '9')
     end
 
-    # make sure section count includes the 6 rated students, plus the new one.
-    page.should have_css("#active_section tr[data-active-section-id='#{@section.id}'] td", text: '7 Students')
+    # make sure learning outcomes covered match
+    within("#learning") do
+      page.should have_content("4 out of 4")
+    end
 
-    page.should_not have_css("#nyp_student tr[data-nyp-student-id='#{@student_unenrolled.id}']")
-    page.should_not have_css("#nyp_student tr[data-nyp-student-id='#{@student_transferred.id}']")
-    page.should_not have_css("#nyp_student tr[data-nyp-student-id='#{@student_out.id}']")
+    #  validate links on page
+    find("#prof-subj-#{@subject.id}")[:href].should have_content("/subjects/#{@subject.id}")
+    find("#learning-subj-#{@subject.id}")[:href].should have_content("/subjects/#{@subject.id}")
 
-    # todo - test for recent activity
-
-    # todo - validate links on page
     # page.find("tr a[href='/sections/#{@section.id}/class_dashboard']").click
     # assert_equal("/sections/#{@section.id}/class_dashboard", current_path)
   end
