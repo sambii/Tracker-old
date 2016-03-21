@@ -22,7 +22,7 @@ namespace :seed_school do
 
     # This creates a Seed school with basic information for a school
 
-    school = School.create(
+    school = School.create!(
       name: Faker::Company.name + " Seed School",
       acronym: Faker::Lorem.characters(4).upcase,
       street_address: "1 Stub Lane",
@@ -32,67 +32,72 @@ namespace :seed_school do
       marking_periods: 4,
     )
      
-    school_year = SchoolYear.create(
+    school_year = SchoolYear.create!(
       name: "2012, 2013",
       school_id: school.id,
       starts_at: Date.parse("2012-09-01"),
       ends_at: Date.parse("2013-06-20")
     ) 
 
-    school.update_attributes(school_year_id:school_year.id)
+    school.school_year_id = school_year.id
+    school.save!
 
-    SchoolAdministrator.create(
-      username: "school#{school.id}admin",
+    sa = SchoolAdministrator.new(
       first_name: Faker::Name.first_name,
       last_name: Faker::Name.last_name,
       email: Faker::Internet.safe_email,
-      school_id: school.id,
       password: "password",
       password_confirmation: "password"
     )
+    sa.username = "school#{school.id}admin"
+    sa.school_id = school.id
+    sa.save
 
-    Counselor.create(
-        username: "school#{school.id}counselor",
+    c = Counselor.new(
         first_name: Faker::Name.first_name,
         last_name: Faker::Name.last_name,
         email: Faker::Internet.safe_email,
-        school_id: school.id,
         password: "password",
         password_confirmation: "password"
     )
+    c.username = "school#{school.id}counselor"
+    c.school_id = school.id
+    c.save
 
-    teacher = Teacher.create(
-      username: "school#{school.id}teacher",
+    teacher = Teacher.new(
       first_name: Faker::Name.first_name,
       last_name: Faker::Name.last_name,
       email: Faker::Internet.safe_email,
-      school_id: school.id,
       password: "password",
       password_confirmation: "password"
     )
-     
+    teacher.username = "school#{school.id}teacher"
+    teacher.school_id = school.id
+    teacher.save
+
     students = []
     25.times do |n|
-      s = Student.create(
-        username: "school#{school.id}student#{n}",
+      s = Student.new(
         first_name: Faker::Name.first_name,
         last_name: Faker::Name.last_name,
         email: Faker::Internet.safe_email,
         grade_level: 9,
         gender: "F",
-        school_id: school.id,
         password: "password",
         password_confirmation: "password"
         )
+      s.username = "school#{school.id}student#{n}"
+      s.school_id = school.id
+      s.save
       students << s
     end
 
 
-    discipline = Discipline.create(
+    discipline = Discipline.create!(
       name: "Discipline #{school.id}" 
     )
      
-    subject = Subject.create(
+    subject = Subject.create!(
       name: "Subject #{school.id}",
       discipline_id: discipline.id,
       school_id: school.id,
@@ -100,7 +105,7 @@ namespace :seed_school do
     )
      
 
-    section = Section.create(
+    section = Section.create!(
       line_number: "Class #{school.id}",
       subject_id: subject.id,
       school_year_id: school.school_year_id,
@@ -108,20 +113,20 @@ namespace :seed_school do
     )
      
     students.each do |student|
-      Enrollment.create(
+      Enrollment.create!(
         student_id: student.id,
         section_id: section.id,
         student_grade_level: student.grade_level
       )
     end
 
-    TeachingAssignment.create(
+    TeachingAssignment.create!(
       teacher_id: teacher.id,
       section_id: section.id
     )
     subject_outcomes=[]
     10.times do |n|
-      s = SubjectOutcome.create(
+      s = SubjectOutcome.create!(
         name: "Learning Outcome #{school.id}_#{n}",
         subject_id: subject.id,
         essential: true
@@ -133,13 +138,13 @@ namespace :seed_school do
 
     section_outcomes=[]
     subject_outcomes.each do |subject_outcome|
-      s = SectionOutcome.create(
-        subject_outcome_id: subject_outcome.id,
-        section_id: section.id,
-        marking_period: Random.rand(8), # Bitmask!
-        active: true,
-        minimized: false
-      )
+      s = SectionOutcome.new
+      s.subject_outcome_id = subject_outcome.id
+      s.section_id = section.id
+      s.marking_period = Random.rand(4) # Bitmask!
+      s.active = true
+      s.minimized = false
+      s.save
       section_outcomes << s
     end
 
@@ -150,14 +155,14 @@ namespace :seed_school do
       if db_evidence_types.count > 0
         evidence_types << db_evidence_types.first
       else
-        e = EvidenceType.create(name: "Quiz #{n}")
+        e = EvidenceType.create!(name: "Quiz #{n}")
         evidence_types << e
       end
     end
 
     evidences=[]
     evidence_types.each do |evidence_type|
-      e = Evidence.create(
+      e = Evidence.create!(
         section_id: section.id,
         name: "Sample Evidence #{school.id}_#{ evidence_types.index(evidence_type) }",
         description: "Basically, evidences are homework assignments, tests, quizzes, etc.",
@@ -172,36 +177,36 @@ namespace :seed_school do
     evidence_section_outcomes=[]
     section_outcomes.each do |section_outcome|
       evidences.each do |evidence| 
-       evidence_section_outcomes << EvidenceSectionOutcome.create(
+       evidence_section_outcomes << EvidenceSectionOutcome.create!(
           evidence_id: evidence.id,
           section_outcome_id: section_outcome.id
         )
       end
     end
 
-    e_ratings = ["R","G","Y","U"]
-    #change this if we create multple schools / sections
-    evidence_section_outcomes.each  do |eso|
-      students.each do |student|
-        EvidenceSectionOutcomeRating.create(
-          rating: e_ratings[Random.rand(4)],
-          student_id: student.id,
-          evidence_section_outcome_id: eso.id,
-          comment: ""
-        )
-      end
-    end
+    # e_ratings = ["R","G","Y","U"]
+    # #change this if we create multple schools / sections
+    # evidence_section_outcomes.each  do |eso|
+    #   students.each do |student|
+    #     EvidenceSectionOutcomeRating.create!(
+    #       rating: e_ratings[Random.rand(4)],
+    #       student_id: student.id,
+    #       evidence_section_outcome_id: eso.id,
+    #       comment: ""
+    #     )
+    #   end
+    # end
 
-    so_ratings = ["N","P","H","U"]
-    section_outcomes.each do |section_outcome|
-      students.each do |student|
-        SectionOutcomeRating.create(
-          rating: so_ratings[Random.rand(4)],
-          student_id: student.id,
-          section_outcome_id: section_outcome.id
-          )
-      end
-    end
+    # so_ratings = ["N","P","H","U"]
+    # section_outcomes.each do |section_outcome|
+    #   students.each do |student|
+    #     SectionOutcomeRating.create!(
+    #       rating: so_ratings[Random.rand(4)],
+    #       student_id: student.id,
+    #       section_outcome_id: section_outcome.id
+    #       )
+    #   end
+    # end
     puts "Done"
   end
 end
