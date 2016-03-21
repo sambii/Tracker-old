@@ -112,9 +112,11 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** Stage: #{@stage}")
       @subject_ids = Hash.new
       @subject_names = Hash.new
+      Rails.logger.debug("*** create subject names hash")
       @subjects.each do |s|
         @subject_ids[s.id] = s
         @subject_names[s.name] = s
+        Rails.logger.debug("*** subject: #{s.name}")
       end
       # no initial errors, process file
       @filename = params['file'].original_filename
@@ -128,9 +130,15 @@ class SubjectOutcomesController < ApplicationController
           @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
         end
         check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
-        matched_subject = match_subject.blank? || match_subject.name == check_subject
-        Rails.logger.debug("*** SS match_subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-        @records << rhash if !rhash[COL_EMPTY] && matched_subject
+        if match_subject.blank?
+          matched_subject = false
+          # processing all subjects in file
+          @records << rhash if !rhash[COL_EMPTY]
+        else
+          matched_subject = match_subject.name == check_subject
+          Rails.logger.debug("*** SS match_subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+          @records << rhash if !rhash[COL_EMPTY] && matched_subject
+        end
         ix += 1
       end  # end CSV.foreach
 
@@ -185,6 +193,7 @@ class SubjectOutcomesController < ApplicationController
       db_active = 0
       db_deact = 0
       SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
+        Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
         subject_name = @subject_ids[so.subject_id].name
         # is matched_subject if we are processing all subjects or if current subject matches the selected subject
         matched_subject = match_subject.blank? || match_subject.name == subject_name

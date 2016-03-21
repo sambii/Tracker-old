@@ -15,6 +15,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     @discipline = @subject1.discipline
 
     load_test_section(@section1_1, @teacher1)
+    Rails.logger.debug("*** @so_at_1_01: #{@so_at_1_01.inspect}")
 
     @section1_2 = FactoryGirl.create :section, subject: @subject1
     ta1 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_2
@@ -112,14 +113,13 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         # page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-
-      find("#save")
+      sleep 20
+      # if no errors, then save button should be showing
+      page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
       page.should have_button("SAVE ALL")
       click_button '#save'
     end # within #page-content
-    sleep 20
-
 
   end # def has_bulk_upload_los
 

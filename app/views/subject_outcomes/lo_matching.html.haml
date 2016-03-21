@@ -18,6 +18,9 @@
   .col-sm-1
   .col-sm-10
     .block.block-alt-style.full
+      .block-title.text-center
+        %h3
+          ='Learning Outcomes Matching Process'
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
 
@@ -33,7 +36,6 @@
                 %th= 'Old Marking Period'
                 %th= 'Old LO Code'
                 %th= 'Old Description'
-                %th= 'Similarity'
                 %th= 'Match'
                 %th= 'New Course'
                 %th= 'New Grade'
@@ -60,7 +62,6 @@
                   %td.text-center{class: "#{error_class}"}
                     - # = ('*' * match[:total_match])
                     = "#{rx[SubjectOutcomesHelper::PARAM_ACTION]} / #{ry[SubjectOutcomesHelper::PARAM_ACTION]}"
-                  %td.text-center{class: "#{error_class}"}
                     %input{type: 'hidden', name: "pair[#{ix}][o][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: rx[SubjectOutcomesHelper::PARAM_ACTION]}
                     %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: ry[SubjectOutcomesHelper::PARAM_ACTION]}
                     - if rx.length > 0
