@@ -2,7 +2,8 @@
 # see license.txt in this software package
 #
 class StudentMailer < ActionMailer::Base
-  default :from => ServerConfig.first.support_email
+  # removed because test database is empty when this is called
+  # default :from => ServerConfig.first.support_email
 
   def show(address, student_id, section_id)
     @student                  = Student.find(student_id)
@@ -10,6 +11,18 @@ class StudentMailer < ActionMailer::Base
     @evidence_ratings         = @student.section_evidence_ratings(section_id)
     @section_outcome_ratings  = @student.section_section_outcome_ratings(section_id)
     @marking_periods 		  = Range::new(1,@section.school.marking_periods)
-    mail(to: address, subject: "PARLO Progress Tracker: #{@section.name}")
+    mail(from: get_support_email, to: address, subject: "PARLO Progress Tracker: #{@section.name}")
   end
+
+  private
+
+  def get_support_email
+    scr = ServerConfig.first
+    if scr
+      return scr.support_email
+    else
+      raise "Error: Missing Server Config Record"
+    end
+  end
+
 end

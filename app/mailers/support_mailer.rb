@@ -2,7 +2,8 @@
 # see license.txt in this software package
 #
 class SupportMailer < ActionMailer::Base
-  default from: ServerConfig.first.support_email, to: ServerConfig.first.support_email
+  # removed because test database is empty when this is called
+  # default from: ServerConfig.first.support_email, to: ServerConfig.first.support_email
 
   def show(ex, req, sess)
     server_config = ServerConfig.first
@@ -13,6 +14,18 @@ class SupportMailer < ActionMailer::Base
     @req = req
     @sess = sess
     @server_config = server_config
-    mail(subject: "exception for server: #{web_server_name}")
+    mail(from: get_support_email, to: get_support_email, subject: "exception for server: #{web_server_name}")
   end
+
+  private
+
+  def get_support_email
+    scr = ServerConfig.first
+    if scr
+      return scr.support_email
+    else
+      raise "Error: Missing Server Config Record"
+    end
+  end
+
 end

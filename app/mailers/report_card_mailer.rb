@@ -2,7 +2,8 @@
 # see license.txt in this software package
 #
 class ReportCardMailer < ActionMailer::Base
-  default :from => ServerConfig.first.support_email
+	# removed because test database is empty when this is called
+  # default :from => ServerConfig.first.support_email
 
 	def report_success_email(address,grade,full_name,file_attachment,school)
 		@grade = grade
@@ -23,7 +24,7 @@ class ReportCardMailer < ActionMailer::Base
 		@full_name = full_name
 		@school = school
 
-		mail(to: address, subject: "No Students Found: Grade #{@grade} Report Card Request")
+		mail(from: get_support_email, to: address, subject: "No Students Found: Grade #{@grade} Report Card Request")
 	end
 
 	def generic_exception_email(address,grade,full_name,school)
@@ -32,7 +33,7 @@ class ReportCardMailer < ActionMailer::Base
 		@email = address
 		@school = school
 
-		mail(to: @email, subject: "Error: Grade #{@grade} Report Card Request")
+		mail(from: get_support_email, to: @email, subject: "Error: Grade #{@grade} Report Card Request")
 	end
 
 	def request_recieved_email(address,grade,full_name,school)
@@ -40,7 +41,18 @@ class ReportCardMailer < ActionMailer::Base
 		@full_name = full_name
 		@school = school
 
-		mail(to: address, subject: "Recieved: Grade #{@grade} Report Card Request")
+		mail(from: get_support_email, to: address, subject: "Recieved: Grade #{@grade} Report Card Request")
+	end
+
+	private
+
+	def get_support_email
+		scr = ServerConfig.first
+		if scr
+			return scr.support_email
+		else
+			raise "Error: Missing Server Config Record"
+		end
 	end
 
 end
