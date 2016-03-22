@@ -30,6 +30,7 @@
                 %th{colspan: 12}
                   = 'Match'
                   %input{type: 'hidden', name: "school_id", value: @school.id}
+                  %input{type: 'hidden', name: "subject_id", value: @subject_id}
               %tr
                 %th= 'Old Subject'
                 %th= 'Old Grade'
@@ -79,6 +80,25 @@
                   %td{class: "match-field-#{match[:mp_match]}"}=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
                   %td{class: "match-field-#{match[:code_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
                   %td{class: "similar-field-#{match[:desc_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
+          .row
+            %fieldset.input-group
+              .col-sm-5
+              %label.col-sm-2.control-label='Match Count:'
+              %span#match-count.col-sm-2
+                = @match_count
+              .col-sm-3
+            %fieldset.input-group
+              .col-sm-5
+              %label.col-sm-2.control-label='Mismatch Count:'
+              %span#mismatch-count.col-sm-2
+                = @mismatch_count
+              .col-sm-3
+            %fieldset.input-group
+              .col-sm-5
+              %label.col-sm-2.control-label='Add Count:'
+              %span#add-count.col-sm-2
+                = @add_count
+              .col-sm-3
           .row.text-center
             .btn.btn.btn-default
               %a#clear-student-assignments{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"

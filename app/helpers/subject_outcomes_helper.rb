@@ -51,8 +51,23 @@ module SubjectOutcomesHelper
           end
         end
 
+        # use the Subject Outcome coding to create the valid bit mask string from the marking period from the upload file
         bitmask = SubjectOutcome.get_bitmask(csv_hash[COL_MARK_PER])
         bitmask_str = SubjectOutcome.get_bitmask_string(bitmask)
+
+        # convert 'Year Long' into the full year (based on the school marking periods) bit mask string
+        all_mp_mask =@school.marking_periods.present? ? (2 ** @school.marking_periods)-1 : 0
+        all_mp_mask_str = SubjectOutcome.get_bitmask_string(all_mp_mask)
+        csv_hash[COL_MARK_PER] = all_mp_mask_str if csv_hash[COL_MARK_PER].strip.upcase == 'YEAR LONG'
+
+        # preview the bitmap translation, and confirm nothing lost in round trip
+        # csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Invalid Marking Period - #{bitmask_str} != #{csv_hash[COL_MARK_PER]} / #{csv_hash[COL_SEMESTER]}") if bitmask_str != csv_hash[COL_MARK_PER]
+
+        # make sure marking period bitmask is valid marking period bitmask for school
+        csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Marking Period too large") if bitmask > all_mp_mask
+
+        # copy validated marking period into bitmap
+        csv_hash[COL_MP_BITMAP] = csv_hash[COL_MARK_PER]
 
         if csv_hash[COL_COURSE].blank?
           csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Course / Subject')
@@ -83,13 +98,6 @@ module SubjectOutcomesHelper
           end
         end
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Grade Level') if csv_hash[COL_GRADE].blank?
-        all_mp_mask =@school.marking_periods.present? ? (2 ** @school.marking_periods)-1 : 0
-        all_mp_mask_str = SubjectOutcome.get_bitmask_string(all_mp_mask)
-        # preview the bitmap translation, and confirm nothing lost in round trip
-        csv_hash[COL_MARK_PER] = all_mp_mask_str if csv_hash[COL_MARK_PER].strip == 'Year Long'
-        # csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Invalid Marking Period - #{bitmask_str} != #{csv_hash[COL_MARK_PER]} / #{csv_hash[COL_SEMESTER]}") if bitmask_str != csv_hash[COL_MARK_PER]
-        csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Marking Period too large") if bitmask > all_mp_mask
-        csv_hash[COL_MP_BITMAP] = bitmask_str
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing LO Code') if csv_hash[COL_OUTCOME_CODE].blank?
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Learning Outcome') if csv_hash[COL_OUTCOME_NAME].blank?
       #
@@ -184,8 +192,8 @@ module SubjectOutcomesHelper
   end
 
   def lo_match_old_new(old_rec, new_match)
-    # Rails.logger.debug("*** lo_match_old_new - old_rec: #{old_rec}")
-    # Rails.logger.debug("*** lo_match_old_new - new_match: #{new_match}")
+    Rails.logger.debug("*** lo_match_old_new - old_rec: #{old_rec}")
+    Rails.logger.debug("*** lo_match_old_new - new_match: #{new_match}")
     match_h = Hash.new
     match_h[:total_match] = 0
     if new_match.length > 0 && old_rec.length > 0
@@ -204,7 +212,7 @@ module SubjectOutcomesHelper
       # match_h[:desc_dist] = (old_rec[:desc].strip() == new_match['Learning Outcome'].strip()) ? 0 : Text::Levenshtein.distance(old_rec[:desc].strip(), new_match['Learning Outcome'].strip(), 4)
       desc_old = old_rec[:desc].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
       desc_new = new_match[COL_OUTCOME_NAME].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
-      match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99)
+      match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99).floor
       match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
       old_rec[PARAM_ACTION] = 'Mismatch'
       new_match[PARAM_ACTION] = 'Mismatch'
@@ -215,6 +223,8 @@ module SubjectOutcomesHelper
         if !old_rec[COL_ACTIVE]
           old_rec[PARAM_ACTION] = 'Restore'
         end
+      else
+        Rails.logger.debug("*** mismatched on: #{match_h.inspect}")
       end
     elsif old_rec.length > 0 && new_match.length == 0
       # old record with no matching new records - set to remove if active

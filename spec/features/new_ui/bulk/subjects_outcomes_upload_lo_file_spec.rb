@@ -15,7 +15,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     @discipline = @subject1.discipline
 
     load_test_section(@section1_1, @teacher1)
-    Rails.logger.debug("*** @so_at_1_01: #{@so_at_1_01.inspect}")
 
     @section1_2 = FactoryGirl.create :section, subject: @subject1
     ta1 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_2
@@ -48,7 +47,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     before do
       sign_in(@teacher)
     end
-    it { has_no_bulk_upload_los }
+    it { cannot_bulk_upload_los }
   end
 
   describe "as school administrator" do
@@ -56,7 +55,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       @school_administrator = FactoryGirl.create :school_administrator, school: @school1
       sign_in(@school_administrator)
     end
-    it { has_no_bulk_upload_los(true) }
+    it { cannot_bulk_upload_los(true) }
   end
 
   describe "as researcher" do
@@ -65,7 +64,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       sign_in(@researcher)
       set_users_school(@school1)
     end
-    it { has_no_bulk_upload_los }
+    it { cannot_bulk_upload_los }
   end
 
   describe "as system administrator" do
@@ -74,43 +73,59 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       sign_in(@system_administrator)
       set_users_school(@school1)
     end
-    it { has_bulk_upload_los }
+    it { bulk_upload_all_matching }
+    it { bulk_upload_art_matching }
   end
 
   describe "as student" do
     before do
       sign_in(@student)
     end
-    it { has_no_bulk_upload_los }
+    it { cannot_bulk_upload_los }
   end
 
   describe "as parent" do
     before do
       sign_in(@student.parent)
     end
-    it { has_no_bulk_upload_los }
+    it { cannot_bulk_upload_los }
   end
 
   ##################################################
   # test methods
 
-  def has_no_bulk_upload_los
+  def cannot_bulk_upload_los
     visit upload_lo_file_subject_outcomes_path()
     assert_not_equal("/subject_outcomes/upload_lo_file", current_path)
   end
 
-  def has_bulk_upload_los
+  def bulk_upload_all_matching
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
       within("#ask-filename") do
-        # page.should have_content("No File Chosen")
-        # page.attach_file('#file', @file)
         page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
-        # page.should have_content("bulk_upload_los_initial.csv")
-        # page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+      end
+      find('#upload').click
+      # if no errors, then save button should be showing
+      page.should have_css("#save")
+      page.should have_content('Match Old LOs to New LOs')
+      page.should have_button("SAVE ALL")
+      find('#save').click
+    end # within #page-content
+  end # def bulk_upload_all_matching
+
+  def bulk_upload_art_matching
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Art 1', from: "subject_id")
       end
       find('#upload').click
       sleep 20
@@ -118,10 +133,9 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
       page.should have_button("SAVE ALL")
-      click_button '#save'
+      find('#save').click
     end # within #page-content
-
-  end # def has_bulk_upload_los
+  end # def bulk_upload_art_matching
 
 
 end
