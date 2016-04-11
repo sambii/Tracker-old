@@ -246,34 +246,36 @@ class SubjectOutcomesController < ApplicationController
         if new_match
           # fix for when database has no matching code in the input file
           Rails.logger.debug("*** new_match true")
-          # Rails.logger.debug("*** rk: #{rk}, new_match: #{new_match.inspect}")
-          old_rec, new_match, matches = lo_match_old_new(old_rec, (new_match ||= {}))
-          @records3 << [old_rec, new_match, matches] # output matches for matching report
-          # Rails.logger.debug("*** new_match #{new_match.inspect}")
-          # Rails.logger.debug("*** new_match[COL_REC_ID] #{new_match[COL_REC_ID]}")
-          # Rails.logger.debug("*** @records[new_match[COL_REC_ID]]] #{@records[new_match[COL_REC_ID]]}")
-          # code to mark original records as matched to curruculum by lo_code
-          Rails.logger.debug("*** Test for match_lo_code for COL_REC_ID: #{COL_REC_ID}, new_match[COL_REC_ID]: #{new_match[COL_REC_ID]}")
-          if new_match[COL_REC_ID] && @records[new_match[COL_REC_ID]]
-            @records[new_match[COL_REC_ID]][COL_STATE] = 'match_lo_code'
-            Rails.logger.debug("*** set match_lo_code for COL_REC_ID: #{COL_REC_ID}, new_match[COL_REC_ID]: #{new_match[COL_REC_ID]}")
-            Rails.logger.debug("*** updated @record: #{@records[new_match[COL_REC_ID]].inspect}")
-          end
-          # Rails.logger.debug("*** ro: #{old_rec.inspect}")
-          # Rails.logger.debug("*** rn: #{new_match.inspect}")
-          # Rails.logger.debug("*** matches: #{matches.inspect}")
+          matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}))
+          # @records3 << [old_rec, new_match, matches] # output matches for matching report
+          @records3.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
 
-          # determine if all actions have been determined (no mismatch actions)
-          @mismatch_count += 1 if old_rec[PARAM_ACTION] == 'Mismatch' || (new_match && new_match[PARAM_ACTION] == 'Mismatch')
-          @match_count += 1 if matches[:total_match] == 6
         end
+      end
+
+      # post process of matching
+      @records3.each do |rec|
+        old_rec_to_match = rec[0]
+        matched_new_rec = rec[1]
+        matched_weights = rec[2]
+
+        # code to mark original records as matched to curriculum by lo_code
+        if matched_new_rec && matched_new_rec[COL_REC_ID] &&  @records[matched_new_rec[COL_REC_ID]]
+          @records[matched_new_rec[COL_REC_ID]][COL_STATE] = 'match_lo_code'
+        end
+
+        # determine if all actions have been determined (no mismatch actions)
+        @mismatch_count += 1 if old_rec_to_match[PARAM_ACTION] == 'Mismatch' || (matched_new_rec && matched_new_rec[PARAM_ACTION] == 'Mismatch')
+        @match_count += 1 if matched_weights[:total_match] == 6
+
         # determine if any action other than Add has been used (Add only till programming done)
-        @not_add_count += 1 if !['', 'Add'].include?(old_rec[PARAM_ACTION])
+        @not_add_count += 1 if !['', 'Add'].include?(old_rec_to_match[PARAM_ACTION])
 
       end
 
       # output any unmatched new records
       @records.each_with_index do |rx, ix|
+        Rails.logger.debug("*** @record #{ix}: #{rx.inspect}")
         if rx[COL_STATE].blank?
           # Rails.logger.debug("*** @record: #{rx.inspect}")
           old_rec, rx, matches = lo_match_old_new({}, rx)
@@ -449,15 +451,46 @@ class SubjectOutcomesController < ApplicationController
       # Rails.logger.debug("*** new_lo_codes_h: #{new_lo_codes_h.inspect}")
       # Rails.logger.debug("*** new_lo_names_h: #{new_lo_names_h.inspect}")
       step = 4
+
       # process matches
+      # new_lo_codes.product(old_lo_codes).each.map { |p| p if }
+      # process matches
+      @match_count = 0
+      @mismatch_count = 0
+      @add_count = 0
+      @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
       iy = 0
+      # process the database records (for all or selected subject)
       old_los_by_lo.each do |rk, old_rec|
+        Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
+        # lookup the database lo_code in the new curriculum
         new_match = new_lo_codes_h[rk]
-        old_rec, new_match, matches = lo_match_old_new(old_rec, (new_match ||= {}))
-        @records3 << [old_rec, new_match, matches] # output matches for matching report
-        # Rails.logger.debug("*** ro: #{old_rec.inspect}")
-        # Rails.logger.debug("*** rn: #{new_match.inspect}")
-        # Rails.logger.debug("*** matches: #{matches.inspect}")
+        if new_match
+          # fix for when database has no matching code in the input file
+          Rails.logger.debug("*** new_match true")
+          matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}))
+          # @records3 << [old_rec, new_match, matches] # output matches for matching report
+          @records3.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
+        end
+      end
+
+      # post process of matching
+      @records3.each do |rec|
+        old_rec_to_match = rec[0]
+        matched_new_rec = rec[1]
+        matched_weights = rec[2]
+
+        # code to mark original records as matched to curriculum by lo_code
+        if matched_new_rec && matched_new_rec[COL_REC_ID] &&  @records[matched_new_rec[COL_REC_ID]]
+          @records[matched_new_rec[COL_REC_ID]][COL_STATE] = 'match_lo_code'
+        end
+
+        # determine if all actions have been determined (no mismatch actions)
+        @mismatch_count += 1 if old_rec_to_match[PARAM_ACTION] == 'Mismatch' || (matched_new_rec && matched_new_rec[PARAM_ACTION] == 'Mismatch')
+        @match_count += 1 if matched_weights[:total_match] == 6
+
+        # determine if any action other than Add has been used (Add only till programming done)
+        @not_add_count += 1 if !['', 'Add'].include?(old_rec_to_match[PARAM_ACTION])
       end
 
       step = 5

@@ -242,7 +242,9 @@ module SubjectOutcomesHelper
       new_match[PARAM_ACTION] = 'Add'
     end
 
-    return [old_rec, new_match, match_h]
+    # return an array of matches, for more than one possible match
+
+    return [[old_rec, new_match, match_h]]
   end
 
 end
