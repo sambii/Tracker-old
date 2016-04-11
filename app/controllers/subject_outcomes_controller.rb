@@ -59,7 +59,7 @@ class SubjectOutcomesController < ApplicationController
   # see app/helpers/users_helper.rb for helper functions
   def upload_lo_file
     authorize! :manage, :all # only system admins
-    @preview = true if params['preview']
+    # @preview = true if params['preview']
     first_display = (request.method == 'GET' && params['utf8'].blank?)
     Rails.logger.debug("*** first_display: #{first_display}")
     @stage = 1
@@ -87,7 +87,7 @@ class SubjectOutcomesController < ApplicationController
 
     @subjects = Subject.where(school_id: @school.id)
 
-    # if only processing one subject, look up the subject for matching by name and grade
+    # if only processing one subject, look up the subject by selected subject ID
     match_subject = nil
     if params[:subject_id].present?
       match_subjects = Subject.where(id: params[:subject_id])
@@ -117,8 +117,8 @@ class SubjectOutcomesController < ApplicationController
       @subject_names = Hash.new
       Rails.logger.debug("*** create subject names hash")
       @subjects.each do |s|
-        @subject_ids[s.id] = s
-        @subject_names[s.name] = s
+        @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
+        @subject_names[s.name] = s # all subject names
       end
       # no initial errors, process file
       @filename = params['file'].original_filename
@@ -133,20 +133,21 @@ class SubjectOutcomesController < ApplicationController
         end
         check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
         if match_subject.blank?
+          ix += 1
           matched_subject = false
           # processing all subjects in file
-          Rails.logger.debug("*** rhash after validate: #{rhash.inspect}")
-          Rails.logger.debug("*** SS all subjects: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+          Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+          Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
           @records << rhash if !rhash[COL_EMPTY]
         else
-          matched_subject = match_subject.name == check_subject
+          matched_subject = (match_subject.name == check_subject)
           if matched_subject
-            Rails.logger.debug("*** rhash after validate: #{rhash.inspect}")
-            Rails.logger.debug("*** SS match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+            ix += 1
+            Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+            Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
             @records << rhash if !rhash[COL_EMPTY]
           end
         end
-        ix += 1
       end  # end CSV.foreach
 
       # check for file duplicate LO Codes
@@ -191,10 +192,12 @@ class SubjectOutcomesController < ApplicationController
         # new_lo_codes_by_lo << { lo_code: rx[COL_OUTCOME_CODE], ix: ix }
         # new_lo_codes_by_name << { name: shortened_name, ix: ix }
         new_lo_codes_h[rx[COL_OUTCOME_CODE]] = rec
-        Rails.logger.debug("*** new_lo_codes[#{rx[COL_OUTCOME_CODE]}] = #{rx[COL_REC_ID]}")
+        Rails.logger.debug("*** @record[#{ix}]: [#{rx.inspect}")
+        # Rails.logger.debug("*** new_lo_codes[#{rx[COL_OUTCOME_CODE]}] = #{rx[COL_REC_ID]}")
         new_lo_names_h[shortened_name] = rec
       end
 
+      # get the subject outcomes from the database for all subjects to process
       old_los_by_lo = Hash.new
       # optimize active record for one db call
       db_active = 0
@@ -242,17 +245,23 @@ class SubjectOutcomesController < ApplicationController
         new_match = new_lo_codes_h[rk]
         if new_match
           # fix for when database has no matching code in the input file
-          Rails.logger.debug("*** rk: #{rk}, new_match: #{new_match.inspect}")
+          Rails.logger.debug("*** new_match true")
+          # Rails.logger.debug("*** rk: #{rk}, new_match: #{new_match.inspect}")
           old_rec, new_match, matches = lo_match_old_new(old_rec, (new_match ||= {}))
           @records3 << [old_rec, new_match, matches] # output matches for matching report
-          Rails.logger.debug("*** new_match #{new_match.inspect}")
-          Rails.logger.debug("*** new_match[COL_REC_ID] #{new_match[COL_REC_ID]}")
-          Rails.logger.debug("*** @records[new_match[COL_REC_ID]]] #{@records[new_match[COL_REC_ID]]}")
+          # Rails.logger.debug("*** new_match #{new_match.inspect}")
+          # Rails.logger.debug("*** new_match[COL_REC_ID] #{new_match[COL_REC_ID]}")
+          # Rails.logger.debug("*** @records[new_match[COL_REC_ID]]] #{@records[new_match[COL_REC_ID]]}")
           # code to mark original records as matched to curruculum by lo_code
-          @records[new_match[COL_REC_ID]][COL_STATE] = 'match_lo_code' if new_match[COL_REC_ID] && @records[new_match[COL_REC_ID]]
-          Rails.logger.debug("*** ro: #{old_rec.inspect}")
-          Rails.logger.debug("*** rn: #{new_match.inspect}")
-          Rails.logger.debug("*** matches: #{matches.inspect}")
+          Rails.logger.debug("*** Test for match_lo_code for COL_REC_ID: #{COL_REC_ID}, new_match[COL_REC_ID]: #{new_match[COL_REC_ID]}")
+          if new_match[COL_REC_ID] && @records[new_match[COL_REC_ID]]
+            @records[new_match[COL_REC_ID]][COL_STATE] = 'match_lo_code'
+            Rails.logger.debug("*** set match_lo_code for COL_REC_ID: #{COL_REC_ID}, new_match[COL_REC_ID]: #{new_match[COL_REC_ID]}")
+            Rails.logger.debug("*** updated @record: #{@records[new_match[COL_REC_ID]].inspect}")
+          end
+          # Rails.logger.debug("*** ro: #{old_rec.inspect}")
+          # Rails.logger.debug("*** rn: #{new_match.inspect}")
+          # Rails.logger.debug("*** matches: #{matches.inspect}")
 
           # determine if all actions have been determined (no mismatch actions)
           @mismatch_count += 1 if old_rec[PARAM_ACTION] == 'Mismatch' || (new_match && new_match[PARAM_ACTION] == 'Mismatch')
@@ -320,41 +329,74 @@ class SubjectOutcomesController < ApplicationController
     authorize! :manage, :all # only system admins
     Rails.logger.debug("*** SchoolsController.lo_matching started")
     begin
+      @stage = 1
       step = 0
       records = Array.new
       @records3 = Array.new
       @errors = Hash.new
-      @subject_ids = Hash.new
 
       @school = School.find(params['school_id'])
       raise('Invalid school - not model school') if @school.acronym != 'MOD'
 
-      Subject.where(school_id: @school.id).each do |s|
-        @subject_ids[s.id] = s
+      @subjects = Subject.where(school_id: @school.id)
+
+      # if only processing one subject, look up the subject by selected subject ID
+      match_subject = nil
+      if params[:subject_id].present?
+        match_subjects = Subject.where(id: params[:subject_id])
+        if match_subjects.count == 0
+          @errors[:subject] = "Error: Cannot find subject"
+        end
+        match_subject = match_subjects.first
+        @subject_id = match_subject.present? ? match_subject.id : ''
+      else
+        @subject_id = ''
+      end
+      Rails.logger.debug("*** match_subject: #{match_subject} = #{match_subject.name.unpack('U' * match_subject.name.length)}") if match_subject
+
+      Rails.logger.debug("*** create subject hashes")
+      @subject_ids = Hash.new
+      @subject_names = Hash.new
+      @subjects.each do |s|
+        @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
+        @subject_names[s.name] = s
       end
 
       step = 1
+      # get the subject outcomes from the database for all subjects to process
       old_los_by_lo = Hash.new
       # optimize active record for one db call
-      # SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
-      SubjectOutcome.where(subject_id: Subject.where(school_id: @school.id).pluck(:id)).each do |so|
+      db_active = 0
+      db_deact = 0
+      SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
         subject_name = @subject_ids[so.subject_id].name
-        old_los_by_lo[so.lo_code] = {db_id: so.id, subject_name: subject_name, subject_id: so.subject_id, lo_code: so.lo_code, name: so.name, short_desc: so.shortened_description, desc: so.description, grade: so.subject.grade_from_subject_name, mp: SubjectOutcome.get_bitmask_string(so.marking_period), active: so.active }
-      end
+        # is matched_subject if we are processing all subjects or if current subject matches the selected subject
         matched_subject = match_subject.blank? || match_subject.name == subject_name
-        old_los_by_lo[so.lo_code] = {
-          db_id: so.id,
-          subject_name: subject_name,
-          subject_id: so.subject_id,
-          lo_code: so.lo_code,
-          name: so.name,
-          short_desc: so.shortened_description,
-          desc: so.description,
-          grade: so.subject.grade_from_subject_name,
-          mp: SubjectOutcome.get_bitmask_string(so.marking_period),
-          active: so.active
-        } if matched_subject # only add record if all subjects or the matching selected subject
+        if matched_subject # only add record if all subjects or the matching selected subject
+          Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
+          old_los_by_lo[so.lo_code] = {
+            db_id: so.id,
+            subject_name: subject_name,
+            subject_id: so.subject_id,
+            lo_code: so.lo_code,
+            name: so.name,
+            short_desc: so.shortened_description,
+            desc: so.description,
+            grade: so.subject.grade_from_subject_name,
+            mp: SubjectOutcome.get_bitmask_string(so.marking_period),
+            active: so.active
+          } 
+          if so.active
+            db_active += 1
+          else
+            db_deact += 1
+          end
+        end
+      end
 
+      # process request parameters
+      # recreate uploaded records to process
+      # Perform any actions required for this stage of the matching process
       step = 2
       @mismatch_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.

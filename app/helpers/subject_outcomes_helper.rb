@@ -75,11 +75,13 @@ module SubjectOutcomesHelper
           if @school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
             subj_grade = "#{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}"
             if subject_names[subj_grade].present?
+              Rails.logger.debug("+++ Matched Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
               csv_hash[COL_COURSE_ID] = subject_names[subj_grade][:id]
               csv_hash[COL_SUBJECT] = subj_grade
             else
               # check if semester in subject name
               # to do - allow matching of subject with marking periods when lo is for multiple marking periods !!
+              Rails.logger.debug("+++ No match on Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
               subj_grade_mp = "#{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}s#{bitmask_str}"
               if subject_names[subj_grade_mp].present?
                 csv_hash[COL_COURSE_ID] = subject_names[subj_grade_mp][:id]

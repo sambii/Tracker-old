@@ -99,6 +99,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     assert_not_equal("/subject_outcomes/upload_lo_file", current_path)
   end
 
+  # test for all subjects bulk upload of Learning Outcomes into Model School
   def bulk_upload_all_matching
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
@@ -112,11 +113,22 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
+      within("#match-count") do
+        page.should have_content('27')
+      end
+      within("#mismatch-count") do
+        page.should have_content('0')
+      end
+      within("#add-count") do
+        page.should have_content('0')
+      end
       page.should have_button("SAVE ALL")
       find('#save').click
+      sleep 20
     end # within #page-content
   end # def bulk_upload_all_matching
 
+  # test for single subject bulk upload of Learning Outcomes into Model School
   def bulk_upload_art_matching
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
@@ -132,8 +144,18 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
+      within("#match-count") do
+        page.should have_content('4')
+      end
+      within("#mismatch-count") do
+        page.should have_content('0')
+      end
+      within("#add-count") do
+        page.should have_content('0')
+      end
       page.should have_button("SAVE ALL")
       find('#save').click
+      sleep 20
     end # within #page-content
   end # def bulk_upload_art_matching
 
