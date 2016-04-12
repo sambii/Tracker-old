@@ -27,6 +27,9 @@ module SubjectOutcomesHelper
   PARAM_ID = :'id'
   PARAM_ACTION = :'action'
 
+  # matching levels
+  MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['loose', 3], ['tight', 4], ['tighter', 5], ['tightest', 6]]
+
   # curriculum / LOs bulk upload file stage 2 processing - field validation
   def validate_csv_fields(csv_hash_in, subject_names)
     csv_hash = csv_hash_in.clone
@@ -75,13 +78,13 @@ module SubjectOutcomesHelper
           if @school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
             subj_grade = "#{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}"
             if subject_names[subj_grade].present?
-              Rails.logger.debug("+++ Matched Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
+              # Rails.logger.debug("+++ Matched Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
               csv_hash[COL_COURSE_ID] = subject_names[subj_grade][:id]
               csv_hash[COL_SUBJECT] = subj_grade
             else
               # check if semester in subject name
               # to do - allow matching of subject with marking periods when lo is for multiple marking periods !!
-              Rails.logger.debug("+++ No match on Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
+              # Rails.logger.debug("+++ No match on Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
               subj_grade_mp = "#{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}s#{bitmask_str}"
               if subject_names[subj_grade_mp].present?
                 csv_hash[COL_COURSE_ID] = subject_names[subj_grade_mp][:id]
@@ -193,58 +196,46 @@ module SubjectOutcomesHelper
     end
   end
 
-  def lo_match_old_new(old_rec, new_match)
-    Rails.logger.debug("*** lo_match_old_new - old_rec: #{old_rec}")
-    Rails.logger.debug("*** lo_match_old_new - new_match: #{new_match}")
+  def lo_match_old_new(old_rec, new_match, match_level)
+    # Rails.logger.debug("*** lo_match_old_new - old_rec: #{old_rec}, length: #{old_rec.length}")
+    # Rails.logger.debug("*** lo_match_old_new - new_match: #{new_match}")
+    return_array = []
     match_h = Hash.new
     match_h[:total_match] = 0
-    if new_match.length > 0 && old_rec.length > 0
-      # match_h[:subj_match] = 0
-      # match_h[:grade_match] = 0
-      # match_h[:mp_match] = 0
-      # match_h[:code_match] = 0
-      # match_h[:desc_match] = 0
+    old_rec[PARAM_ACTION] = ''
+    new_match[PARAM_ACTION] = ''
+    # note setting default PARAM_ACTION sets the length of the old and new recs to be at least 1
+    if new_match.length > 1 && old_rec.length > 1
+      # Rails.logger.debug("*** passed matching check")
       white = Text::WhiteSimilarity.new
-      # subj_parts = old_rec[:subject_name].split(/\W/)
-      # course = (subj_parts.length > 1) ? subj_parts[0, subj_parts.length - 1].join(' ') : old_rec[:subject_name]
-      # match_h[:subj_match] = (course.upcase.strip == new_match[COL_COURSE].upcase.strip) ? 1 : 0
       match_h[:grade_match] = (old_rec[:grade] == new_match[COL_GRADE]) ? 1 : 0
       match_h[:mp_match] = (old_rec[:mp] == new_match[COL_MP_BITMAP]) ? 1 : 0
       match_h[:code_match] = (old_rec[DB_OUTCOME_CODE] == new_match[COL_OUTCOME_CODE]) ? 1 : 0
-      # match_h[:desc_dist] = (old_rec[:desc].strip() == new_match['Learning Outcome'].strip()) ? 0 : Text::Levenshtein.distance(old_rec[:desc].strip(), new_match['Learning Outcome'].strip(), 4)
       desc_old = old_rec[:desc].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
       desc_new = new_match[COL_OUTCOME_NAME].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
       match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99).floor
       match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
-      old_rec[PARAM_ACTION] = 'Mismatch'
-      new_match[PARAM_ACTION] = 'Mismatch'
       if match_h[:total_match] == 6
-        # old and new are identitical, ignore, and set to restore it if inactive
-        old_rec[PARAM_ACTION] = ''
-        new_match[PARAM_ACTION] = ''
+        # old and new are identitical, set to restore it if inactive
         if !old_rec[COL_ACTIVE]
           old_rec[PARAM_ACTION] = 'Restore'
         end
-      else
-        Rails.logger.debug("*** mismatched on: #{match_h.inspect}")
       end
-    elsif old_rec.length > 0 && new_match.length == 0
+    elsif old_rec.length > 1 && new_match.length == 1
       # old record with no matching new records - set to remove if active
-      old_rec[PARAM_ACTION] = ''
-      new_match[PARAM_ACTION] = ''
       if old_rec[COL_ACTIVE] == TRUE
         old_rec[PARAM_ACTION] = 'Remove'
-        new_match[PARAM_ACTION] = ''
       end
-    elsif old_rec.length == 0 && new_match.length > 0
+    elsif new_match.length > 1
       # no old record to match new record - set to add
-      old_rec[PARAM_ACTION] = ''
       new_match[PARAM_ACTION] = 'Add'
     end
 
+    Rails.logger.debug("*** match_level: #{match_level} vs this match: #{match_h[:total_match]}")
     # return an array of matches, for more than one possible match
-
-    return [[old_rec, new_match, match_h]]
+    return_array << [old_rec, new_match, match_h] if match_level <= match_h[:total_match]
+    return return_array
   end
+
 
 end

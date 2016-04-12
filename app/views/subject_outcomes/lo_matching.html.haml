@@ -28,7 +28,8 @@
             %thead.table-title
               %tr
                 %th{colspan: 12}
-                  = 'Match'
+                  = @match_subject.present? ? "#{@match_subject.name} - Matching Level: " : "All Subjects - Matching Level: "
+                  = select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
                   %input{type: 'hidden', name: "school_id", value: @school.id}
                   %input{type: 'hidden', name: "subject_id", value: @subject_id}
               %tr
@@ -44,7 +45,7 @@
                 %th= 'New LO Code'
                 %th= 'New Description'
             %tbody.tbody-body
-              - @records3.each_with_index do |set, ix|
+              - @pairs_filtered.each_with_index do |set, ix|
                 - rx = set[0]
                 - ry = set[1]
                 - match = set[2]
@@ -101,13 +102,10 @@
               .col-sm-3
           .row.text-center
             .btn.btn.btn-default
-              %a#clear-student-assignments{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
-            - if @not_add_count > 0
-              %button#save.btn.btn-primary.cancel{title: 'Error, Only Adds are currently allowed', name: 'submit_action', value: 'error'}='ERROR'
-            - elsif @mismatch_count > 0
-              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Next Set of Matches', name: 'submit_action', value: 'next'}='NEXT'
-            - else
-              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
+              %a#upload-again{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
+            %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
+            - #- if @pairs_filtered.count == @add_count + @match_count > 0
+            %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
 .col-sm-1
 
 
