@@ -140,7 +140,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      sleep 20
+      sleep 5
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
@@ -155,7 +155,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       page.should have_button("SAVE ALL")
       find('#save').click
-      sleep 20
+      sleep 5
     end # within #page-content
   end # def bulk_upload_art_matching
 

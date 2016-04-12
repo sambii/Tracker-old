@@ -333,7 +333,7 @@ class SubjectOutcomesController < ApplicationController
     begin
       @stage = 1
       step = 0
-      records = Array.new
+      @records = Array.new
       @records3 = Array.new
       @errors = Hash.new
 
@@ -421,7 +421,7 @@ class SubjectOutcomesController < ApplicationController
           rec[COL_OUTCOME_NAME] = pnew[COL_OUTCOME_NAME]
           rec[PARAM_ID] = pnew[PARAM_ID]
           rec[PARAM_ACTION] =  pnew[PARAM_ACTION]
-          records << rec
+          @records << rec
         end
 
         # save off old rec if there is an action to do on it
@@ -442,7 +442,7 @@ class SubjectOutcomesController < ApplicationController
       step = 3
       new_lo_codes_h = Hash.new
       new_lo_names_h = Hash.new
-      records.each do |rx|
+      @records.each do |rx|
         shortened_name = (rx[COL_OUTCOME_NAME].present? ? rx[COL_OUTCOME_NAME].truncate(50, omission: '...') : '')
         new_lo_codes_h[rx[COL_OUTCOME_CODE]] = rx
         new_lo_names_h[shortened_name] = rx
@@ -469,6 +469,7 @@ class SubjectOutcomesController < ApplicationController
           # fix for when database has no matching code in the input file
           Rails.logger.debug("*** new_match true")
           matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}))
+          Rails.logger.debug("*** matching_pairs: #{matching_pairs}")
           # @records3 << [old_rec, new_match, matches] # output matches for matching report
           @records3.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
         end
@@ -476,13 +477,20 @@ class SubjectOutcomesController < ApplicationController
 
       # post process of matching
       @records3.each do |rec|
+        Rails.logger.debug("*** rec: #{rec.inspect}")
         old_rec_to_match = rec[0]
         matched_new_rec = rec[1]
         matched_weights = rec[2]
 
         # code to mark original records as matched to curriculum by lo_code
-        if matched_new_rec && matched_new_rec[COL_REC_ID] &&  @records[matched_new_rec[COL_REC_ID]]
-          @records[matched_new_rec[COL_REC_ID]][COL_STATE] = 'match_lo_code'
+        Rails.logger.debug("*** matched_new_rec: #{matched_new_rec.inspect}")
+        if matched_new_rec && matched_new_rec[COL_REC_ID]
+          matched_rec_num = matched_new_rec[COL_REC_ID].to_i
+          Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
+          @records[matched_new_rec[COL_REC_ID].to_i][COL_STATE] = 'match_lo_code'
+        else
+          Rails.logger.error("Error: matching new record problem.")
+          raise("Error: matching new record problem.")
         end
 
         # determine if all actions have been determined (no mismatch actions)
@@ -525,7 +533,7 @@ class SubjectOutcomesController < ApplicationController
             end
 
           end
-          records.each do |rec|
+          @records.each do |rec|
             # Rails.logger.debug("*** new rec: #{rec}")
             case rec[PARAM_ACTION]
             when 'Add'
