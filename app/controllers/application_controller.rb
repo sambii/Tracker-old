@@ -502,10 +502,12 @@ class ApplicationController < ActionController::Base
   def handle_fatal_error(ex)
     # you can insert logic in here too to log errors
     # or get more error info and use different templates
-    Rails.logger.error("Error: Error 500 Exception - support email send")
-    Rails.logger.error("Exception: #{ex.exception} #{ex.message}")
-    SupportMailer.show(ex, request, session).deliver
-    # render file: "public/500.html", :status => 500
+    Rails.logger.error("Error 500 Exception")
+    if ex
+      Rails.logger.error("Exception: #{ex.message}")
+      Rails.logger.error("Error: support email send")
+      SupportMailer.show(ex, request, session).deliver
+    end
     raise "Fatal Error"
   end
 

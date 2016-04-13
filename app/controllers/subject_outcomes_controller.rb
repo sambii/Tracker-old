@@ -236,7 +236,6 @@ class SubjectOutcomesController < ApplicationController
       # process matches
       # new_lo_codes.product(old_lo_codes).each.map { |p| p if }
       # process matches
-      @match_count = 0
       @mismatch_count = 0
       @add_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
@@ -256,47 +255,38 @@ class SubjectOutcomesController < ApplicationController
         end
       end
 
-      @pair_count = 0
+      @match_count = @pairs_filtered.count
 
-      # # post process of matching
-      # @pairs.each do |rec|
-      #   old_rec_to_match = rec[0]
-      #   matched_new_rec = rec[1]
-      #   matched_weights = rec[2]
+      # post process of matching (including filtering @pairs to @pairs_filtered)
+      @pairs_filtered.each do |pair|
+        old_rec_to_match = pair[0]
+        matched_new_rec = pair[1]
+        matched_weights = pair[2]
+        Rails.logger.debug("*** check matching for record: #{old_rec_to_match[COL_DB_ID]}")
+        if matched_weights[:total_match] < @match_level
+          # ignore this match, it is below the match_level
+        else
+          # code to mark new uploaded records as matched by lo_code
+          if matched_new_rec && matched_new_rec[COL_REC_ID]
+            matched_rec_num = matched_new_rec[COL_REC_ID].to_i
+            Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
+            @records[matched_new_rec[COL_REC_ID].to_i][COL_STATE] = 'match_lo_code'
+          else
+            Rails.logger.error("Error: matching new record problem.")
+            raise("Error: matching new record problem.")
+          end
+        end
+      end
 
-      #   if matched_weights[:total_match] < @match_level
-      #     # ignore this match, it is below the match_level
-      #   else
-      #     @pairs_filtered << rec
-      #     @pair_count += 1
-      #     # code to mark new uploaded records as matched by lo_code
-      #     Rails.logger.debug("*** matched_new_rec: #{matched_new_rec.inspect}")
-      #     if matched_new_rec && matched_new_rec[COL_REC_ID]
-      #       matched_rec_num = matched_new_rec[COL_REC_ID].to_i
-      #       Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
-      #       @records[matched_new_rec[COL_REC_ID].to_i][COL_STATE] = 'match_lo_code'
-      #     else
-      #       Rails.logger.error("Error: matching new record problem.")
-      #       raise("Error: matching new record problem.")
-      #     end
-
-      #     # # determine if all actions have been determined (no mismatch actions)
-      #     # @mismatch_count += 1 if old_rec_to_match[PARAM_ACTION] == 'Mismatch' || (matched_new_rec && matched_new_rec[PARAM_ACTION] == 'Mismatch')
-      #     # @match_count += 1 if matched_weights[:total_match] == @match_level
-
-      #     # # determine if any action other than Add has been used (Add only till programming done)
-      #     # @not_add_count += 1 if !['', 'Add'].include?(old_rec_to_match[PARAM_ACTION])
-      #   end
-      #   # code to mark original records as matched to curriculum by lo_code
-      # end
-
+      step = 6
       # output any unmatched new records
       @records.each_with_index do |rx, ix|
         Rails.logger.debug("*** Check matching of rx #{ix}: #{rx.inspect}")
         if rx[COL_STATE].blank?
+          @add_count += 1
           Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
           add_pair = lo_match_old_new({}, rx, 0)
-          @pairs.concat(add_pair)
+          Rails.logger.debug("*** Add pair")
           @pairs_filtered.concat(add_pair)
         end
       end
@@ -462,19 +452,17 @@ class SubjectOutcomesController < ApplicationController
 
       # Rails.logger.debug("*** new_lo_codes_h: #{new_lo_codes_h.inspect}")
       # Rails.logger.debug("*** new_lo_names_h: #{new_lo_names_h.inspect}")
-      step = 41
+      step = 4
 
       # process matches
       # new_lo_codes.product(old_lo_codes).each.map { |p| p if }
       # process matches
       @match_level = params[:match_level].present? ? params[:match_level].to_i : 6
-      @match_count = 0
       @mismatch_count = 0
       @add_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
       iy = 0
       # process the database records (for all or selected subject)
-      step = 42
       old_los_by_lo.each do |rk, old_rec|
         Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
         # lookup the database lo_code in the new curriculum
@@ -483,51 +471,44 @@ class SubjectOutcomesController < ApplicationController
           # fix for when database has no matching code in the input file
           Rails.logger.debug("*** new_match true")
           matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}), @match_level)
-          Rails.logger.debug("*** matching_pairs: #{matching_pairs}")
+          Rails.logger.debug("*** matching_pairs: count: #{matching_pairs.count}, array: #{matching_pairs}")
           @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
         end
       end
 
-      # # post process of matching (including filtering @pairs to @pairs_filtered)
-      # @pairs.each do |rec|
-      #   Rails.logger.debug("*** rec: #{rec.inspect}")
-      #   old_rec_to_match = rec[0]
-      #   matched_new_rec = rec[1]
-      #   matched_weights = rec[2]
-
-      #   if matched_weights[:total_match] < @match_level
-      #     # ignore this match, it is below the match_level
-      #   else
-      #     @pairs_filtered << rec
-      #     # code to mark new uploaded records as matched by lo_code
-      #     Rails.logger.debug("*** matched_new_rec: #{matched_new_rec.inspect}")
-      #     if matched_new_rec && matched_new_rec[COL_REC_ID]
-      #       matched_rec_num = matched_new_rec[COL_REC_ID].to_i
-      #       Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
-      #       @records[matched_new_rec[COL_REC_ID].to_i][COL_STATE] = 'match_lo_code'
-      #     else
-      #       Rails.logger.error("Error: matching new record problem.")
-      #       raise("Error: matching new record problem.")
-      #     end
-
-      #     # # determine if all actions have been determined (no mismatch actions)
-      #     # @mismatch_count += 1 if old_rec_to_match[PARAM_ACTION] == 'Mismatch' || (matched_new_rec && matched_new_rec[PARAM_ACTION] == 'Mismatch')
-      #     # @match_count += 1 if matched_weights[:total_match] == @match_level
-
-      #     # # determine if any action other than Add has been used (Add only till programming done)
-      #     # @not_add_count += 1 if !['', 'Add'].include?(old_rec_to_match[PARAM_ACTION])
-      #   end
-      # end
+      @match_count = @pairs_filtered.count
 
       step = 5
+      # post process of matching (including filtering @pairs to @pairs_filtered)
+      @pairs_filtered.each do |pair|
+        old_rec_to_match = pair[0]
+        matched_new_rec = pair[1]
+        matched_weights = pair[2]
+        Rails.logger.debug("*** check matching for record: #{old_rec_to_match[COL_DB_ID]}")
+        if matched_weights[:total_match] < @match_level
+          # ignore this match, it is below the match_level
+        else
+          # code to mark new uploaded records as matched by lo_code
+          if matched_new_rec && matched_new_rec[COL_REC_ID]
+            matched_rec_num = matched_new_rec[COL_REC_ID].to_i
+            Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
+            @records[matched_new_rec[COL_REC_ID].to_i][COL_STATE] = 'match_lo_code'
+          else
+            Rails.logger.error("Error: matching new record problem.")
+            raise("Error: matching new record problem.")
+          end
+        end
+      end
+
+      step = 6
       # output any unmatched new records
       @records.each_with_index do |rx, ix|
         Rails.logger.debug("*** Check matching of rx #{ix}: #{rx.inspect}")
         if rx[COL_STATE].blank?
+          @add_count += 1
           Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
           add_pair = lo_match_old_new({}, rx, 0)
           Rails.logger.debug("*** Add pair")
-          @pairs.concat(add_pair)
           @pairs_filtered.concat(add_pair)
         end
       end
@@ -545,7 +526,7 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** add_count : #{@add_count}")
 
 
-      step = 6
+      step = 7
       action_count = 0
       @records4 = []
       if @mismatch_count == 0 && params[:submit_action] == 'save_all'
@@ -616,7 +597,7 @@ class SubjectOutcomesController < ApplicationController
       @stage = 5
     end
 
-    step = 7
+    step = 8
     respond_to do |format|
       Rails.logger.debug("@stage: #{@stage}")
       if @errors.count > 0

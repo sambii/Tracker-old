@@ -28,8 +28,11 @@ Tracker2::Application.routes.draw do
       post 'bulk_update_staff', defaults: {format: :html } # new ui
     end
   end
+  
   resources :system_administrators
   resources :school_administrators
+
+  match "schools/new_year_rollover" => "home#index", via: :get
   resources :schools do
     member do
       post 'new_year_rollover'
@@ -114,8 +117,9 @@ Tracker2::Application.routes.draw do
 
   resources :parents
 
+  match "subject_outcomes/lo_matching" => "home#index", via: :get
   match "subject_outcomes/lo_matching_update" => "home#index", via: :get
-  resources :subject_outcomes do
+  resources :subject_outcomes, except: [:show, :destroy] do
     collection do
       get 'upload_lo_file'
       post 'upload_lo_file'
