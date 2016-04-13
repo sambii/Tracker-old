@@ -28,7 +28,7 @@ module SubjectOutcomesHelper
   PARAM_ACTION = :'action'
 
   # matching levels
-  MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['loose', 3], ['tight', 4], ['tighter', 5], ['tightest', 6]]
+  MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['more loose', 3], ['loose', 4], ['tight', 5], ['more tight', 6], ['tighter', 7], ['tightest', 8]]
 
   # curriculum / LOs bulk upload file stage 2 processing - field validation
   def validate_csv_fields(csv_hash_in, subject_names)
@@ -196,46 +196,117 @@ module SubjectOutcomesHelper
     end
   end
 
-  def lo_match_old_new(old_rec, new_match, match_level)
-    # Rails.logger.debug("*** lo_match_old_new - old_rec: #{old_rec}, length: #{old_rec.length}")
-    # Rails.logger.debug("*** lo_match_old_new - new_match: #{new_match}")
-    return_array = []
+  def get_matching_level(old_rec, new_rec)
     match_h = Hash.new
+    match_h[:course_match] = 0
+    match_h[:grade_match] = 0
+    match_h[:mp_match] = 0
+    match_h[:code_match] = 0
+    match_h[:desc_match] = 0
     match_h[:total_match] = 0
-    old_rec[PARAM_ACTION] = ''
-    new_match[PARAM_ACTION] = ''
     # note setting default PARAM_ACTION sets the length of the old and new recs to be at least 1
-    if new_match.length > 1 && old_rec.length > 1
-      # Rails.logger.debug("*** passed matching check")
-      white = Text::WhiteSimilarity.new
-      match_h[:grade_match] = (old_rec[:grade] == new_match[COL_GRADE]) ? 1 : 0
-      match_h[:mp_match] = (old_rec[:mp] == new_match[COL_MP_BITMAP]) ? 1 : 0
-      match_h[:code_match] = (old_rec[DB_OUTCOME_CODE] == new_match[COL_OUTCOME_CODE]) ? 1 : 0
-      desc_old = old_rec[:desc].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
-      desc_new = new_match[COL_OUTCOME_NAME].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
-      match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99).floor
-      match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
-      if match_h[:total_match] == 6
-        # old and new are identitical, set to restore it if inactive
-        if !old_rec[COL_ACTIVE]
-          old_rec[PARAM_ACTION] = 'Restore'
-        end
-      end
-    elsif old_rec.length > 1 && new_match.length == 1
-      # old record with no matching new records - set to remove if active
-      if old_rec[COL_ACTIVE] == TRUE
-        old_rec[PARAM_ACTION] = 'Remove'
-      end
-    elsif new_match.length > 1
-      # no old record to match new record - set to add
-      new_match[PARAM_ACTION] = 'Add'
-    end
-
-    Rails.logger.debug("*** match_level: #{match_level} vs this match: #{match_h[:total_match]}")
-    # return an array of matches, for more than one possible match
-    return_array << [old_rec, new_match, match_h] if match_level <= match_h[:total_match]
-    return return_array
+    # Rails.logger.debug("*** passed matching check")
+    white = Text::WhiteSimilarity.new
+    match_h[:course_match] = 1 if old_rec[:course] == new_rec[COL_COURSE]
+    match_h[:grade_match] = 1 if old_rec[:grade] == new_rec[COL_GRADE]
+    match_h[:mp_match] = 1 if old_rec[:mp] == new_rec[COL_MP_BITMAP]
+    code_old = (old_rec[DB_OUTCOME_CODE].present?) ? old_rec[DB_OUTCOME_CODE].strip().split.join('\n') : ''
+    code_new = (new_rec[COL_OUTCOME_CODE].present?) ? new_rec[COL_OUTCOME_CODE].strip().split.join('\n') : ''
+    match_h[:code_match] = ( code_old == code_new ) ? 3 : (white.similarity(code_old, code_new) * 2.99).floor
+    # match_h[:code_match] = ( old_rec[DB_OUTCOME_CODE] == new_rec[COL_OUTCOME_CODE] ) ? 3 : (white.similarity(old_rec[DB_OUTCOME_CODE], new_rec[COL_OUTCOME_CODE]) * 2.99).floor
+    desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
+    desc_new = (new_rec[COL_OUTCOME_NAME].present?) ? new_rec[COL_OUTCOME_NAME].strip().split.join('\n') : ''
+    match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99).floor
+    match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
+    return match_h
   end
+
+  def lo_match_old(old_rec, new_lo_codes_h, new_lo_names_h, match_level)
+    return_array = []
+    single_return_array = []
+    new_lo_codes_h.each do |code, new_rec|
+      match_h = get_matching_level(old_rec, new_rec)
+      return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
+    end
+    new_lo_names_h.each do |desc, new_rec|
+      match_h = get_matching_level(old_rec, new_rec)
+      return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
+    end
+    check_dups = return_array.sort_by { |pair| pair[1]['rec_id']}
+    prior_rec_id = -1
+    check_dups.each do |pair|
+      Rails.logger.debug("*** check_dups: #{pair.inspect}")
+      single_return_array << pair if pair[1]['rec_id'] != prior_rec_id
+      prior_rec_id = pair[1]['rec_id']
+    end
+    if single_return_array.length == 0
+      Rails.logger.debug("*** add remove pair ")
+      # if no matches, then set to remove old record
+      old_rec[PARAM_ACTION] = 'Remove'
+      single_return_array << [old_rec, {}, match_h]
+    end
+    return single_return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
+  end
+
+  def lo_add_new(new_rec)
+    return_array = []
+    match_h = get_matching_level({}, new_rec)
+    return_array << [{}, new_rec, match_h]
+  end
+
+
+  # def lo_match_old_new(old_rec, new_match, match_level)
+  #   # Rails.logger.debug("*** lo_match_old_new - old_rec: #{old_rec}, length: #{old_rec.length}")
+  #   # Rails.logger.debug("*** lo_match_old_new - new_match: #{new_match}")
+  #   return_array = []
+  #   # match_h = Hash.new
+  #   # match_h[:course_match] = 0
+  #   # match_h[:grade_match] = 0
+  #   # match_h[:mp_match] = 0
+  #   # match_h[:code_match] = 0
+  #   # match_h[:desc_match] = 0
+  #   # match_h[:total_match] = 0
+  #   match_h = get_matching_level(old_rec, new_match)
+  #   old_rec[PARAM_ACTION] = ''
+  #   new_match[PARAM_ACTION] = ''
+  #   # note setting default PARAM_ACTION sets the length of the old and new recs to be at least 1
+  #   if new_match.length > 1 && old_rec.length > 1
+  #     # Rails.logger.debug("*** passed matching check")
+  #     # white = Text::WhiteSimilarity.new
+  #     # match_h[:course_match] = 1 if old_rec[:course] == new_match[COL_COURSE]
+  #     # match_h[:grade_match] = 1 if old_rec[:grade] == new_match[COL_GRADE]
+  #     # match_h[:mp_match] = 1 if old_rec[:mp] == new_match[COL_MP_BITMAP]
+  #     # match_h[:code_match] = ( old_rec[DB_OUTCOME_CODE] == new_match[COL_OUTCOME_CODE] ) ? 3 : (white.similarity(old_rec[DB_OUTCOME_CODE], new_match[COL_OUTCOME_CODE]) * 2.99).floor
+  #     # desc_old = old_rec[:desc].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
+  #     # desc_new = new_match[COL_OUTCOME_NAME].strip().split.join('\n') # remove carriage returns and leading/trailing spaces
+  #     # match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99).floor
+  #     # match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
+  #     if match_h[:total_match] == 9
+  #       # old and new are identitical, set to restore it if inactive
+  #       if !old_rec[COL_ACTIVE]
+  #         old_rec[PARAM_ACTION] = 'Restore'
+  #       end
+  #     end
+  #   elsif old_rec.length > 1 && new_match.length == 1
+  #     # old record with no matching new records - set to remove if active
+  #     if old_rec[COL_ACTIVE] == TRUE
+  #       old_rec[PARAM_ACTION] = 'Remove'
+  #     end
+  #   elsif new_match.length > 1
+  #     # no old record to match new record - set to add
+  #     new_match[PARAM_ACTION] = 'Add'
+  #   end
+
+  #   Rails.logger.debug("*** match_level: #{match_level} vs this match: #{match_h[:total_match]}")
+  #   # return an array of matches, for more than one possible match
+  #   return_array << [old_rec, new_match, match_h] if match_level <= match_h[:total_match]
+  #   if return_array.length == 0
+  #     # if no matches, then set to remove old record
+  #     old_rec[PARAM_ACTION] = 'Remove'
+  #     return_array << [old_rec, {}, match_h]
+  #   end
+  #   return return_array
+  # end
 
 
 end

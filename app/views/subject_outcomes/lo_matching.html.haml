@@ -62,7 +62,7 @@
                   %td{class: "#{deact_class}"}=rx[:lo_code]
                   %td{class: "#{deact_class}"}=rx[:desc]
                   %td.text-center{class: "#{error_class}"}
-                    - # = ('*' * match[:total_match])
+                    = ('*' * match[:total_match])
                     = "#{rx[SubjectOutcomesHelper::PARAM_ACTION]} / #{ry[SubjectOutcomesHelper::PARAM_ACTION]}"
                     %input{type: 'hidden', name: "pair[#{ix}][o][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: rx[SubjectOutcomesHelper::PARAM_ACTION]}
                     %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: ry[SubjectOutcomesHelper::PARAM_ACTION]}
@@ -76,25 +76,37 @@
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_MP_BITMAP}]", value: ry[SubjectOutcomesHelper::COL_MP_BITMAP]}
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_CODE}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]}
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_NAME}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]}
-                  %td{class: "match-field-#{match[:subj_match]}"}=ry[SubjectOutcomesHelper::COL_COURSE]
+                  %td{class: "match-field-#{match[:course_match]}"}=ry[SubjectOutcomesHelper::COL_COURSE]
                   %td{class: "match-field-#{match[:grade_match]}"}=ry[SubjectOutcomesHelper::COL_GRADE]
                   %td{class: "match-field-#{match[:mp_match]}"}=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
-                  %td{class: "match-field-#{match[:code_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
+                  %td{class: "similar-field-#{match[:code_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
                   %td{class: "similar-field-#{match[:desc_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
           .row
-            %fieldset.input-group
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='Old LO Count:'
+              %span#old-lo-count.col-sm-2
+                = @old_records_counts
+              .col-sm-3
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='New LO Count:'
+              %span#new-lo-count.col-sm-2
+                = @records.count
+              .col-sm-3
+            %fieldset
               .col-sm-5
               %label.col-sm-2.control-label='Match Count:'
               %span#match-count.col-sm-2
                 = @match_count
               .col-sm-3
-            %fieldset.input-group
+            %fieldset
               .col-sm-5
               %label.col-sm-2.control-label='Mismatch Count:'
               %span#mismatch-count.col-sm-2
                 = @mismatch_count
               .col-sm-3
-            %fieldset.input-group
+            %fieldset
               .col-sm-5
               %label.col-sm-2.control-label='Add Count:'
               %span#add-count.col-sm-2

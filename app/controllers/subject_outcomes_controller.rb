@@ -193,7 +193,7 @@ class SubjectOutcomesController < ApplicationController
         # new_lo_codes_by_lo << { lo_code: rx[COL_OUTCOME_CODE], ix: ix }
         # new_lo_codes_by_name << { name: shortened_name, ix: ix }
         new_lo_codes_h[rx[COL_OUTCOME_CODE]] = rec
-        Rails.logger.debug("*** @record[#{ix}]: [#{rx.inspect}")
+        # Rails.logger.debug("*** @record[#{ix}]: [#{rx.inspect}")
         # Rails.logger.debug("*** new_lo_codes[#{rx[COL_OUTCOME_CODE]}] = #{rx[COL_REC_ID]}")
         new_lo_names_h[shortened_name] = rec
       end
@@ -217,6 +217,7 @@ class SubjectOutcomesController < ApplicationController
             name: so.name,
             short_desc: so.shortened_description,
             desc: so.description,
+            course: so.subject.subject_name_without_grade,
             grade: so.subject.grade_from_subject_name,
             mp: SubjectOutcome.get_bitmask_string(so.marking_period),
             active: so.active
@@ -228,9 +229,10 @@ class SubjectOutcomesController < ApplicationController
           end
         end
       end
+      Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
+      @old_records_counts = old_los_by_lo.count
 
-      @match_level = 6
-      @pairs = Array.new
+      @match_level = 8
       @pairs_filtered = Array.new
 
       # process matches
@@ -244,20 +246,21 @@ class SubjectOutcomesController < ApplicationController
       old_los_by_lo.each do |rk, old_rec|
         Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
         # lookup the database lo_code in the new curriculum
-        new_match = new_lo_codes_h[rk]
-        if new_match
-          # fix for when database has no matching code in the input file
-          Rails.logger.debug("*** new_match true")
-          matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}), @match_level)
-          # @records3 << [old_rec, new_match, matches] # output matches for matching report
-          @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
-
-        end
+        # new_match = new_lo_codes_h[rk]
+        # if new_match
+        #   # fix for when database has no matching code in the input file
+        #   Rails.logger.debug("*** new_match true")
+        #   matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}), @match_level)
+        #   # @records3 << [old_rec, new_match, matches] # output matches for matching report
+        #   @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
+        # end
+        matching_pairs = lo_match_old(old_rec, new_lo_codes_h, new_lo_names_h, @match_level)
+        @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
       end
 
       @match_count = @pairs_filtered.count
 
-      # post process of matching (including filtering @pairs to @pairs_filtered)
+      # mark records as matched for matching @pairs_filtered
       @pairs_filtered.each do |pair|
         old_rec_to_match = pair[0]
         matched_new_rec = pair[1]
@@ -285,14 +288,14 @@ class SubjectOutcomesController < ApplicationController
         if rx[COL_STATE].blank?
           @add_count += 1
           Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
-          add_pair = lo_match_old_new({}, rx, 0)
+          # use matching level 0, so it is always added to the pairs
+          add_pair = lo_add_new(rx)
           Rails.logger.debug("*** Add pair")
           @pairs_filtered.concat(add_pair)
         end
       end
-
-      Rails.logger.debug("*** records count: #{@records.count}")
-      Rails.logger.debug("*** pairs count: #{@pairs.count}")
+      Rails.logger.debug("*** database records count: #{old_los_by_lo.count}")
+      Rails.logger.debug("*** csv records read count: #{@records.count}")
       Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
       Rails.logger.debug("*** match_count : #{@match_count}")
       Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
@@ -335,7 +338,6 @@ class SubjectOutcomesController < ApplicationController
       @stage = 1
       step = 0
       @records = Array.new
-      @pairs = Array.new
       @pairs_filtered = Array.new
       @errors = Hash.new
 
@@ -386,6 +388,7 @@ class SubjectOutcomesController < ApplicationController
             name: so.name,
             short_desc: so.shortened_description,
             desc: so.description,
+            course: so.subject.subject_name_without_grade,
             grade: so.subject.grade_from_subject_name,
             mp: SubjectOutcome.get_bitmask_string(so.marking_period),
             active: so.active
@@ -397,6 +400,9 @@ class SubjectOutcomesController < ApplicationController
           end
         end
       end
+
+      Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
+      @old_records_counts = old_los_by_lo.count
 
       # process request parameters
       # recreate uploaded records to process
@@ -457,29 +463,30 @@ class SubjectOutcomesController < ApplicationController
       # process matches
       # new_lo_codes.product(old_lo_codes).each.map { |p| p if }
       # process matches
-      @match_level = params[:match_level].present? ? params[:match_level].to_i : 6
+      @match_level = params[:match_level].present? ? params[:match_level].to_i : 8
       @mismatch_count = 0
       @add_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
       iy = 0
-      # process the database records (for all or selected subject)
       old_los_by_lo.each do |rk, old_rec|
         Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
         # lookup the database lo_code in the new curriculum
-        new_match = new_lo_codes_h[rk]
-        if new_match
-          # fix for when database has no matching code in the input file
-          Rails.logger.debug("*** new_match true")
-          matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}), @match_level)
-          Rails.logger.debug("*** matching_pairs: count: #{matching_pairs.count}, array: #{matching_pairs}")
-          @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
-        end
+        # new_match = new_lo_codes_h[rk]
+        # if new_match
+        #   # fix for when database has no matching code in the input file
+        #   Rails.logger.debug("*** new_match true")
+        #   matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}), @match_level)
+        #   # @records3 << [old_rec, new_match, matches] # output matches for matching report
+        #   @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
+        # end
+        matching_pairs = lo_match_old(old_rec, new_lo_codes_h, new_lo_names_h, @match_level)
+        @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
       end
 
       @match_count = @pairs_filtered.count
 
       step = 5
-      # post process of matching (including filtering @pairs to @pairs_filtered)
+      # mark records as matched for matching @pairs_filtered
       @pairs_filtered.each do |pair|
         old_rec_to_match = pair[0]
         matched_new_rec = pair[1]
@@ -507,7 +514,7 @@ class SubjectOutcomesController < ApplicationController
         if rx[COL_STATE].blank?
           @add_count += 1
           Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
-          add_pair = lo_match_old_new({}, rx, 0)
+          add_pair = lo_add_new(rx)
           Rails.logger.debug("*** Add pair")
           @pairs_filtered.concat(add_pair)
         end
@@ -518,7 +525,6 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** Update? : #{@mismatch_count == 0 && params[:submit_action] == 'save_all'}")
 
       Rails.logger.debug("*** records count: #{@records.count}")
-      Rails.logger.debug("*** pairs count: #{@pairs.count}")
       Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
       Rails.logger.debug("*** match_count : #{@match_count}")
       Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")

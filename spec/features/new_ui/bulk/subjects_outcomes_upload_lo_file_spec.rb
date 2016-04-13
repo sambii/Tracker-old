@@ -75,6 +75,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     end
     it { bulk_upload_all_matching }
     it { bulk_upload_art_matching }
+    it { bulk_upload_advisory_add }
+    it { bulk_upload_art_mismatches }
   end
 
   describe "as student" do
@@ -113,6 +115,12 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
+      within("#old-lo-count") do
+        page.should have_content('27')
+      end
+      within("#new-lo-count") do
+        page.should have_content('27')
+      end
       within("#match-count") do
         page.should have_content('27')
       end
@@ -139,9 +147,89 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
+      sleep 20
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
+      within("#old-lo-count") do
+        page.should have_content('4')
+      end
+      within("#new-lo-count") do
+        page.should have_content('4')
+      end
+      within("#match-count") do
+        page.should have_content('4')
+      end
+      within("#mismatch-count") do
+        page.should have_content('0')
+      end
+      within("#add-count") do
+        page.should have_content('0')
+      end
+      page.should have_button("SAVE ALL")
+      find('#save').click
+    end # within #page-content
+  end # def bulk_upload_art_matching
+
+
+  # test for single subject bulk upload of Learning Outcomes into Model School
+  def bulk_upload_advisory_add
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Advisory 1', from: "subject_id")
+      end
+      find('#upload').click
+      sleep 20
+      # if no errors, then save button should be showing
+      page.should have_css("#save")
+      page.should have_content('Match Old LOs to New LOs')
+      within("#old-lo-count") do
+        page.should have_content('1')
+      end
+      within("#new-lo-count") do
+        page.should have_content('2')
+      end
+      within("#match-count") do
+        page.should have_content('1')
+      end
+      within("#mismatch-count") do
+        page.should have_content('0')
+      end
+      within("#add-count") do
+        page.should have_content('1')
+      end
+      page.should have_button("SAVE ALL")
+      find('#save').click
+    end # within #page-content
+  end # def bulk_upload_art_matching
+
+  # test for single subject bulk upload of Learning Outcomes into Model School
+  def bulk_upload_art_mismatches
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Art 2', from: "subject_id")
+      end
+      find('#upload').click
+      sleep 20
+      # if no errors, then save button should be showing
+      page.should have_css("#save")
+      page.should have_content('Match Old LOs to New LOs')
+      within("#old-lo-count") do
+        page.should have_content('4')
+      end
+      within("#new-lo-count") do
+        page.should have_content('4')
+      end
       within("#match-count") do
         page.should have_content('4')
       end
