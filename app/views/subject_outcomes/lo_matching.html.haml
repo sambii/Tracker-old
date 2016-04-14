@@ -70,6 +70,8 @@
                       %input{type: 'hidden', name: "pair[#{ix}][o][rec_id]", value: rx[SubjectOutcomesHelper::COL_DB_ID]}
                     - if ry.length > 0
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_REC_ID}]", value: ry[SubjectOutcomesHelper::COL_REC_ID]}
+                    - if ry.length > 0 && ry[:unique] == true
+                      = '->'
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_COURSE_ID}]", value: ry[SubjectOutcomesHelper::COL_COURSE_ID]}
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_COURSE}]", value: ry[SubjectOutcomesHelper::COL_COURSE]}
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_GRADE}]", value: ry[SubjectOutcomesHelper::COL_GRADE]}

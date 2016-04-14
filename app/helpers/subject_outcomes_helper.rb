@@ -234,7 +234,8 @@ module SubjectOutcomesHelper
       return_array << [old_rec, {}, match_h]
     end
     # return matches in descending match_level order
-    return return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
+    sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
+    return sorted_array
   end
 
   def lo_add_new(new_rec)

@@ -468,43 +468,40 @@ class SubjectOutcomesController < ApplicationController
       @add_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
       iy = 0
+      pairs_combined = []
       old_los_by_lo.each do |rk, old_rec|
         Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
-        # lookup the database lo_code in the new curriculum
-        # new_match = new_lo_codes_h[rk]
-        # if new_match
-        #   # fix for when database has no matching code in the input file
-        #   Rails.logger.debug("*** new_match true")
-        #   matching_pairs= lo_match_old_new(old_rec, (new_match ||= {}), @match_level)
-        #   # @records3 << [old_rec, new_match, matches] # output matches for matching report
-        #   @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
-        # end
         matching_pairs = lo_match_old(old_rec, @records, @match_level)
-        @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
+        pairs_combined.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
       end
 
-      @match_count = @pairs_filtered.count
+      @match_count = pairs_combined.count
 
       step = 5
-      # mark records as matched for matching @pairs_filtered
-      @pairs_filtered.each do |pair|
+      # mark new records as matched.
+      # mark unique new records in pairs (for output to next page).
+      pairs_combined.each_with_index do |pair, ix|
         old_rec_to_match = pair[0]
-        matched_new_rec = pair[1]
+        matched_new_rec = pair[1].clone
         matched_weights = pair[2]
-        Rails.logger.debug("*** check matching for record: #{old_rec_to_match[COL_DB_ID]}")
-        if matched_weights[:total_match] < @match_level
-          # ignore this match, it is below the match_level
-        else
-          # code to mark new uploaded records as matched by lo_code
-          if matched_new_rec && matched_new_rec[COL_REC_ID]
-            matched_rec_num = matched_new_rec[COL_REC_ID].to_i
-            Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
-            @records[matched_new_rec[COL_REC_ID].to_i][COL_STATE] = 'match_lo_code'
-          else
-            Rails.logger.error("Error: matching new record problem.")
-            raise("Error: matching new record problem.")
+        # code to mark new uploaded records as matched (in a matching pair)
+        Rails.logger.debug("*** unique: #{matched_new_rec[:unique]}")
+        if matched_new_rec && matched_new_rec[COL_REC_ID]
+          matched_rec_num = matched_new_rec[COL_REC_ID].to_i
+          Rails.logger.debug("*** pair: #{ix} - matched_rec_num: #{matched_rec_num}")
+          if @records[matched_rec_num][COL_STATE] != 'match_lo_code'
+            Rails.logger.debug("*** set as matched and unique")
+            # not matched yet, set as matched.
+            @records[matched_rec_num][COL_STATE] = 'match_lo_code'
+            # set to output to next page.
+            matched_new_rec[:unique] = true
           end
+        else
+          Rails.logger.error("Error: matching new record problem.")
+          raise("Error: matching new record problem.")
         end
+        Rails.logger.debug("*** unique: #{matched_new_rec[:unique]}")
+        @pairs_filtered << [old_rec_to_match, matched_new_rec, matched_weights]
       end
 
       step = 6
