@@ -254,7 +254,7 @@ class SubjectOutcomesController < ApplicationController
         #   # @records3 << [old_rec, new_match, matches] # output matches for matching report
         #   @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
         # end
-        matching_pairs = lo_match_old(old_rec, new_lo_codes_h, new_lo_names_h, @match_level)
+        matching_pairs = lo_match_old(old_rec, @records, @match_level)
         @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
       end
 
@@ -479,7 +479,7 @@ class SubjectOutcomesController < ApplicationController
         #   # @records3 << [old_rec, new_match, matches] # output matches for matching report
         #   @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
         # end
-        matching_pairs = lo_match_old(old_rec, new_lo_codes_h, new_lo_names_h, @match_level)
+        matching_pairs = lo_match_old(old_rec, @records, @match_level)
         @pairs_filtered.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
       end
 

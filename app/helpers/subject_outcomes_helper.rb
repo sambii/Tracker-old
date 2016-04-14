@@ -221,31 +221,20 @@ module SubjectOutcomesHelper
     return match_h
   end
 
-  def lo_match_old(old_rec, new_lo_codes_h, new_lo_names_h, match_level)
+  def lo_match_old(old_rec, new_recs, match_level)
     return_array = []
-    single_return_array = []
-    new_lo_codes_h.each do |code, new_rec|
+    # check matching against all new records, returning all that match at or above match_level
+    new_recs.each do |new_rec|
       match_h = get_matching_level(old_rec, new_rec)
       return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
     end
-    new_lo_names_h.each do |desc, new_rec|
+    # if no matches add a pair with a blank new record (for deactivation)
+    if return_array.length == 0
       match_h = get_matching_level(old_rec, new_rec)
-      return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
+      return_array << [old_rec, {}, match_h]
     end
-    check_dups = return_array.sort_by { |pair| pair[1]['rec_id']}
-    prior_rec_id = -1
-    check_dups.each do |pair|
-      Rails.logger.debug("*** check_dups: #{pair.inspect}")
-      single_return_array << pair if pair[1]['rec_id'] != prior_rec_id
-      prior_rec_id = pair[1]['rec_id']
-    end
-    if single_return_array.length == 0
-      Rails.logger.debug("*** add remove pair ")
-      # if no matches, then set to remove old record
-      old_rec[PARAM_ACTION] = 'Remove'
-      single_return_array << [old_rec, {}, match_h]
-    end
-    return single_return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
+    # return matches in descending match_level order
+    return return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
   end
 
   def lo_add_new(new_rec)
