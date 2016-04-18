@@ -230,7 +230,7 @@ module SubjectOutcomesHelper
     end
     # if no matches add a pair with a blank new record (for deactivation)
     if return_array.length == 0
-      match_h = get_matching_level(old_rec, new_rec)
+      match_h = get_matching_level(old_rec, {})
       return_array << [old_rec, {}, match_h]
     end
     # return matches in descending match_level order

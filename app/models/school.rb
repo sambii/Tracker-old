@@ -7,7 +7,6 @@ class School < ActiveRecord::Base
   USE_FAMILY_NAME = 'use_family_name'
   USER_BY_FIRST_LAST = 'user_by_first_last'
   GRADE_IN_SUBJECT_NAME = 'grade_in_subject_name'
-  GRADE_IN_LO_CODE = 'grade_in_subject_name'
   # Access Control
   # using_access_control
   # attr_accessible :flag_par
