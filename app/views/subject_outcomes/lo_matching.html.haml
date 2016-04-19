@@ -60,6 +60,7 @@
                 - else
                   - break_class = ''
                 - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
+                - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
                 %tr{ class: "#{highlight_class} #{break_class}"}
                   - deact_class = (rx[:active] == false ? 'deactivated ' : '')
                   - # error_class = (rx[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch' || ry[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch') ? 'ui-error' : ''
@@ -70,16 +71,19 @@
                   %td{class: "#{deact_class}"}=rx[:lo_code]
                   %td{class: "#{deact_class}"}=rx[:desc]
                   %td.text-center{class: "#{error_class}"}
-                    = ('*' * match[:total_match])
-                    = "#{rx[SubjectOutcomesHelper::PARAM_ACTION]} / #{ry[SubjectOutcomesHelper::PARAM_ACTION]}"
+                    %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}='='
+                    = radio_button_tag "selections[#{rx[:lo_code]}]", "#{new_rec_id}", rx[:matched] == new_rec_id, id: "selections[#{rx[:lo_code]}_#{new_rec_id}]"
+                    - if rx[:matched] == new_rec_id
+                      %br
+                      %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}='x'
+                      = radio_button_tag "selections[#{rx[:lo_code]}]", "-1", false, id: "selections[#{rx[:lo_code]}_-1]"
                     %input{type: 'hidden', name: "pair[#{ix}][o][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: rx[SubjectOutcomesHelper::PARAM_ACTION]}
                     %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: ry[SubjectOutcomesHelper::PARAM_ACTION]}
                     - if rx.length > 0
                       %input{type: 'hidden', name: "pair[#{ix}][o][rec_id]", value: rx[SubjectOutcomesHelper::COL_DB_ID]}
                     - if ry.length > 0
-                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_REC_ID}]", value: ry[SubjectOutcomesHelper::COL_REC_ID]}
+                      %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_REC_ID}]", value: new_rec_id}
                     - if ry.length > 0 && ry[:unique] == true
-                      = '->'
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_COURSE_ID}]", value: ry[SubjectOutcomesHelper::COL_COURSE_ID]}
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_COURSE}]", value: ry[SubjectOutcomesHelper::COL_COURSE]}
                       %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_GRADE}]", value: ry[SubjectOutcomesHelper::COL_GRADE]}
