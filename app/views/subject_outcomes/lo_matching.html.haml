@@ -24,7 +24,7 @@
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
 
-          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
             %thead.table-title
               %tr
                 %th{colspan: 12}
@@ -45,14 +45,22 @@
                 %th= 'New LO Code'
                 %th= 'New Description'
             %tbody.tbody-body
+              - prior_old_id = 0
+              - highlight_class = ''
               - @pairs_filtered.each_with_index do |set, ix|
                 - rx = set[0]
                 - ry = set[1]
                 - match = set[2]
-                - # Rails.logger.debug("+++ match: rx: #{rx.inspect}")
-                - # Rails.logger.debug("+++ match: ry: #{ry.inspect}")
-                - # Rails.logger.debug("+++ match: match: #{match.inspect}")
-                %tr
+                - # set up alternate old record highlighting
+                - if prior_old_id == 0 
+                  - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
+                - if prior_old_id != rx[SubjectOutcomesHelper::COL_DB_ID]
+                  - highlight_class = (highlight_class == 'on' ? '' : 'on')
+                  - break_class = 'break'
+                - else
+                  - break_class = ''
+                - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
+                %tr{ class: "#{highlight_class} #{break_class}"}
                   - deact_class = (rx[:active] == false ? 'deactivated ' : '')
                   - # error_class = (rx[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch' || ry[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch') ? 'ui-error' : ''
                   - error_class = (![''].include?(rx[SubjectOutcomesHelper::PARAM_ACTION]) || !['', 'Add'].include?(ry[SubjectOutcomesHelper::PARAM_ACTION])) ? 'ui-error' : ''
