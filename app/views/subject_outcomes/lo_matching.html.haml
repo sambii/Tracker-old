@@ -34,7 +34,7 @@
                   %input{type: 'hidden', name: "subject_id", value: @subject_id}
               %tr
                 %th= 'Old Subject'
-                %th= 'Old Grade'
+                %th= 'Old Active'
                 %th= 'Old Marking Period'
                 %th= 'Old LO Code'
                 %th= 'Old Description'
@@ -66,7 +66,7 @@
                   - # error_class = (rx[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch' || ry[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch') ? 'ui-error' : ''
                   - error_class = (![''].include?(rx[SubjectOutcomesHelper::PARAM_ACTION]) || !['', 'Add'].include?(ry[SubjectOutcomesHelper::PARAM_ACTION])) ? 'ui-error' : ''
                   %td{class: "#{deact_class}"}=rx[:subject_name]
-                  %td{class: "#{deact_class}"}=rx[:grade]
+                  %td{class: "#{deact_class}"}=rx[:active]
                   %td{class: "#{deact_class}"}=rx[:mp]
                   %td{class: "#{deact_class}"}=rx[:lo_code]
                   %td{class: "#{deact_class}"}=rx[:desc]
@@ -93,7 +93,7 @@
                   %td{class: "match-field-#{match[:course_match]}"}=ry[SubjectOutcomesHelper::COL_COURSE]
                   %td{class: "match-field-#{match[:grade_match]}"}=ry[SubjectOutcomesHelper::COL_GRADE]
                   %td{class: "match-field-#{match[:mp_match]}"}=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
-                  %td{class: "similar-field-#{match[:code_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
+                  %td{class: "similar-field-#{match[:code_match]+1}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
                   %td{class: "similar-field-#{match[:desc_match]}"}=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
           .row
             %fieldset

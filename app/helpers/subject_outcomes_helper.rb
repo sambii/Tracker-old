@@ -203,6 +203,7 @@ module SubjectOutcomesHelper
     match_h[:mp_match] = 0
     match_h[:code_match] = 0
     match_h[:desc_match] = 0
+    match_h[:active_match] = 0
     match_h[:total_match] = 0
     # note setting default PARAM_ACTION sets the length of the old and new recs to be at least 1
     # Rails.logger.debug("*** passed matching check")
@@ -212,11 +213,12 @@ module SubjectOutcomesHelper
     match_h[:mp_match] = 1 if old_rec[:mp] == new_rec[COL_MP_BITMAP]
     code_old = (old_rec[DB_OUTCOME_CODE].present?) ? old_rec[DB_OUTCOME_CODE].strip().split.join('\n') : ''
     code_new = (new_rec[COL_OUTCOME_CODE].present?) ? new_rec[COL_OUTCOME_CODE].strip().split.join('\n') : ''
-    match_h[:code_match] = ( code_old == code_new ) ? 3 : (white.similarity(code_old, code_new) * 2.99).floor
+    match_h[:code_match] = ( code_old == code_new ) ? 2 : (white.similarity(code_old, code_new) * 1.99).floor
     # match_h[:code_match] = ( old_rec[DB_OUTCOME_CODE] == new_rec[COL_OUTCOME_CODE] ) ? 3 : (white.similarity(old_rec[DB_OUTCOME_CODE], new_rec[COL_OUTCOME_CODE]) * 2.99).floor
     desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
     desc_new = (new_rec[COL_OUTCOME_NAME].present?) ? new_rec[COL_OUTCOME_NAME].strip().split.join('\n') : ''
     match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99).floor
+    match_h[:active_match] = old_rec[:active] == true ? 1 : 0
     match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
     return match_h
   end
