@@ -160,7 +160,7 @@ module LoadSectionHelper
     Rails.logger.debug("***** create_and_load_model_school")
     # this needs to be run before any other schools are created, so the ID is 1
     create_arabic_model_school
-    create_training_school
+    create_arabic_training_school
     model_school_subjects(@model_school)
     model_school_subjects_outcomes(@model_school)
   end
@@ -180,7 +180,22 @@ module LoadSectionHelper
   def create_training_school
     Rails.logger.debug("***** create_training_school")
     # this needs to be run after create_model_school and before any other schools are created, so the ID is 2
+    @training_school = FactoryGirl.create :school, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
+  end
+
+  def create_arabic_training_school
+    Rails.logger.debug("***** create_training_school")
+    # this needs to be run after create_model_school and before any other schools are created, so the ID is 2
     @training_school = FactoryGirl.create :school, :arabic, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
+  end
+
+  def create_school1
+    @section = FactoryGirl.create :section
+    @school1 = @section.school
+    @teacher = FactoryGirl.create :teacher, school: @school1
+    @school_administrator = FactoryGirl.create :school_administrator, school: @school1
+    load_test_section(@section, @teacher)
+    @subject = @section.subject
   end
 
   # Create learning outcomes for the Model School Subjects

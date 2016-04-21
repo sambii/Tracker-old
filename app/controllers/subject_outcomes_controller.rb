@@ -278,8 +278,6 @@ class SubjectOutcomesController < ApplicationController
           Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
           # use matching level 0, so it is always added to the pairs
           add_pair = lo_add_new(rx)
-          add_pair[0][:lo_code] = "add.#{rx['LO Code:']}"
-          Rails.logger.debug("*** Add pair")
           @pairs_filtered.concat(add_pair)
         end
       end
@@ -322,7 +320,7 @@ class SubjectOutcomesController < ApplicationController
   # new UI HTML post method
   def lo_matching
     authorize! :manage, :all # only system admins
-    Rails.logger.debug("*** SchoolsController.lo_matching started")
+    Rails.logger.debug("*** SubjectOutcomesController.lo_matching started")
     begin
       @stage = 1
       step = 0

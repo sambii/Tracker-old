@@ -5,7 +5,7 @@ require 'spec_helper'
 describe "Subject Outcomes Bulk Upload LOs", js:true do
   before (:each) do
 
-    create_and_load_model_school
+    create_and_load_arabic_model_school
 
     # two subjects in @school1
     @section1_1 = FactoryGirl.create :section
@@ -122,12 +122,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within("#new-lo-count") do
         page.should have_content('27')
       end
-      within("#match-count") do
-        page.should have_content('27')
-      end
-      within("#mismatch-count") do
-        page.should have_content('0')
-      end
       within("#add-count") do
         page.should have_content('0')
       end
@@ -148,7 +142,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      sleep 20
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
@@ -157,12 +150,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       within("#new-lo-count") do
         page.should have_content('4')
-      end
-      within("#match-count") do
-        page.should have_content('4')
-      end
-      within("#mismatch-count") do
-        page.should have_content('0')
       end
       within("#add-count") do
         page.should have_content('0')
@@ -185,7 +172,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Advisory 1', from: "subject_id")
       end
       find('#upload').click
-      sleep 20
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
@@ -194,12 +180,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       within("#new-lo-count") do
         page.should have_content('2')
-      end
-      within("#match-count") do
-        page.should have_content('1')
-      end
-      within("#mismatch-count") do
-        page.should have_content('0')
       end
       within("#add-count") do
         page.should have_content('1')
@@ -222,7 +202,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 2', from: "subject_id")
       end
       find('#upload').click
-      sleep 20
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
@@ -232,14 +211,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within("#new-lo-count") do
         page.should have_content('4')
       end
-      within("#match-count") do
-        page.should have_content('4')
-      end
-      within("#mismatch-count") do
-        page.should have_content('0')
-      end
       within("#add-count") do
-        page.should have_content('0')
+        page.should have_content('1')
       end
       page.should have_button("SAVE ALL")
       find('#save').click
@@ -254,40 +227,7 @@ describe "Subject Outcomes Bulk Upload LOs Invalid School", js:true do
   before (:each) do
 
     create_and_load_model_school
-
-    # # two subjects in @school1
-    # @section1_1 = FactoryGirl.create :section
-    # @subject1 = @section1_1.subject
-    # @school1 = @section1_1.school
-    # @teacher1 = @subject1.subject_manager
-    # @discipline = @subject1.discipline
-
-    # load_test_section(@section1_1, @teacher1)
-
-    # @section1_2 = FactoryGirl.create :section, subject: @subject1
-    # ta1 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_2
-    # @section1_3 = FactoryGirl.create :section, subject: @subject1
-    # ta2 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_3
-
-    # @subject2 = FactoryGirl.create :subject, subject_manager: @teacher1
-    # @section2_1 = FactoryGirl.create :section, subject: @subject2
-    # @section2_2 = FactoryGirl.create :section, subject: @subject2
-    # @section2_3 = FactoryGirl.create :section, subject: @subject2
-    # @discipline2 = @subject2.discipline
-
-    # # another subject in @school2
-    # @section3_1 = FactoryGirl.create :section
-    # @subject3 = @section3_1.subject
-    # @school2 = @section3_1.school
-    # @teacher2 = @subject1.subject_manager
-    # @section3_2 = FactoryGirl.create :section, subject: @subject3
-    # @section3_3 = FactoryGirl.create :section, subject: @subject3
-
-    # # @file = fixture_file_upload('files/bulk_upload_los_initial.csv', 'text/csv')
-    # @file = Rack::Test::UploadedFile.new(
-    #   Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'),
-    #   'text/csv'
-    # )
+    create_school1
 
   end
 
@@ -305,9 +245,9 @@ describe "Subject Outcomes Bulk Upload LOs Invalid School", js:true do
 
   def cannot_see_bulk_upload_los
     visit upload_lo_file_subject_outcomes_path()
-    assert_not_equal("/subject_outcomes/upload_lo_file", current_path)
-    # page.should have_content('Match Old LOs to New LOs')
-    # page.should_not have_content('Upload Curriculum / LOs File')
+    assert_equal("/subject_outcomes/upload_lo_file", current_path)
+    page.should have_content('Upload Learning Outcomes from Curriculum')
+    page.should have_content('This school is not configured for Bulk Uploading Learning Outcomes')
   end
 
 end
