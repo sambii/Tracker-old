@@ -31,8 +31,8 @@
     - if can?(:create, Subject)
       %a#add_lo.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_subject_path(format: :js), title: 'Create Subject'}}
         %i.fa.fa-lg.fa-plus-square
-    - if can?(:switch, School)
-      %a#upload-los.btn.btn-sm.btn-primary{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes', class: (@school.acronym == 'MOD' ? '' : 'deactivated arrow-cursor')}
+    - if @school.acronym == 'MOD' && can?(:switch, School) && can?(:upload_lo_file, SubjectOutcome) && @school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
+      %a#upload-los.btn.btn-sm.btn-primary{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}
         %i.fa.fa-lg.fa-lightbulb-o
         %i.fa.fa-lg.fa-upload
     - if can? :enter_bulk, Section

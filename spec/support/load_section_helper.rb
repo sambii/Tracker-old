@@ -47,7 +47,7 @@ module LoadSectionHelper
       @subject_outcomes[subjo.id] = subjo
     end
 
-    # create the section outcomes for the subject outcomes 
+    # create the section outcomes for the subject outcomes
     @section_outcomes = Hash.new
     @subject_outcomes.each do |sok, subject_outcome|
       # Random.rand(1000) % 2 == 0 ? m = true : m = false #randomly minimize sections
@@ -156,7 +156,22 @@ module LoadSectionHelper
     model_school_subjects_outcomes(@model_school)
   end
 
+  def create_and_load_arabic_model_school
+    Rails.logger.debug("***** create_and_load_model_school")
+    # this needs to be run before any other schools are created, so the ID is 1
+    create_arabic_model_school
+    create_training_school
+    model_school_subjects(@model_school)
+    model_school_subjects_outcomes(@model_school)
+  end
+
   def create_model_school
+    Rails.logger.debug("***** create_model_school")
+    # this needs to be run before any other schools are created, so the ID is 1
+    @model_school = FactoryGirl.create :school, marking_periods:"2", name: 'Model School', acronym: 'MOD'
+  end
+
+  def create_arabic_model_school
     Rails.logger.debug("***** create_model_school")
     # this needs to be run before any other schools are created, so the ID is 1
     @model_school = FactoryGirl.create :school, :arabic, marking_periods:"2", name: 'Model School', acronym: 'MOD'

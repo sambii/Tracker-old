@@ -13,8 +13,15 @@
       %h2.h1.page-title.text-center
         %strong='Upload Learning Outcomes from Curriculum'
     .col-sm-1
-
-.row
+- if !@school.acronym == 'MOD'
+  .row 'This is only allowed for the Model School'
+- if !can?(:switch, School)
+  .row 'This is only allowed for users who can see multiple schools'
+- if !can?(:upload_lo_file, SubjectOutcome)
+  .row 'You are not allowed to Bulk Upload Learning Outcomes'
+- if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
+  .row 'This school is not configured for Bulk Uploading Learning Outcomes'
+.row{class: (@school.acronym == 'MOD' && can?(:switch, School) && can?(:upload_lo_file, SubjectOutcome) && @school.has_flag?(School::GRADE_IN_SUBJECT_NAME) ? '' : 'display-none')}
   .col-sm-1
   .col-sm-10
     .block.block-alt-style.full

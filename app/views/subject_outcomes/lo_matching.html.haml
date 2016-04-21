@@ -14,7 +14,15 @@
         %strong='Match Old LOs to New LOs'
     .col-sm-1
 
-.row
+- if !@school.acronym == 'MOD'
+  .row 'This is only allowed for the Model School'
+- if !can?(:switch, School)
+  .row 'This is only allowed for users who can see multiple schools'
+- if !can?(:upload_lo_file, SubjectOutcome)
+  .row 'You are not allowed to Bulk Upload Learning Outcomes'
+- if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
+  .row 'This school is not configured for Bulk Uploading Learning Outcomes'
+.row{class: (@school.acronym == 'MOD' && can?(:switch, School) && can?(:upload_lo_file, SubjectOutcome) && @school.has_flag?(School::GRADE_IN_SUBJECT_NAME) ? '' : 'display-none')}
   .col-sm-1
   .col-sm-10
     .block.block-alt-style.full
@@ -52,7 +60,7 @@
                 - ry = set[1]
                 - match = set[2]
                 - # set up alternate old record highlighting
-                - if prior_old_id == 0 
+                - if prior_old_id == 0
                   - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
                 - if prior_old_id != rx[SubjectOutcomesHelper::COL_DB_ID]
                   - highlight_class = (highlight_class == 'on' ? '' : 'on')

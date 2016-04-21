@@ -99,6 +99,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
   def cannot_bulk_upload_los
     visit upload_lo_file_subject_outcomes_path()
     assert_not_equal("/subject_outcomes/upload_lo_file", current_path)
+    # page.should have_content('Upload Curriculum / LOs File')
   end
 
   # test for all subjects bulk upload of Learning Outcomes into Model School
@@ -214,6 +215,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
+      page.should have_content('Upload Curriculum / LOs File')
       within("#ask-filename") do
         page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_updates.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
@@ -244,5 +246,68 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     end # within #page-content
   end # def bulk_upload_art_matching
 
+
+end
+
+
+describe "Subject Outcomes Bulk Upload LOs Invalid School", js:true do
+  before (:each) do
+
+    create_and_load_model_school
+
+    # # two subjects in @school1
+    # @section1_1 = FactoryGirl.create :section
+    # @subject1 = @section1_1.subject
+    # @school1 = @section1_1.school
+    # @teacher1 = @subject1.subject_manager
+    # @discipline = @subject1.discipline
+
+    # load_test_section(@section1_1, @teacher1)
+
+    # @section1_2 = FactoryGirl.create :section, subject: @subject1
+    # ta1 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_2
+    # @section1_3 = FactoryGirl.create :section, subject: @subject1
+    # ta2 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_3
+
+    # @subject2 = FactoryGirl.create :subject, subject_manager: @teacher1
+    # @section2_1 = FactoryGirl.create :section, subject: @subject2
+    # @section2_2 = FactoryGirl.create :section, subject: @subject2
+    # @section2_3 = FactoryGirl.create :section, subject: @subject2
+    # @discipline2 = @subject2.discipline
+
+    # # another subject in @school2
+    # @section3_1 = FactoryGirl.create :section
+    # @subject3 = @section3_1.subject
+    # @school2 = @section3_1.school
+    # @teacher2 = @subject1.subject_manager
+    # @section3_2 = FactoryGirl.create :section, subject: @subject3
+    # @section3_3 = FactoryGirl.create :section, subject: @subject3
+
+    # # @file = fixture_file_upload('files/bulk_upload_los_initial.csv', 'text/csv')
+    # @file = Rack::Test::UploadedFile.new(
+    #   Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'),
+    #   'text/csv'
+    # )
+
+  end
+
+  describe "as system administrator" do
+    before do
+      @system_administrator = FactoryGirl.create :system_administrator
+      sign_in(@system_administrator)
+      set_users_school(@school1)
+    end
+    it { cannot_see_bulk_upload_los }
+  end
+
+  ##################################################
+  # test methods
+
+  def cannot_see_bulk_upload_los
+    visit upload_lo_file_subject_outcomes_path()
+    assert_not_equal("/subject_outcomes/upload_lo_file", current_path)
+    # page.should have_content('Match Old LOs to New LOs')
+    # page.should_not have_content('Upload Curriculum / LOs File')
+  end
 
 end
