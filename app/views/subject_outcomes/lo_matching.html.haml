@@ -79,11 +79,14 @@
                   %td{class: "#{deact_class}"}=rx[:lo_code]
                   %td{class: "#{deact_class}"}=rx[:desc]
                   %td.text-center{class: "#{error_class}"}
-                    %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}='='
-                    = radio_button_tag "selections[#{rx[:lo_code]}]", "#{new_rec_id}", rx[:matched] == new_rec_id, id: "selections[#{rx[:lo_code]}_#{new_rec_id}]"
+                    - is_add = ry[:action].present? && ry[:action] == :'+' ? true : false
+                    - is_equal = ry[:action].present? && ry[:action] == :'=' ? true : false
+                    - is_matched = rx[:matched] == new_rec_id
+                    %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}=ry[:action].present? ? ry[:action].to_s : '??'
+                    = radio_button_tag "selections[#{rx[:lo_code]}]", "#{new_rec_id}", (is_add || is_equal || show_as_checked), id: "selections[#{rx[:lo_code]}_#{new_rec_id}]"
                     - if rx[:matched] == new_rec_id
                       %br
-                      %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}='x'
+                      %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}='<-'
                       = radio_button_tag "selections[#{rx[:lo_code]}]", "-1", false, id: "selections[#{rx[:lo_code]}_-1]"
                     %input{type: 'hidden', name: "pair[#{ix}][o][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: rx[SubjectOutcomesHelper::PARAM_ACTION]}
                     %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: ry[SubjectOutcomesHelper::PARAM_ACTION]}
@@ -124,22 +127,34 @@
               .col-sm-3
             %fieldset
               .col-sm-5
-              %label.col-sm-2.control-label='Mismatch Count:'
-              %span#mismatch-count.col-sm-2
-                = @mismatch_count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
               %label.col-sm-2.control-label='Add Count:'
               %span#add-count.col-sm-2
                 = @add_count
+              .col-sm-3
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='Do Nothing Count:'
+              %span#add-count.col-sm-2
+                = @do_nothing_count
+              .col-sm-3
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='Reactivate Count:'
+              %span#add-count.col-sm-2
+                = @reactivate_count
+              .col-sm-3
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='Deactivate Count:'
+              %span#add-count.col-sm-2
+                = @deactivate_count
               .col-sm-3
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
             %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
-            - #- if @pairs_filtered.count == @add_count + @match_count > 0
-            %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
+            - if @records.count == @do_nothing_count + @add_count
+              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
 .col-sm-1
 
 

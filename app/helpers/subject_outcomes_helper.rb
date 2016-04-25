@@ -242,8 +242,11 @@ module SubjectOutcomesHelper
 
   def lo_add_new(new_rec)
     return_array = []
-    match_h = get_matching_level({}, new_rec)
-    return_array << [{}, new_rec, match_h]
+    new_rec_clone = new_rec.clone
+    new_rec_clone[:action] = :'+'
+    new_rec_clone[:unique] = true
+    match_h = get_matching_level({}, new_rec_clone)
+    return_array << [{}, new_rec_clone, match_h]
   end
 
 

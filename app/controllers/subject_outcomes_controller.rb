@@ -231,6 +231,10 @@ class SubjectOutcomesController < ApplicationController
       @mismatch_count = 0
       @add_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
+      @do_nothing_count = 0
+      @reactivate_count = 0
+      @deactivate_count = 0
+
       iy = 0
       pairs_combined = []
       # process the database records (for all or selected subject)
@@ -241,6 +245,7 @@ class SubjectOutcomesController < ApplicationController
       end
 
       @match_count = @pairs_filtered.count
+
 
       # mark records as matched for matching @pairs_filtered
       pairs_combined.each_with_index do |pair, ix|
@@ -260,10 +265,33 @@ class SubjectOutcomesController < ApplicationController
             # set to output to next page.
             matched_new_rec[:unique] = true
           end
+        end
+          
         # else
         #   Rails.logger.error("Error: matching new record problem.")
         #   raise("Error: matching new record problem.")
+
+        if old_rec_to_match[:active] == true
+          # active old record
+          if matched_new_rec[:rec_id].present?
+            matched_new_rec[:action] = :'='
+            @do_nothing_count += 1
+          else
+            matched_new_rec[:action] = :'-'
+            @deactivate_count += 1
+          end
+        else
+          # inactive old record
+          if matched_new_rec[:rec_id].present?
+            # reactivate it
+            matched_new_rec[:action] = :'+'
+            @reactivate_count += 1
+          else
+            matched_new_rec[:action] = :'='
+            @do_nothing_count += 1
+          end
         end
+
         Rails.logger.debug("*** unique: #{matched_new_rec[:unique]}")
         @pairs_filtered << [old_rec_to_match, matched_new_rec, matched_weights]
 
@@ -276,7 +304,6 @@ class SubjectOutcomesController < ApplicationController
         if rx[COL_STATE].blank?
           @add_count += 1
           Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
-          # use matching level 0, so it is always added to the pairs
           add_pair = lo_add_new(rx)
           @pairs_filtered.concat(add_pair)
         end
@@ -288,6 +315,9 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
       Rails.logger.debug("*** not_add_count : #{@not_add_count}")
       Rails.logger.debug("*** add_count : #{@add_count}")
+      Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
+      Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
+      Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
       Rails.logger.debug("*** db_active count: #{db_active}")
       Rails.logger.debug("*** db_deact count: #{db_deact}")
 
@@ -424,6 +454,7 @@ class SubjectOutcomesController < ApplicationController
       end
 
       step = 3
+      # set :matched flag for selected pairs (from radio button selection)
       # detect when new record is assigned to multiple old records.
       selection_params = params['selections'].present? ? params['selections'] : {}
       selection_params.each do |old_lo_code, new_rec_id|
@@ -446,6 +477,10 @@ class SubjectOutcomesController < ApplicationController
       @mismatch_count = 0
       @add_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
+      @do_nothing_count = 0
+      @reactivate_count = 0
+      @deactivate_count = 0
+
       iy = 0
       pairs_combined = []
       # if pair for an old record is selected, do not generate alternate pairs again
@@ -486,9 +521,29 @@ class SubjectOutcomesController < ApplicationController
             # set to output to next page.
             matched_new_rec[:unique] = true
           end
+        end
         # else
         #   Rails.logger.error("Error: matching new record problem.")
         #   raise("Error: matching new record problem.")
+        if old_rec_to_match[:active] == true
+          # active old record
+          if matched_new_rec[:rec_id].present?
+            matched_new_rec[:action] = :'='
+            @do_nothing_count += 1
+          else
+            matched_new_rec[:action] = :'-'
+            @deactivate_count += 1
+          end
+        else
+          # inactive old record
+          if matched_new_rec[:rec_id].present?
+            # reactivate it
+            matched_new_rec[:action] = :'+'
+            @reactivate_count += 1
+          else
+            matched_new_rec[:action] = :'='
+            @do_nothing_count += 1
+          end
         end
         Rails.logger.debug("*** unique: #{matched_new_rec[:unique]}")
         @pairs_filtered << [old_rec_to_match, matched_new_rec, matched_weights]
@@ -502,7 +557,6 @@ class SubjectOutcomesController < ApplicationController
           @add_count += 1
           Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
           add_pair = lo_add_new(rx)
-          Rails.logger.debug("*** Add pair")
           @pairs_filtered.concat(add_pair)
         end
       end
@@ -517,26 +571,41 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
       Rails.logger.debug("*** not_add_count : #{@not_add_count}")
       Rails.logger.debug("*** add_count : #{@add_count}")
-
+      Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
+      Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
+      Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
+      Rails.logger.debug("*** db_active count: #{db_active}")
+      Rails.logger.debug("*** db_deact count: #{db_deact}")
 
       old_rec_actions = []
+
+      perform_update = true
+      perform_update = false if params[:submit_action] != 'save_all'
+      perform_update = false if @records.count != @do_nothing_count + @add_count
+      perform_update = false if @deactivate_count > 0
+      perform_update = false if @reactivate_count > 0
+
+      if params[:submit_action] == 'save_all' && !perform_update
+        raise("Error: cannot update - must currently only add learning outcomes.")
+      end
+
 
       step = 7
       action_count = 0
       @records4 = []
-      if @mismatch_count == 0 && params[:submit_action] == 'save_all'
+      if perform_update
         ActiveRecord::Base.transaction do
           old_rec_actions.each do |rec|
             # Rails.logger.debug("*** old rec: #{rec}")
             case rec[PARAM_ACTION]
-            when 'Remove'
+            when :'-'
               so = SubjectOutcome.find(rec[COL_REC_ID])
               so.active = false
               so.save!
               action_count += 1
               action = 'Removed'
               @records4 << [so, 'Removed']
-            when 'Restore'
+            when :'+'
               so = SubjectOutcome.find(rec[COL_REC_ID])
               so.active = true
               so.save!
