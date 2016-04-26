@@ -84,7 +84,7 @@
                     - is_equal = ry[:action].present? && ry[:action] == :'=' ? true : false
                     - is_matched = rx[:matched] == new_rec_id
                     %label{for: "selections[#{lo_name}_#{new_rec_id}]"}=ry[:action].present? ? ry[:action].to_s : '??'
-                    = radio_button_tag "selections[#{lo_name}]", "#{new_rec_id}", (is_add || is_equal || show_as_checked), id: "selections[#{lo_name}_#{new_rec_id}]"
+                    = radio_button_tag "selections[#{lo_name}]", "#{new_rec_id}", (is_add || is_equal || is_matched), id: "selections[#{lo_name}_#{new_rec_id}]"
                     - if rx[:matched] == new_rec_id
                       %br
                       %label{for: "selections[#{lo_name}_#{new_rec_id}]"}='<-'
@@ -154,8 +154,8 @@
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
             %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
-            - if @records.count == @do_nothing_count + @add_count
-              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
+            - # if @records.count == @do_nothing_count + @add_count
+            %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
 .col-sm-1
 
 

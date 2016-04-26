@@ -28,7 +28,9 @@ module SubjectOutcomesHelper
   PARAM_ACTION = :'action'
 
   # matching levels
-  MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['more loose', 3], ['loose', 4], ['tight', 5], ['more tight', 6], ['tighter', 7], ['tightest', 8]]
+  MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['loose', 3], ['tight', 4], ['tighter', 5], ['tightest', 6]]
+
+  DEFAULT_MATCH_LEVEL = 4
 
   # curriculum / LOs bulk upload file stage 2 processing - field validation
   def validate_csv_fields(csv_hash_in, subject_names)
@@ -198,9 +200,9 @@ module SubjectOutcomesHelper
 
   def get_matching_level(old_rec, new_rec)
     match_h = Hash.new
-    match_h[:course_match] = 0
-    match_h[:grade_match] = 0
-    match_h[:mp_match] = 0
+    # match_h[:course_match] = 0
+    # match_h[:grade_match] = 0
+    # match_h[:mp_match] = 0
     match_h[:code_match] = 0
     match_h[:desc_match] = 0
     match_h[:active_match] = 0
@@ -208,9 +210,9 @@ module SubjectOutcomesHelper
     # note setting default PARAM_ACTION sets the length of the old and new recs to be at least 1
     # Rails.logger.debug("*** passed matching check")
     white = Text::WhiteSimilarity.new
-    match_h[:course_match] = 1 if old_rec[:course] == new_rec[COL_COURSE]
-    match_h[:grade_match] = 1 if old_rec[:grade] == new_rec[COL_GRADE]
-    match_h[:mp_match] = 1 if old_rec[:mp] == new_rec[COL_MP_BITMAP]
+    # match_h[:course_match] = 1 if old_rec[:course] == new_rec[COL_COURSE]
+    # match_h[:grade_match] = 1 if old_rec[:grade] == new_rec[COL_GRADE]
+    # match_h[:mp_match] = 1 if old_rec[:mp] == new_rec[COL_MP_BITMAP]
     code_old = (old_rec[DB_OUTCOME_CODE].present?) ? old_rec[DB_OUTCOME_CODE].strip().split.join('\n') : ''
     code_new = (new_rec[COL_OUTCOME_CODE].present?) ? new_rec[COL_OUTCOME_CODE].strip().split.join('\n') : ''
     match_h[:code_match] = ( code_old == code_new ) ? 2 : (white.similarity(code_old, code_new) * 1.99).floor

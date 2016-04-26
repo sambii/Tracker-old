@@ -224,7 +224,7 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
       @old_records_counts = old_los_by_lo.count
 
-      @match_level = 8
+      @match_level = DEFAULT_MATCH_LEVEL
       @pairs_filtered = Array.new
 
       # process matches
@@ -459,7 +459,8 @@ class SubjectOutcomesController < ApplicationController
       selection_params = params['selections'].present? ? params['selections'] : {}
       selection_params.each do |old_lo_code, new_rec_id|
         val_new_new_rec_id = Integer(new_rec_id) rescue -1
-        if val_new_new_rec_id < 0
+        Rails.logger.debug("*** old_lo_code: #{old_lo_code}, new_rec_id: #{new_rec_id}")
+        if val_new_new_rec_id < 0 || old_lo_code == new_rec_id
           # resetting this assignment - ignore it
         elsif new_los_by_rec[new_rec_id][:matched].present?
           new_los_by_rec[new_rec_id][:error] = true
@@ -473,7 +474,7 @@ class SubjectOutcomesController < ApplicationController
       step = 4
 
       # process the database records in lo_code order, and generate all matching pairs for the current matching level.
-      @match_level = params[:match_level].present? ? params[:match_level].to_i : 8
+      @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
       @mismatch_count = 0
       @add_count = 0
       @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
