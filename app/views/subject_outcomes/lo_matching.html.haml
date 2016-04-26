@@ -69,6 +69,7 @@
                   - break_class = ''
                 - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
                 - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
+                - lo_name = rx[:lo_code].present? ? rx[:lo_code] : (ry[:lo_code].present? ? ry[:lo_code] : ry[SubjectOutcomesHelper::COL_REC_ID])
                 %tr{ class: "#{highlight_class} #{break_class}"}
                   - deact_class = (rx[:active] == false ? 'deactivated ' : '')
                   - # error_class = (rx[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch' || ry[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch') ? 'ui-error' : ''
@@ -82,12 +83,12 @@
                     - is_add = ry[:action].present? && ry[:action] == :'+' ? true : false
                     - is_equal = ry[:action].present? && ry[:action] == :'=' ? true : false
                     - is_matched = rx[:matched] == new_rec_id
-                    %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}=ry[:action].present? ? ry[:action].to_s : '??'
-                    = radio_button_tag "selections[#{rx[:lo_code]}]", "#{new_rec_id}", (is_add || is_equal || show_as_checked), id: "selections[#{rx[:lo_code]}_#{new_rec_id}]"
+                    %label{for: "selections[#{lo_name}_#{new_rec_id}]"}=ry[:action].present? ? ry[:action].to_s : '??'
+                    = radio_button_tag "selections[#{lo_name}]", "#{new_rec_id}", (is_add || is_equal || show_as_checked), id: "selections[#{lo_name}_#{new_rec_id}]"
                     - if rx[:matched] == new_rec_id
                       %br
-                      %label{for: "selections[#{rx[:lo_code]}_#{new_rec_id}]"}='<-'
-                      = radio_button_tag "selections[#{rx[:lo_code]}]", "-1", false, id: "selections[#{rx[:lo_code]}_-1]"
+                      %label{for: "selections[#{lo_name}_#{new_rec_id}]"}='<-'
+                      = radio_button_tag "selections[#{rx[:lo_code]}]", "-1", false, id: "selections[#{lo_name}_-1]"
                     %input{type: 'hidden', name: "pair[#{ix}][o][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: rx[SubjectOutcomesHelper::PARAM_ACTION]}
                     %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: ry[SubjectOutcomesHelper::PARAM_ACTION]}
                     - if rx.length > 0
