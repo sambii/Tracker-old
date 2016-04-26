@@ -154,8 +154,8 @@
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
             %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
-            - # if @records.count == @do_nothing_count + @add_count
-            %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
+            - if @allow_save_all
+              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
 .col-sm-1
 
 

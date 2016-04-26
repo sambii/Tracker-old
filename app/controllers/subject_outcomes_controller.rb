@@ -336,6 +336,12 @@ class SubjectOutcomesController < ApplicationController
 
     @rollback = false
 
+
+      @allow_save_all = true
+      @allow_save_all = false if @records.count != @do_nothing_count + @add_count
+      @allow_save_all = false if @deactivate_count > 0
+      @allow_save_all = false if @reactivate_count > 0
+
     respond_to do |format|
       if @stage == 1 || @any_errors
         format.html
@@ -580,21 +586,19 @@ class SubjectOutcomesController < ApplicationController
 
       old_rec_actions = []
 
-      perform_update = true
-      perform_update = false if params[:submit_action] != 'save_all'
-      perform_update = false if @records.count != @do_nothing_count + @add_count
-      perform_update = false if @deactivate_count > 0
-      perform_update = false if @reactivate_count > 0
+      @allow_save_all = true
+      @allow_save_all = false if @records.count != @do_nothing_count + @add_count
+      @allow_save_all = false if @deactivate_count > 0
+      @allow_save_all = false if @reactivate_count > 0
 
-      if params[:submit_action] == 'save_all' && !perform_update
+      if params[:submit_action] == 'save_all' && !@allow_save_all
         raise("Error: cannot update - must currently only add learning outcomes.")
       end
-
 
       step = 7
       action_count = 0
       @records4 = []
-      if perform_update
+      if @allow_save_all && params[:submit_action] == 'save_all'
         ActiveRecord::Base.transaction do
           old_rec_actions.each do |rec|
             # Rails.logger.debug("*** old rec: #{rec}")
