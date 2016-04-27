@@ -30,7 +30,8 @@ module SubjectOutcomesHelper
   # matching levels
   MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['loose', 3], ['tight', 4], ['tighter', 5], ['tightest', 6]]
 
-  DEFAULT_MATCH_LEVEL = 4
+  DEFAULT_MATCH_LEVEL = 6
+  MAX_MATCH_LEVEL = 6
 
   # curriculum / LOs bulk upload file stage 2 processing - field validation
   def validate_csv_fields(csv_hash_in, subject_names)
@@ -205,7 +206,7 @@ module SubjectOutcomesHelper
     # match_h[:mp_match] = 0
     match_h[:code_match] = 0
     match_h[:desc_match] = 0
-    match_h[:active_match] = 0
+    # match_h[:active_match] = 0
     match_h[:total_match] = 0
     # note setting default PARAM_ACTION sets the length of the old and new recs to be at least 1
     # Rails.logger.debug("*** passed matching check")
@@ -219,8 +220,8 @@ module SubjectOutcomesHelper
     # match_h[:code_match] = ( old_rec[DB_OUTCOME_CODE] == new_rec[COL_OUTCOME_CODE] ) ? 3 : (white.similarity(old_rec[DB_OUTCOME_CODE], new_rec[COL_OUTCOME_CODE]) * 2.99).floor
     desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
     desc_new = (new_rec[COL_OUTCOME_NAME].present?) ? new_rec[COL_OUTCOME_NAME].strip().split.join('\n') : ''
-    match_h[:desc_match] = ( desc_old == desc_new ) ? 3 : (white.similarity(desc_old, desc_new) * 2.99).floor
-    match_h[:active_match] = old_rec[:active] == true ? 1 : 0
+    match_h[:desc_match] = ( desc_old == desc_new ) ? 4 : (white.similarity(desc_old, desc_new) * 3.99).floor
+    # match_h[:active_match] = old_rec[:active] == true ? 1 : 0
     match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
     return match_h
   end
@@ -232,10 +233,35 @@ module SubjectOutcomesHelper
       match_h = get_matching_level(old_rec, new_rec)
       return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
     end
+    # return_array.each do |a|
+    #   old_rec_to_match = a[0]
+    #   matched_new_rec = a[1]
+    #   matched_weights = a[2]
+    #   if old_rec_to_match[:active] == true
+    #     # active old record
+    #     if matched_new_rec[:rec_id].present?
+    #       matched_new_rec[:action] = :'='
+    #       # @do_nothing_count += 1
+    #     else
+    #       matched_new_rec[:action] = :'-'
+    #       # @deactivate_count += 1
+    #     end
+    #   else
+    #     # inactive old record
+    #     if matched_new_rec[:rec_id].present?
+    #       # reactivate it
+    #       matched_new_rec[:action] = :'+'
+    #       # @reactivate_count += 1
+    #     else
+    #       matched_new_rec[:action] = :'='
+    #       # @do_nothing_count += 1
+    #     end
+    #   end
+    # end
     # if no matches add a pair with a blank new record (for deactivation)
     if return_array.length == 0
       match_h = get_matching_level(old_rec, {})
-      return_array << [old_rec, {}, match_h]
+      return_array << [old_rec, {action: :'-'}, match_h]
     end
     # return matches in descending match_level order
     sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
@@ -247,6 +273,7 @@ module SubjectOutcomesHelper
     new_rec_clone = new_rec.clone
     new_rec_clone[:action] = :'+'
     new_rec_clone[:unique] = true
+    new_rec_clone[:matched] = '-1'
     match_h = get_matching_level({}, new_rec_clone)
     return_array << [{}, new_rec_clone, match_h]
   end

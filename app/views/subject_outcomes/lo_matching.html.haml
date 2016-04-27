@@ -36,8 +36,9 @@
             %thead.table-title
               %tr
                 %th{colspan: 12}
-                  = @match_subject.present? ? "#{@match_subject.name} - Matching Level: " : "All Subjects - Matching Level: "
-                  = select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
+                  = @match_subject.present? ? "#{@match_subject.name}" : "All Subjects"
+                  = # " - Matching Level: "
+                  = # select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
                   %input{type: 'hidden', name: "school_id", value: @school.id}
                   %input{type: 'hidden', name: "subject_id", value: @subject_id}
               %tr
@@ -67,6 +68,7 @@
                   - break_class = 'break'
                 - else
                   - break_class = ''
+                - prior_old_code = rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]
                 - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
                 - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
                 - lo_name = rx[:lo_code].present? ? rx[:lo_code] : (ry[:lo_code].present? ? ry[:lo_code] : ry[SubjectOutcomesHelper::COL_REC_ID])
@@ -80,12 +82,12 @@
                   %td{class: "#{deact_class}"}=rx[:lo_code]
                   %td{class: "#{deact_class}"}=rx[:desc]
                   %td.text-center{class: "#{error_class}"}
-                    - is_add = ry[:action].present? && ry[:action] == :'+' ? true : false
-                    - is_equal = ry[:action].present? && ry[:action] == :'=' ? true : false
-                    - is_matched = rx[:matched] == new_rec_id
+                    - is_add = false #ry[:action].present? && ry[:action] == :'+' ? true : false
+                    - is_equal = false # ry[:action].present? && ry[:action] == :'=' ? true : false
+                    - is_matched = ry[:matched].present? && (ry[:matched] == prior_old_code || ry[:matched] == '-1')
                     %label{for: "selections[#{lo_name}_#{new_rec_id}]"}=ry[:action].present? ? ry[:action].to_s : '??'
-                    = radio_button_tag "selections[#{lo_name}]", "#{new_rec_id}", (is_add || is_equal || is_matched), id: "selections[#{lo_name}_#{new_rec_id}]"
-                    - if rx[:matched] == new_rec_id
+                    = # radio_button_tag "selections[#{lo_name}]", "#{new_rec_id}", (is_add || is_equal || is_matched), id: "selections[#{lo_name}_#{new_rec_id}]"
+                    - if false # is_matched
                       %br
                       %label{for: "selections[#{lo_name}_#{new_rec_id}]"}='<-'
                       = radio_button_tag "selections[#{rx[:lo_code]}]", "-1", false, id: "selections[#{lo_name}_-1]"
@@ -122,12 +124,6 @@
               .col-sm-3
             %fieldset
               .col-sm-5
-              %label.col-sm-2.control-label='Match Count:'
-              %span#match-count.col-sm-2
-                = @match_count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
               %label.col-sm-2.control-label='Add Count:'
               %span#add-count.col-sm-2
                 = @add_count
@@ -138,22 +134,11 @@
               %span#add-count.col-sm-2
                 = @do_nothing_count
               .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Reactivate Count:'
-              %span#add-count.col-sm-2
-                = @reactivate_count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Deactivate Count:'
-              %span#add-count.col-sm-2
-                = @deactivate_count
-              .col-sm-3
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
-            %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
+            - if false
+              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
             - if @allow_save_all
               %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
 .col-sm-1

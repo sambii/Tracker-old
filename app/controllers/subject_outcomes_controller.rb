@@ -68,6 +68,14 @@ class SubjectOutcomesController < ApplicationController
     @error_list = Hash.new
     @records = Array.new
 
+    # process matches
+    @mismatch_count = 0
+    @add_count = 0
+    @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
+    @do_nothing_count = 0
+    @reactivate_count = 0
+    @deactivate_count = 0
+
     match_model_schools = School.where(acronym: 'MOD')
     if match_model_schools.count == 1
       @school = match_model_schools.first
@@ -227,14 +235,6 @@ class SubjectOutcomesController < ApplicationController
       @match_level = DEFAULT_MATCH_LEVEL
       @pairs_filtered = Array.new
 
-      # process matches
-      @mismatch_count = 0
-      @add_count = 0
-      @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
-      @do_nothing_count = 0
-      @reactivate_count = 0
-      @deactivate_count = 0
-
       iy = 0
       pairs_combined = []
       # process the database records (for all or selected subject)
@@ -255,7 +255,7 @@ class SubjectOutcomesController < ApplicationController
         # code to mark new uploaded records as matched (in a matching pair)
         Rails.logger.debug("*** old rec: #{old_rec_to_match.inspect}")
         Rails.logger.debug("*** new rec: #{matched_new_rec.inspect}")
-        if matched_new_rec && matched_new_rec[COL_REC_ID]
+        if matched_new_rec[COL_REC_ID]
           matched_rec_num = matched_new_rec[COL_REC_ID].to_i
           Rails.logger.debug("*** pair: #{ix} - matched_rec_num: #{matched_rec_num}")
           if @records[matched_rec_num][COL_STATE] != 'match_lo_code'
@@ -266,7 +266,14 @@ class SubjectOutcomesController < ApplicationController
             matched_new_rec[:unique] = true
           end
         end
-          
+
+        if matched_weights[:total_match] == MAX_MATCH_LEVEL
+          Rails.logger.debug("*** matched #{matched_new_rec.inspect} #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
+          matched_new_rec[:matched] = old_rec_to_match[DB_OUTCOME_CODE]
+        else
+          Rails.logger.debug("*** not matched #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
+        end
+
         # else
         #   Rails.logger.error("Error: matching new record problem.")
         #   raise("Error: matching new record problem.")
@@ -275,20 +282,20 @@ class SubjectOutcomesController < ApplicationController
           # active old record
           if matched_new_rec[:rec_id].present?
             matched_new_rec[:action] = :'='
-            @do_nothing_count += 1
+            @do_nothing_count += 1 if matched_new_rec[:matched].present?
           else
             matched_new_rec[:action] = :'-'
-            @deactivate_count += 1
+            @deactivate_count += 1 if matched_new_rec[:matched].present?
           end
         else
           # inactive old record
           if matched_new_rec[:rec_id].present?
             # reactivate it
             matched_new_rec[:action] = :'+'
-            @reactivate_count += 1
+            @reactivate_count += 1 if matched_new_rec[:matched].present?
           else
             matched_new_rec[:action] = :'='
-            @do_nothing_count += 1
+            @do_nothing_count += 1 if matched_new_rec[:matched].present?
           end
         end
 
@@ -337,10 +344,12 @@ class SubjectOutcomesController < ApplicationController
     @rollback = false
 
 
-      @allow_save_all = true
-      @allow_save_all = false if @records.count != @do_nothing_count + @add_count
-      @allow_save_all = false if @deactivate_count > 0
-      @allow_save_all = false if @reactivate_count > 0
+    @allow_save_all = true
+    Rails.logger.debug("*** @do_nothing_count: #{@do_nothing_count}")
+    Rails.logger.debug("*** @add_count: #{@add_count}")
+    @allow_save_all = false if @records.count != @do_nothing_count + @add_count
+    @allow_save_all = false if @deactivate_count > 0
+    @allow_save_all = false if @reactivate_count > 0
 
     respond_to do |format|
       if @stage == 1 || @any_errors
@@ -363,6 +372,8 @@ class SubjectOutcomesController < ApplicationController
       @records = Array.new
       @pairs_filtered = Array.new
       @errors = Hash.new
+
+      action_count = 0
 
       @school = School.find(params['school_id'])
       raise('Invalid school - not model school') if @school.acronym != 'MOD'
@@ -596,7 +607,6 @@ class SubjectOutcomesController < ApplicationController
       end
 
       step = 7
-      action_count = 0
       @records4 = []
       if @allow_save_all && params[:submit_action] == 'save_all'
         ActiveRecord::Base.transaction do
@@ -628,9 +638,9 @@ class SubjectOutcomesController < ApplicationController
 
           end
           @records.each do |rec|
-            # Rails.logger.debug("*** new rec: #{rec}")
+            Rails.logger.debug("*** new rec action: #{rec[PARAM_ACTION]}")
             case rec[PARAM_ACTION]
-            when 'Add'
+            when '+'
               so = SubjectOutcome.new
               so.lo_code = rec[COL_OUTCOME_CODE]
               so.description = rec[COL_OUTCOME_NAME]
@@ -640,7 +650,7 @@ class SubjectOutcomesController < ApplicationController
               action_count += 1
               action = 'Added'
               @records4 << [so, 'Added']
-            when ''
+            when '='
               # ignore
               # Rails.logger.debug("*** 'ignore' action")
             when 'Mismatch'
@@ -659,7 +669,7 @@ class SubjectOutcomesController < ApplicationController
       end # if update
 
     rescue => e
-      msg_str = "ERROR: lo_matching Exception at step #{step} - #{e.message}"
+      msg_str = "ERROR: lo_matching Exception at step #{step} - item #{action_count+1} - #{e.message}"
       @errors[:base] = append_with_comma(@errors[:base], msg_str)
       Rails.logger.error(msg_str)
       flash.now[:alert] = msg_str
@@ -680,11 +690,6 @@ class SubjectOutcomesController < ApplicationController
     end
 
   end
-
-
-  # def lo_matching_update
-  # this page is rendered from lo_matching action
-  # end
 
   private
 
