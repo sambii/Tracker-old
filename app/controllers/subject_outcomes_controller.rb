@@ -58,298 +58,294 @@ class SubjectOutcomesController < ApplicationController
   # stage 5 - updates records within a transaction - can upload again if errors
   # see app/helpers/users_helper.rb for helper functions
   def upload_lo_file
-    authorize! :manage, :all # only system admins
-    # @preview = true if params['preview']
-    first_display = (request.method == 'GET' && params['utf8'].blank?)
-    Rails.logger.debug("*** first_display: #{first_display}")
-    @stage = 1
-    Rails.logger.debug("*** SchoolsController.upload_LO_file started")
-    @errors = Hash.new
-    @error_list = Hash.new
-    @records = Array.new
+    authorize! :upload_lo, SubjectOutcome
+    begin
 
-    # process matches
-    @mismatch_count = 0
-    @add_count = 0
-    @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
-    @do_nothing_count = 0
-    @reactivate_count = 0
-    @deactivate_count = 0
+      first_display = (request.method == 'GET' && params['utf8'].blank?)
 
-    match_model_schools = School.where(acronym: 'MOD')
-    if match_model_schools.count == 1
-      @school = match_model_schools.first
-      if @school.school_year_id.blank?
-        @errors[:base] = 'ERROR: Missing school year for Model School'
-      else
-        @school_year = @school.school_year
-        session[:school_context] = @school.id
-        set_current_school
-      end
-      if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
-        @errors[:base] = 'Error: Bulk Upload is for schools with grade in subject name only.'
-      end
-    else
-      Rails.logger.error("Error: Missing Model School")
-    end
+      @stage = 1
+      @errors = Hash.new
+      @records = Array.new
 
-    @subjects = Subject.where(school_id: @school.id)
-    @subject = nil
+      @mismatch_count = 0
+      @add_count = 0
+      @do_nothing_count = 0
+      @reactivate_count = 0
+      @deactivate_count = 0
 
-    # if only processing one subject, look up the subject by selected subject ID
-    if params[:subject_id].present?
-      match_subjects = Subject.where(id: params[:subject_id])
-      @match_subject = nil
-      @subject_id = ''
-      if match_subjects.count == 0
-        @errors[:subject] = "Error: Cannot find subject"
-      else
-        @match_subject = match_subjects.first
-        @subject_id = @match_subject.present? ? @match_subject.id : ''
-      end
-    end
-    Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
+      step = 0
+      action_count = 0
 
-    if @errors.count > 0
-      Rails.logger.debug("*** @errors: #{@errors.inspect}")
-      # don't process, error
-    elsif params['file'].blank?
-      if !first_display
-        @errors[:filename] = "Error: Missing Curriculum (LOs) Upload File."
-      end
-    else
+      @error_list = Hash.new
 
-      # stage 2
-      @stage = 2
-      Rails.logger.debug("*** Stage: #{@stage}")
-      @subject_ids = Hash.new
-      @subject_names = Hash.new
-      Rails.logger.debug("*** create subject names hash")
-      @subjects.each do |s|
-        @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
-        @subject_names[s.name] = s # all subject names
-      end
-      # no initial errors, process file
-      @filename = params['file'].original_filename
-      # @errors[:filename] = 'Choose file again to rerun'
-      # note: 'headers: true' uses column header as the key for the name (and hash key)
-      ix = 0
-      CSV.foreach(params['file'].path, headers: true) do |row|
-        rhash = validate_csv_fields(row.to_hash.with_indifferent_access, @subject_names)
-        rhash[COL_REC_ID] = ix
-        if rhash[COL_ERROR]
-          @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
-        end
-        check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
-        if @match_subject.blank?
-          ix += 1
-          matched_subject = false
-          # processing all subjects in file
-          Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
-          Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-          @records << rhash if !rhash[COL_EMPTY]
+      @school = lo_get_model_school(params)
+
+      @subjects = Subject.where(school_id: @school.id)
+
+      @subject = nil
+
+      # if only processing one subject, look up the subject by selected subject ID
+      if params[:subject_id].present?
+        match_subjects = Subject.where(id: params[:subject_id])
+        @match_subject = nil
+        @subject_id = ''
+        if match_subjects.count == 0
+          @errors[:subject] = "Error: Cannot find subject"
         else
-          matched_subject = (@match_subject.name == check_subject)
-          if matched_subject
+          @match_subject = match_subjects.first
+          @subject_id = @match_subject.present? ? @match_subject.id : ''
+        end
+      end
+      Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
+
+      if @errors.count > 0
+        Rails.logger.debug("*** @errors: #{@errors.inspect}")
+        # don't process, error
+      elsif params['file'].blank?
+        if !first_display
+          @errors[:filename] = "Error: Missing Curriculum (LOs) Upload File."
+        end
+      else
+
+        # stage 2
+        @stage = 2
+        Rails.logger.debug("*** Stage: #{@stage}")
+        @subject_ids = Hash.new
+        @subject_names = Hash.new
+        Rails.logger.debug("*** create subject names hash")
+        @subjects.each do |s|
+          @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
+          @subject_names[s.name] = s # all subject names
+        end
+        # no initial errors, process file
+        @filename = params['file'].original_filename
+        # @errors[:filename] = 'Choose file again to rerun'
+        # note: 'headers: true' uses column header as the key for the name (and hash key)
+        ix = 0
+        CSV.foreach(params['file'].path, headers: true) do |row|
+          rhash = validate_csv_fields(row.to_hash.with_indifferent_access, @subject_names)
+          rhash[COL_REC_ID] = ix
+          if rhash[COL_ERROR]
+            @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
+          end
+          check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
+          if @match_subject.blank?
             ix += 1
+            matched_subject = false
+            # processing all subjects in file
             Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
-            Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+            Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
             @records << rhash if !rhash[COL_EMPTY]
-          end
-        end
-      end  # end CSV.foreach
-
-      # check for file duplicate LO Codes
-      dup_lo_code_checked = validate_dup_lo_codes(@records)
-      @error_list = dup_lo_code_checked[:error_list]
-      Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
-      @records = dup_lo_code_checked[:records]
-      Rails.logger.debug("*** records count: #{@records.count}")
-      @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
-
-      # check for file duplicate LO Descriptions
-      dup_lo_descs_checked = validate_dup_lo_descs(@records)
-      @error_list2 = dup_lo_descs_checked[:error_list]
-      Rails.logger.debug("*** @error_list2: #{@error_list2.inspect}")
-      @records = dup_lo_descs_checked[:records]
-      Rails.logger.debug("*** records count: #{@records.count}")
-      @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
-
-      # validate records
-
-      # stage 3
-      @stage = 3
-      Rails.logger.debug("*** Stage: #{@stage}")
-
-
-      # # create an hash by lo_codes for matching database to upload file.
-      # @records.each_with_index do |rx, ix|
-      #   rec  = Hash.new
-      #   rec[COL_REC_ID] = rx[COL_REC_ID]
-      #   rec[COL_COURSE] = rx[COL_COURSE]
-      #   rec[COL_GRADE] = rx[COL_GRADE]
-      #   rec[COL_MP_BITMAP] = rx[COL_MP_BITMAP]
-      #   rec[COL_OUTCOME_CODE] = rx[COL_OUTCOME_CODE]
-      #   rec[COL_OUTCOME_NAME] = rx[COL_OUTCOME_NAME]
-      #   rec[PARAM_ID] = rx[PARAM_ID]
-      #   rec[PARAM_ACTION] =  rx[PARAM_ACTION]
-
-      #   shortened_name = (rx[COL_OUTCOME_NAME].present? ? rx[COL_OUTCOME_NAME].truncate(50, omission: '...') : '')
-      #   rx[COL_SHORTENED_NAME] = shortened_name
-      # end
-
-      # get the subject outcomes from the database for all subjects to process
-      old_los_by_lo = Hash.new
-      # optimize active record for one db call
-      db_active = 0
-      db_deact = 0
-      SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
-        subject_name = @subject_ids[so.subject_id].name
-        # is matched_subject if we are processing all subjects or if current subject matches the selected subject
-        matched_subject = @match_subject.blank? || @match_subject.name == subject_name
-        if matched_subject # only add record if all subjects or the matching selected subject
-          Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
-          old_los_by_lo[so.lo_code] = {
-            db_id: so.id,
-            subject_name: subject_name,
-            subject_id: so.subject_id,
-            lo_code: so.lo_code,
-            name: so.name,
-            short_desc: so.shortened_description,
-            desc: so.description,
-            course: so.subject.subject_name_without_grade,
-            grade: so.subject.grade_from_subject_name,
-            mp: SubjectOutcome.get_bitmask_string(so.marking_period),
-            active: so.active
-          } 
-          if so.active
-            db_active += 1
           else
-            db_deact += 1
+            matched_subject = (@match_subject.name == check_subject)
+            if matched_subject
+              ix += 1
+              Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+              Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+              @records << rhash if !rhash[COL_EMPTY]
+            end
+          end
+        end  # end CSV.foreach
+
+        # check for file duplicate LO Codes
+        dup_lo_code_checked = validate_dup_lo_codes(@records)
+        @error_list = dup_lo_code_checked[:error_list]
+        Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
+        @records = dup_lo_code_checked[:records]
+        Rails.logger.debug("*** records count: #{@records.count}")
+        @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
+
+        # check for file duplicate LO Descriptions
+        dup_lo_descs_checked = validate_dup_lo_descs(@records)
+        @error_list2 = dup_lo_descs_checked[:error_list]
+        Rails.logger.debug("*** @error_list2: #{@error_list2.inspect}")
+        @records = dup_lo_descs_checked[:records]
+        Rails.logger.debug("*** records count: #{@records.count}")
+        @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
+
+        # validate records
+
+        # stage 3
+        @stage = 3
+        Rails.logger.debug("*** Stage: #{@stage}")
+
+
+        # # create an hash by lo_codes for matching database to upload file.
+        # @records.each_with_index do |rx, ix|
+        #   rec  = Hash.new
+        #   rec[COL_REC_ID] = rx[COL_REC_ID]
+        #   rec[COL_COURSE] = rx[COL_COURSE]
+        #   rec[COL_GRADE] = rx[COL_GRADE]
+        #   rec[COL_MP_BITMAP] = rx[COL_MP_BITMAP]
+        #   rec[COL_OUTCOME_CODE] = rx[COL_OUTCOME_CODE]
+        #   rec[COL_OUTCOME_NAME] = rx[COL_OUTCOME_NAME]
+        #   rec[PARAM_ID] = rx[PARAM_ID]
+        #   rec[PARAM_ACTION] =  rx[PARAM_ACTION]
+
+        #   shortened_name = (rx[COL_OUTCOME_NAME].present? ? rx[COL_OUTCOME_NAME].truncate(50, omission: '...') : '')
+        #   rx[COL_SHORTENED_NAME] = shortened_name
+        # end
+
+        # get the subject outcomes from the database for all subjects to process
+        old_los_by_lo = Hash.new
+        # optimize active record for one db call
+        db_active = 0
+        db_deact = 0
+        SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
+          subject_name = @subject_ids[so.subject_id].name
+          # is matched_subject if we are processing all subjects or if current subject matches the selected subject
+          matched_subject = @match_subject.blank? || @match_subject.name == subject_name
+          if matched_subject # only add record if all subjects or the matching selected subject
+            Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
+            old_los_by_lo[so.lo_code] = {
+              db_id: so.id,
+              subject_name: subject_name,
+              subject_id: so.subject_id,
+              lo_code: so.lo_code,
+              name: so.name,
+              short_desc: so.shortened_description,
+              desc: so.description,
+              course: so.subject.subject_name_without_grade,
+              grade: so.subject.grade_from_subject_name,
+              mp: SubjectOutcome.get_bitmask_string(so.marking_period),
+              active: so.active
+            } 
+            if so.active
+              db_active += 1
+            else
+              db_deact += 1
+            end
           end
         end
-      end
-      Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
-      @old_records_counts = old_los_by_lo.count
+        Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
+        @old_records_counts = old_los_by_lo.count
 
-      @match_level = DEFAULT_MATCH_LEVEL
-      @pairs_filtered = Array.new
+        @match_level = DEFAULT_MATCH_LEVEL
+        @pairs_filtered = Array.new
 
-      iy = 0
-      pairs_combined = []
-      # process the database records (for all or selected subject)
-      old_los_by_lo.each do |rk, old_rec|
-        Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
-        matching_pairs = lo_match_old(old_rec, @records, @match_level)
-        pairs_combined.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
-      end
+        iy = 0
+        pairs_combined = []
+        # process the database records (for all or selected subject)
+        old_los_by_lo.each do |rk, old_rec|
+          Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
+          matching_pairs = lo_match_old(old_rec, @records, @match_level)
+          pairs_combined.concat(matching_pairs) # @record3 appended with matching update page pairs for this old record
+        end
 
-      @match_count = @pairs_filtered.count
+        @match_count = @pairs_filtered.count
 
 
-      # mark records as matched for matching @pairs_filtered
-      pairs_combined.each_with_index do |pair, ix|
-        old_rec_to_match = pair[0]
-        matched_new_rec = pair[1].clone # only change state for this matching pair
-        matched_weights = pair[2]
-        # code to mark new uploaded records as matched (in a matching pair)
-        Rails.logger.debug("*** old rec: #{old_rec_to_match.inspect}")
-        Rails.logger.debug("*** new rec: #{matched_new_rec.inspect}")
-        if matched_new_rec[COL_REC_ID]
-          matched_rec_num = matched_new_rec[COL_REC_ID].to_i
-          Rails.logger.debug("*** pair: #{ix} - matched_rec_num: #{matched_rec_num}")
-          if @records[matched_rec_num][COL_STATE] != 'match_lo_code'
-            Rails.logger.debug("*** set as matched and unique")
-            # not matched yet, set as matched.
-            @records[matched_rec_num][COL_STATE] = 'match_lo_code'
-            # set to output to next page.
-            matched_new_rec[:unique] = true
+        # mark records as matched for matching @pairs_filtered
+        pairs_combined.each_with_index do |pair, ix|
+          old_rec_to_match = pair[0]
+          matched_new_rec = pair[1].clone # only change state for this matching pair
+          matched_weights = pair[2]
+          # code to mark new uploaded records as matched (in a matching pair)
+          Rails.logger.debug("*** old rec: #{old_rec_to_match.inspect}")
+          Rails.logger.debug("*** new rec: #{matched_new_rec.inspect}")
+          if matched_new_rec[COL_REC_ID]
+            matched_rec_num = matched_new_rec[COL_REC_ID].to_i
+            Rails.logger.debug("*** pair: #{ix} - matched_rec_num: #{matched_rec_num}")
+            if @records[matched_rec_num][COL_STATE] != 'match_lo_code'
+              Rails.logger.debug("*** set as matched and unique")
+              # not matched yet, set as matched.
+              @records[matched_rec_num][COL_STATE] = 'match_lo_code'
+              # set to output to next page.
+              matched_new_rec[:unique] = true
+            end
           end
-        end
 
-        if matched_weights[:total_match] == MAX_MATCH_LEVEL
-          Rails.logger.debug("*** matched #{matched_new_rec.inspect} #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
-          matched_new_rec[:matched] = old_rec_to_match[DB_OUTCOME_CODE]
-        else
-          Rails.logger.debug("*** not matched #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
-        end
-
-        # else
-        #   Rails.logger.error("Error: matching new record problem.")
-        #   raise("Error: matching new record problem.")
-
-        if old_rec_to_match[:active] == true
-          # active old record
-          if matched_new_rec[:rec_id].present?
-            matched_new_rec[:action] = :'='
-            @do_nothing_count += 1 if matched_new_rec[:matched].present?
+          if matched_weights[:total_match] == MAX_MATCH_LEVEL
+            Rails.logger.debug("*** matched #{matched_new_rec.inspect} #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
+            matched_new_rec[:matched] = old_rec_to_match[DB_OUTCOME_CODE]
           else
-            matched_new_rec[:action] = :'-'
-            @deactivate_count += 1 if matched_new_rec[:matched].present?
+            Rails.logger.debug("*** not matched #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
           end
-        else
-          # inactive old record
-          if matched_new_rec[:rec_id].present?
-            # reactivate it
-            matched_new_rec[:action] = :'+'
-            @reactivate_count += 1 if matched_new_rec[:matched].present?
+
+          # else
+          #   Rails.logger.error("Error: matching new record problem.")
+          #   raise("Error: matching new record problem.")
+
+          if old_rec_to_match[:active] == true
+            # active old record
+            if matched_new_rec[:rec_id].present?
+              matched_new_rec[:action] = :'='
+              @do_nothing_count += 1 if matched_new_rec[:matched].present?
+            else
+              matched_new_rec[:action] = :'-'
+              @deactivate_count += 1 if matched_new_rec[:matched].present?
+            end
           else
-            matched_new_rec[:action] = :'='
-            @do_nothing_count += 1 if matched_new_rec[:matched].present?
+            # inactive old record
+            if matched_new_rec[:rec_id].present?
+              # reactivate it
+              matched_new_rec[:action] = :'+'
+              @reactivate_count += 1 if matched_new_rec[:matched].present?
+            else
+              matched_new_rec[:action] = :'='
+              @do_nothing_count += 1 if matched_new_rec[:matched].present?
+            end
+          end
+
+          Rails.logger.debug("*** unique: #{matched_new_rec[:unique]}")
+          @pairs_filtered << [old_rec_to_match, matched_new_rec, matched_weights]
+
+        end
+
+        # output any unmatched new records
+        @records.each_with_index do |rx, ix|
+          Rails.logger.debug("*** Check matching of rx #{ix}: #{rx.inspect}")
+          if rx[COL_STATE].blank?
+            @add_count += 1
+            Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
+            add_pair = lo_add_new(rx)
+            @pairs_filtered.concat(add_pair)
           end
         end
+        Rails.logger.debug("*** database records count: #{old_los_by_lo.count}")
+        Rails.logger.debug("*** csv records read count: #{@records.count}")
+        Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
+        Rails.logger.debug("*** match_count : #{@match_count}")
+        Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
+        Rails.logger.debug("*** not_add_count : #{@not_add_count}")
+        Rails.logger.debug("*** add_count : #{@add_count}")
+        Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
+        Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
+        Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
+        Rails.logger.debug("*** db_active count: #{db_active}")
+        Rails.logger.debug("*** db_deact count: #{db_deact}")
 
-        Rails.logger.debug("*** unique: #{matched_new_rec[:unique]}")
-        @pairs_filtered << [old_rec_to_match, matched_new_rec, matched_weights]
+      end # end stage 1-4
 
+      if @errors.count == 0 && @error_list.length == 0 && !first_display
+
+        # stage 5
+        @stage = 5
       end
 
-      step = 6
-      # output any unmatched new records
-      @records.each_with_index do |rx, ix|
-        Rails.logger.debug("*** Check matching of rx #{ix}: #{rx.inspect}")
-        if rx[COL_STATE].blank?
-          @add_count += 1
-          Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
-          add_pair = lo_add_new(rx)
-          @pairs_filtered.concat(add_pair)
-        end
-      end
-      Rails.logger.debug("*** database records count: #{old_los_by_lo.count}")
-      Rails.logger.debug("*** csv records read count: #{@records.count}")
-      Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
-      Rails.logger.debug("*** match_count : #{@match_count}")
-      Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
-      Rails.logger.debug("*** not_add_count : #{@not_add_count}")
-      Rails.logger.debug("*** add_count : #{@add_count}")
-      Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
-      Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
-      Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
-      Rails.logger.debug("*** db_active count: #{db_active}")
-      Rails.logger.debug("*** db_deact count: #{db_deact}")
+      Rails.logger.debug("*** Final Stage: #{@stage}")
 
-    end # end stage 1-4
+      Rails.logger.debug("*** @errors: #{@errors.inspect}")
+      @any_errors = @errors.count > 0 || @error_list.count > 0
 
-    if @errors.count == 0 && @error_list.length == 0 && !first_display
+      @rollback = false
 
-      # stage 5
+
+      @allow_save_all = true
+      Rails.logger.debug("*** @do_nothing_count: #{@do_nothing_count}")
+      Rails.logger.debug("*** @add_count: #{@add_count}")
+      @allow_save_all = false if @records.count != @do_nothing_count + @add_count
+      @allow_save_all = false if @deactivate_count > 0
+      @allow_save_all = false if @reactivate_count > 0
+
+    rescue => e
+      msg_str = "ERROR: lo_matching Exception at step #{step} - item #{action_count+1} - #{e.message}"
+      @errors[:base] = append_with_comma(@errors[:base], msg_str)
+      Rails.logger.error(msg_str)
+      flash.now[:alert] = msg_str
       @stage = 5
     end
 
-    Rails.logger.debug("*** Final Stage: #{@stage}")
-
-    Rails.logger.debug("*** @errors: #{@errors.inspect}")
-    @any_errors = @errors.count > 0 || @error_list.count > 0
-
-    @rollback = false
-
-
-    @allow_save_all = true
-    Rails.logger.debug("*** @do_nothing_count: #{@do_nothing_count}")
-    Rails.logger.debug("*** @add_count: #{@add_count}")
-    @allow_save_all = false if @records.count != @do_nothing_count + @add_count
-    @allow_save_all = false if @deactivate_count > 0
-    @allow_save_all = false if @reactivate_count > 0
 
     respond_to do |format|
       if @stage == 1 || @any_errors
@@ -364,19 +360,24 @@ class SubjectOutcomesController < ApplicationController
   # new UI, matching process for Bulk LO Upload
   # new UI HTML post method
   def lo_matching
-    authorize! :manage, :all # only system admins
-    Rails.logger.debug("*** SubjectOutcomesController.lo_matching started")
+    authorize! :upload_lo, SubjectOutcome
     begin
       @stage = 1
-      step = 0
-      @records = Array.new
-      @pairs_filtered = Array.new
       @errors = Hash.new
+      @records = Array.new
 
+      @mismatch_count = 0
+      @add_count = 0
+      @do_nothing_count = 0
+      @reactivate_count = 0
+      @deactivate_count = 0
+
+      step = 0
       action_count = 0
 
-      @school = School.find(params['school_id'])
-      raise('Invalid school - not model school') if @school.acronym != 'MOD'
+      @pairs_filtered = Array.new
+
+      @school = lo_get_model_school(params)
 
       @subjects = Subject.where(school_id: @school.id)
 
@@ -492,12 +493,6 @@ class SubjectOutcomesController < ApplicationController
 
       # process the database records in lo_code order, and generate all matching pairs for the current matching level.
       @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
-      @mismatch_count = 0
-      @add_count = 0
-      @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
-      @do_nothing_count = 0
-      @reactivate_count = 0
-      @deactivate_count = 0
 
       iy = 0
       pairs_combined = []

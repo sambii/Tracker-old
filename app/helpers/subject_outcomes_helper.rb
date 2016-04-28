@@ -278,5 +278,30 @@ module SubjectOutcomesHelper
     return_array << [{}, new_rec_clone, match_h]
   end
 
+  def lo_get_model_school(params)
+    # get school from school_id parameter if there
+    @school = (params['school_id'].present?) ? School.find(params['school_id']) : nil
+    # make sure school is model school, else look up the model school
+    if @school.blank? || @school.acronym != 'MOD'
+      match_model_schools = School.where(acronym: 'MOD')
+      if match_model_schools.count == 1
+        @school = match_model_schools.first
+      else
+        raise "Error: Missing Model School"
+      end
+    end
+    if @school.school_year_id.blank?
+      raise 'ERROR: Missing school year for Model School'
+    else
+      @school_year = @school.school_year
+      session[:school_context] = @school.id
+      set_current_school
+    end
+    if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
+      raise 'Error: Bulk Upload LO is for schools with grade in subject name only.'
+    end
+    return @school
+  end
+
 
 end
