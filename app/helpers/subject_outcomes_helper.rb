@@ -66,9 +66,6 @@ module SubjectOutcomesHelper
         all_mp_mask_str = SubjectOutcome.get_bitmask_string(all_mp_mask)
         csv_hash[COL_MARK_PER] = all_mp_mask_str if csv_hash[COL_MARK_PER].strip.upcase == 'YEAR LONG'
 
-        # preview the bitmap translation, and confirm nothing lost in round trip
-        # csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Invalid Marking Period - #{bitmask_str} != #{csv_hash[COL_MARK_PER]} / #{csv_hash[COL_SEMESTER]}") if bitmask_str != csv_hash[COL_MARK_PER]
-
         # make sure marking period bitmask is valid marking period bitmask for school
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Marking Period too large") if bitmask > all_mp_mask
 
@@ -287,21 +284,131 @@ module SubjectOutcomesHelper
       if match_model_schools.count == 1
         @school = match_model_schools.first
       else
-        raise "Error: Missing Model School"
+        @errors[:school] = 'ERROR: Missing Model School'
+        raise @errors[:school] 
       end
     end
     if @school.school_year_id.blank?
-      raise 'ERROR: Missing school year for Model School'
+      @errors[:school] = 'ERROR: Missing school year for Model School'
+      raise @errors[:school] 
     else
       @school_year = @school.school_year
       session[:school_context] = @school.id
       set_current_school
     end
     if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
-      raise 'Error: Bulk Upload LO is for schools with grade in subject name only.'
+      @errors[:school] = 'Error: Bulk Upload LO is for schools with grade in subject name only.'
+      raise @errors[:school] 
     end
     return @school
   end
 
+  def lo_get_match_subject(params)
+    # if only processing one subject, look up the subject by selected subject ID
+    @match_subject = nil
+    @subject_id = ''
+    if params[:subject_id].present?
+      match_subjects = Subject.where(id: params[:subject_id])
+      if match_subjects.count == 0
+        @errors[:subject] = "Error: Cannot find subject"
+        raise @errors[:subject]
+      else
+        @match_subject = match_subjects.first
+        @subject_id = @match_subject.present? ? @match_subject.id : ''
+      end
+    end
+    Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
+  end
+
+  def lo_get_file_from_hidden(params)
+    # recreate uploaded records to process
+    new_los_by_rec = Hash.new      
+    params['pair'].each do |p|
+      pold = p[1]['o']
+      pold ||= {}
+      pnew = p[1]['n']
+      pnew ||= {}
+      # recreate upload records (with only fields needed)
+      if pnew.length > 0 && pnew[COL_REC_ID] && pnew[COL_OUTCOME_CODE]
+        rec  = Hash.new
+        rec[COL_REC_ID] = pnew[COL_REC_ID]
+        rec[COL_COURSE] = pnew[COL_COURSE]
+        rec[COL_COURSE_ID] = pnew[COL_COURSE_ID]
+        rec[COL_GRADE] = pnew[COL_GRADE]
+        rec[COL_MP_BITMAP] = pnew[COL_MP_BITMAP]
+        rec[COL_OUTCOME_CODE] = pnew[COL_OUTCOME_CODE]
+        rec[COL_OUTCOME_NAME] = pnew[COL_OUTCOME_NAME]
+        rec[PARAM_ID] = pnew[PARAM_ID]
+        rec[PARAM_ACTION] =  pnew[PARAM_ACTION]
+        @records << rec
+        new_los_by_rec[pnew[COL_REC_ID]] = rec
+      end
+    end
+    return new_los_by_rec
+  end
+
+  def lo_get_file_from_upload(params)
+    # no initial errors, process file
+    @filename = params['file'].original_filename
+    # @errors[:filename] = 'Choose file again to rerun'
+    # note: 'headers: true' uses column header as the key for the name (and hash key)
+    new_los_by_rec = Hash.new      
+    ix = 0 # record number (ignore other subject records if matching subject)
+    CSV.foreach(params['file'].path, headers: true) do |row|
+      rhash = validate_csv_fields(row.to_hash.with_indifferent_access, @subject_names)
+      rhash[COL_REC_ID] = ix
+      if rhash[COL_ERROR]
+        @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
+      end
+      # check if course and grade match an existing subject name
+      check_subject = rhash[COL_SUBJECT]
+      if @match_subject.blank?
+        ix += 1
+        matched_subject = false
+        # processing all subjects in file
+        Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+        Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+        @records << rhash if !rhash[COL_EMPTY]
+        new_los_by_rec[pnew[COL_REC_ID]] = rhash
+      else
+        matched_subject = (@match_subject.name == check_subject)
+        if matched_subject
+          ix += 1
+          Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+          Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+          @records << rhash if !rhash[COL_EMPTY]
+          new_los_by_rec[pnew[COL_REC_ID]] = rhash
+        end
+      end
+    end  # end CSV.foreach
+    return new_los_by_rec
+  end
+
+  def lo_get_file_from_upload
+    # get the subject outcomes from the database for all subjects to process
+    old_los_by_lo = Hash.new
+    # optimize active record for one db call
+    SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
+      subject_name = @subject_ids[so.subject_id].name
+      # only add record if all subjects or the matching selected subject
+      if @match_subject.blank? || @match_subject.name == subject_name
+        Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
+        old_los_by_lo[so.lo_code] = {
+          db_id: so.id,
+          subject_name: subject_name,
+          subject_id: so.subject_id,
+          lo_code: so.lo_code,
+          name: so.name,
+          short_desc: so.shortened_description,
+          desc: so.description,
+          course: so.subject.subject_name_without_grade,
+          grade: so.subject.grade_from_subject_name,
+          mp: SubjectOutcome.get_bitmask_string(so.marking_period),
+          active: so.active
+        } 
+      end
+    end
+    return old_los_by_lo
+  end
 
 end

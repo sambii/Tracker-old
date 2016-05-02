@@ -76,152 +76,72 @@ class SubjectOutcomesController < ApplicationController
       step = 0
       action_count = 0
 
-      @error_list = Hash.new
-
+      # get the model school
+      # - creates/udpates @school, @school_year
+      # errors are added to @errors and raised
       @school = lo_get_model_school(params)
-
+      # get the subjects for the model school
       @subjects = Subject.where(school_id: @school.id)
+      # if only processing one subject
+      # - creates/updates @match_subject, @subject_id
+      # errors are added to @errors and raised
+      @match_subject = lo_get_match_subject(params)
 
-      @subject = nil
-
-      # if only processing one subject, look up the subject by selected subject ID
-      if params[:subject_id].present?
-        match_subjects = Subject.where(id: params[:subject_id])
-        @match_subject = nil
-        @subject_id = ''
-        if match_subjects.count == 0
-          @errors[:subject] = "Error: Cannot find subject"
-        else
-          @match_subject = match_subjects.first
-          @subject_id = @match_subject.present? ? @match_subject.id : ''
-        end
+      if params['file'].blank? && !first_display
+        @errors[:filename] = "Error: Missing Curriculum (LOs) Upload File."
+        raise @errors[:filename] 
       end
-      Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
 
-      if @errors.count > 0
-        Rails.logger.debug("*** @errors: #{@errors.inspect}")
-        # don't process, error
-      elsif params['file'].blank?
-        if !first_display
-          @errors[:filename] = "Error: Missing Curriculum (LOs) Upload File."
-        end
-      else
+      @stage = 2
+      Rails.logger.debug("*** Stage: #{@stage}")
 
-        # stage 2
-        @stage = 2
-        Rails.logger.debug("*** Stage: #{@stage}")
-        @subject_ids = Hash.new
-        @subject_names = Hash.new
-        Rails.logger.debug("*** create subject names hash")
-        @subjects.each do |s|
-          @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
-          @subject_names[s.name] = s # all subject names
-        end
-        # no initial errors, process file
-        @filename = params['file'].original_filename
-        # @errors[:filename] = 'Choose file again to rerun'
-        # note: 'headers: true' uses column header as the key for the name (and hash key)
-        ix = 0
-        CSV.foreach(params['file'].path, headers: true) do |row|
-          rhash = validate_csv_fields(row.to_hash.with_indifferent_access, @subject_names)
-          rhash[COL_REC_ID] = ix
-          if rhash[COL_ERROR]
-            @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
-          end
-          check_subject = "#{rhash[COL_COURSE]} #{rhash[COL_GRADE]}"
-          if @match_subject.blank?
-            ix += 1
-            matched_subject = false
-            # processing all subjects in file
-            Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
-            Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-            @records << rhash if !rhash[COL_EMPTY]
-          else
-            matched_subject = (@match_subject.name == check_subject)
-            if matched_subject
-              ix += 1
-              Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
-              Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-              @records << rhash if !rhash[COL_EMPTY]
-            end
-          end
-        end  # end CSV.foreach
+      Rails.logger.debug("*** create subject hashes")
+      @subject_ids = Hash.new
+      @subject_names = Hash.new
+      @subjects.each do |s|
+        @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
+        @subject_names[s.name] = s
+      end
 
-        # check for file duplicate LO Codes
-        dup_lo_code_checked = validate_dup_lo_codes(@records)
-        @error_list = dup_lo_code_checked[:error_list]
-        Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
-        @records = dup_lo_code_checked[:records]
-        Rails.logger.debug("*** records count: #{@records.count}")
-        @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
+      # create hash of new LO records from uploaded csv file
+      new_los_by_rec = lo_get_file_from_upload(params)
 
-        # check for file duplicate LO Descriptions
-        dup_lo_descs_checked = validate_dup_lo_descs(@records)
-        @error_list2 = dup_lo_descs_checked[:error_list]
-        Rails.logger.debug("*** @error_list2: #{@error_list2.inspect}")
-        @records = dup_lo_descs_checked[:records]
-        Rails.logger.debug("*** records count: #{@records.count}")
-        @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
+      # Check for duplicate LO codes in uploaded file
+      @error_list = Hash.new
+      # check for file duplicate LO Codes
+      dup_lo_code_checked = validate_dup_lo_codes(@records)
+      @error_list = dup_lo_code_checked[:error_list]
+      Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
+      @records = dup_lo_code_checked[:records]
+      Rails.logger.debug("*** records count: #{@records.count}")
+      @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
 
-        # validate records
+      # Check for duplicate LO descriptions in uploaded file
+      @error_list2 = Hash.new
+      # check for file duplicate LO Descriptions
+      dup_lo_descs_checked = validate_dup_lo_descs(@records)
+      @error_list2 = dup_lo_descs_checked[:error_list]
+      Rails.logger.debug("*** @error_list2: #{@error_list2.inspect}")
+      @records = dup_lo_descs_checked[:records]
+      Rails.logger.debug("*** records count: #{@records.count}")
+      @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
 
-        # stage 3
-        @stage = 3
-        Rails.logger.debug("*** Stage: #{@stage}")
+      @stage = 3
+      Rails.logger.debug("*** Stage: #{@stage}")
+
+      step = 1
+      # get the subject outcomes from the database for all subjects to process
+      old_los_by_lo = lo_get_file_from_upload
+      Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
+      @old_records_counts = old_los_by_lo.count
+
+      @match_level = DEFAULT_MATCH_LEVEL
+      @pairs_filtered = Array.new
 
 
-        # # create an hash by lo_codes for matching database to upload file.
-        # @records.each_with_index do |rx, ix|
-        #   rec  = Hash.new
-        #   rec[COL_REC_ID] = rx[COL_REC_ID]
-        #   rec[COL_COURSE] = rx[COL_COURSE]
-        #   rec[COL_GRADE] = rx[COL_GRADE]
-        #   rec[COL_MP_BITMAP] = rx[COL_MP_BITMAP]
-        #   rec[COL_OUTCOME_CODE] = rx[COL_OUTCOME_CODE]
-        #   rec[COL_OUTCOME_NAME] = rx[COL_OUTCOME_NAME]
-        #   rec[PARAM_ID] = rx[PARAM_ID]
-        #   rec[PARAM_ACTION] =  rx[PARAM_ACTION]
 
-        #   shortened_name = (rx[COL_OUTCOME_NAME].present? ? rx[COL_OUTCOME_NAME].truncate(50, omission: '...') : '')
-        #   rx[COL_SHORTENED_NAME] = shortened_name
-        # end
 
-        # get the subject outcomes from the database for all subjects to process
-        old_los_by_lo = Hash.new
-        # optimize active record for one db call
-        db_active = 0
-        db_deact = 0
-        SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
-          subject_name = @subject_ids[so.subject_id].name
-          # is matched_subject if we are processing all subjects or if current subject matches the selected subject
-          matched_subject = @match_subject.blank? || @match_subject.name == subject_name
-          if matched_subject # only add record if all subjects or the matching selected subject
-            Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
-            old_los_by_lo[so.lo_code] = {
-              db_id: so.id,
-              subject_name: subject_name,
-              subject_id: so.subject_id,
-              lo_code: so.lo_code,
-              name: so.name,
-              short_desc: so.shortened_description,
-              desc: so.description,
-              course: so.subject.subject_name_without_grade,
-              grade: so.subject.grade_from_subject_name,
-              mp: SubjectOutcome.get_bitmask_string(so.marking_period),
-              active: so.active
-            } 
-            if so.active
-              db_active += 1
-            else
-              db_deact += 1
-            end
-          end
-        end
-        Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
-        @old_records_counts = old_los_by_lo.count
-
-        @match_level = DEFAULT_MATCH_LEVEL
-        @pairs_filtered = Array.new
+################################################
 
         iy = 0
         pairs_combined = []
@@ -377,23 +297,22 @@ class SubjectOutcomesController < ApplicationController
 
       @pairs_filtered = Array.new
 
+      # get the model school
+      # - creates/udpates @school, @school_year
       @school = lo_get_model_school(params)
-
+      # get the subjects for the model school
       @subjects = Subject.where(school_id: @school.id)
+      # if only processing one subject
+      # - creates/updates @match_subject, @subject_id, @errors[:subject]
+      @match_subject = lo_get_match_subject(params)
 
-      # if only processing one subject, look up the subject by selected subject ID
-      @match_subject = nil
-      if params[:subject_id].present?
-        match_subjects = Subject.where(id: params[:subject_id])
-        if match_subjects.count == 0
-          @errors[:subject] = "Error: Cannot find subject"
-        end
-        @match_subject = match_subjects.first
-        @subject_id = @match_subject.present? ? @match_subject.id : ''
-      else
-        @subject_id = ''
+      if params['file'].blank? && !first_display
+        @errors[:filename] = "Error: Missing Curriculum (LOs) Upload File."
+        raise @errors[:filename] 
       end
-      Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
+
+      @stage = 2
+      Rails.logger.debug("*** Stage: #{@stage}")
 
       Rails.logger.debug("*** create subject hashes")
       @subject_ids = Hash.new
@@ -403,73 +322,24 @@ class SubjectOutcomesController < ApplicationController
         @subject_names[s.name] = s
       end
 
+      # create hash of new LO records from hidden variables (params)
+      new_los_by_rec = lo_get_file_from_hidden(params)
+
+      @stage = 3
+      Rails.logger.debug("*** Stage: #{@stage}")
+      
       step = 1
       # get the subject outcomes from the database for all subjects to process
-      old_los_by_lo = Hash.new
-      # optimize active record for one db call
-      db_active = 0
-      db_deact = 0
-      SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
-        subject_name = @subject_ids[so.subject_id].name
-        # is matched_subject if we are processing all subjects or if current subject matches the selected subject
-        matched_subject = @match_subject.blank? || @match_subject.name == subject_name
-        if matched_subject # only add record if all subjects or the matching selected subject
-          Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
-          old_los_by_lo[so.lo_code] = {
-            db_id: so.id,
-            subject_name: subject_name,
-            subject_id: so.subject_id,
-            lo_code: so.lo_code,
-            name: so.name,
-            short_desc: so.shortened_description,
-            desc: so.description,
-            course: so.subject.subject_name_without_grade,
-            grade: so.subject.grade_from_subject_name,
-            mp: SubjectOutcome.get_bitmask_string(so.marking_period),
-            active: so.active
-          } 
-          if so.active
-            db_active += 1
-          else
-            db_deact += 1
-          end
-        end
-      end
-
+      old_los_by_lo = lo_get_file_from_upload
       Rails.logger.debug("*** Subject Outcomes read from Database (count): #{old_los_by_lo.count}")
       @old_records_counts = old_los_by_lo.count
 
-      # process request parameters
-      # recreate uploaded records to process
-      # Perform any actions required for this stage of the matching process
-      step = 2
-      @mismatch_count = 0
-      @not_add_count = 0 # temporary coding to allow add only mode till programming completed.
+      @match_level = DEFAULT_MATCH_LEVEL
+      @pairs_filtered = Array.new
 
-      new_los_by_rec = Hash.new      
-      params['pair'].each do |p|
-        pold = p[1]['o']
-        pold ||= {}
-        pnew = p[1]['n']
-        pnew ||= {}
 
-        # recreate upload records (with only fields needed)
-        if pnew.length > 0 && pnew[COL_REC_ID] && pnew[COL_OUTCOME_CODE]
-          rec  = Hash.new
-          rec[COL_REC_ID] = pnew[COL_REC_ID]
-          rec[COL_COURSE] = pnew[COL_COURSE]
-          rec[COL_COURSE_ID] = pnew[COL_COURSE_ID]
-          rec[COL_GRADE] = pnew[COL_GRADE]
-          rec[COL_MP_BITMAP] = pnew[COL_MP_BITMAP]
-          rec[COL_OUTCOME_CODE] = pnew[COL_OUTCOME_CODE]
-          rec[COL_OUTCOME_NAME] = pnew[COL_OUTCOME_NAME]
-          rec[PARAM_ID] = pnew[PARAM_ID]
-          rec[PARAM_ACTION] =  pnew[PARAM_ACTION]
-          @records << rec
-          new_los_by_rec[pnew[COL_REC_ID]] = rec
-        end
 
-      end
+################################################
 
       step = 3
       # set :matched flag for selected pairs (from radio button selection)
