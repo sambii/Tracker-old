@@ -201,13 +201,20 @@ class Ability
       #########################################################################
       if user.researcher?
         can :read, :all
-        cannot [:index, :edit], User
+
+        can :manage, Generate
+        can :create, ReportCardRequest
+        can [:section_summary_outcome, :section_summary_student, :nyp_outcome, :nyp_student, :student_info_handout, :student_info_handout_by_grade, :progress_rpt_gen], Section
+        can :switch, School
+        can :proficiency_bars, Student
+        can [:proficiency_bars, :progress_meters], Subject
+        can [:staff_listing, :account_activity_report], User
+
+        cannot [:edit], User
+        cannot [:edit], Student
         can [:read, :change_password, :edit, :update, :profile],
           User,
           { id: user.id }
-        cannot [:edit], Student
-        can :manage, Generate
-        can :switch, School
       end
 
 

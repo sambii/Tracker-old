@@ -59,7 +59,9 @@ class Subject < ActiveRecord::Base
 
     all_los_count = section_outcomes.count
 
-    return {ratings: ratings, rated_los_count: sor_los.count, all_los_count: all_los_count, last_rating_date: last_rating_date, subject: self}
+    ratio = (all_los_count > 0) ? (sor_los.count.to_f / all_los_count) : 0
+
+    return {ratings: ratings, rated_los_count: sor_los.count, all_los_count: all_los_count, last_rating_date: last_rating_date, subject: self, ratio: ratio}
   end
 
 

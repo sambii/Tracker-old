@@ -183,9 +183,7 @@ class SubjectsController < ApplicationController
       @current_sections = Section.where(school_year_id: @school.school_year_id, subject_id: s.id)
       @subject_ratings[s.id] = s.count_ratings_plus(section_ids: @current_sections.pluck(:id), limit: 10)
     end
-    # note hash is sorted using array, so hash is returned as an array (with two arguments)
-    # e.g. @by_date.each do |srd_k, srd_v|
-    @by_lo_count = @subject_ratings.sort_by{|k,v| v[:rated_los_count]/v[:all_los_count]}.reverse
+    @by_lo_count = @subject_ratings.sort_by{|k,v| v[:ratio]}.reverse
   end
 
 

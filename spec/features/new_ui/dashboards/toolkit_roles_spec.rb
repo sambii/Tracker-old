@@ -36,6 +36,7 @@ describe "Student Dashboard", js:true do
       set_users_school(@section.school)
     end
     it { role_display_is_valid }
+    it { researcher_toolkit_no_changes }
   end
 
   describe "as system administrator" do
@@ -141,6 +142,38 @@ describe "Student Dashboard", js:true do
         page.should have_css('a.sidebar-nav-menu.disabled')
       end
     end
+
+  end
+  def researcher_toolkit_no_changes
+    visit root_path()
+    Rails.logger.debug("+++ @test_user.role_symbols.inspect: #{@test_user.role_symbols.inspect}")
+    assert_equal("/#{@current_role.pluralize}/#{@test_user.id}", current_path)
+    Rails.logger.debug("+++ @test_user.role_symbols.length: #{@test_user.role_symbols.length}")
+    @test_user.role_symbols.length .should be 1
+    page.should_not have_css('li#side-role')
+    Rails.logger.debug("+++ @test_user.researcher? #{@test_user.researcher?}")
+    @test_user.researcher?.should be true
+    Rails.logger.debug("+++ @teaching_assignment.inspect: #{@teaching_assignment.inspect}")
+    # page.should_not have_css('li#side-current a')
+    # page.should_not have_css('li#side-past a')
+    page.should have_css('li#side-add-lo a.disabled')
+    page.should have_css('li#side-add-evid a.disabled')
+    page.should have_css('li#side-restore-evid a.disabled')
+    page.should have_css('li#side-attend a.disabled')
+    page.should have_css('li#side-attendance-maint a.disabled')
+    page.should_not have_css('li#side-reports a.disabled')
+    # page.should_not have_css('li#side-staff a.disabled')
+    page.should_not have_css('li#side-students a.disabled')
+    page.should_not have_css('li#side-subjects a.disabled')
+    page.should_not have_css('li#side-schools a.disabled')
+    page.should_not have_css('li#side-templates')
+    visit section_path(@section.id)
+    # confirm researcher does not see section maintenance items if in a section
+    page.should have_css('li#side-add-lo a.disabled')
+    page.should have_css('li#side-add-evid a.disabled')
+    page.should have_css('li#side-restore-evid a.disabled')
+    # confirm researcher
+    page.should_not have_css('li#side-attend a.disabled')
 
   end
 

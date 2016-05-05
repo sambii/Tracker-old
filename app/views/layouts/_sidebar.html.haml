@@ -20,7 +20,7 @@
     %a{href: "#{root_path}"}
       %i.fa.fa-home.sidebar-nav-icon
       = @current_user.full_name.blank? ? @current_user.username : @current_user.full_name
-  / Only show roles selector if a staff member
+  / Only show roles selector if a staff member and they have multiple roles
   - if current_user.staff? && current_user.role_symbols.length > 1
     %li#side-role
       %a.sidebar-nav-menu{href: "javascript:void(0)", class: (@current_role == '' ? 'open' : '')}
@@ -85,15 +85,15 @@
             %li{class: (!@section.nil? && @section.id == s.id) ? 'active' : ''}
               %a{href: "#{section_url(s.id)}"}= "#{s.subject.name} - #{s.line_number}"
     %li#side-add-lo
-      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : new_section_outcome_section_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : new_section_outcome_section_path(@section) ), class: (@section.nil? || @section.id.nil? || !can?(:new_section_outcome, Section) ? 'disabled' : '')}
         %i.fa.fa-lightbulb-o.sidebar-nav-icon>
         ='Add Learning Outcome'
     %li#side-add-evid
-      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : new_evidence_section_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : new_evidence_section_path(@section) ), class: (@section.nil? || @section.id.nil? || !can?(:new_evidence, Section) ? 'disabled' : '')}
         %i.fa.fa-puzzle-piece.sidebar-nav-icon>
         ='Add Evidence'
     %li#side-restore-evid
-      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : restore_evidence_section_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : restore_evidence_section_path(@section) ), class: (@section.nil? || @section.id.nil? || !can?(:restore_evidence, Section) ? 'disabled' : '')}
         %i.fa.fa-puzzle-piece.sidebar-nav-extra-icon>
         %i.fa.fa-repeat.sidebar-nav-icon>
         ='Restore Evidence'
@@ -128,7 +128,7 @@
           %i.fa.fa-building-o.sidebar-nav-icon>
           ='Schools'
     - if can?(:upload_bulk_templates, Misc)
-      %li#side-schools
+      %li#side-templates
         %a{href: upload_bulk_templates_path}
           %i.fa.fa-building-o.sidebar-nav-icon>
           ='Upload Templates'
