@@ -204,7 +204,7 @@ class Ability
 
         can :manage, Generate
         can :create, ReportCardRequest
-        can [:section_summary_outcome, :section_summary_student, :nyp_outcome, :nyp_student, :student_info_handout, :student_info_handout_by_grade, :progress_rpt_gen], Section
+        can [:section_summary_outcome, :section_summary_student, :nyp_outcome, :nyp_student, :student_info_handout, :student_info_handout_by_grade, :progress_rpt_gen, :class_dashboard], Section
         can :switch, School
         can :proficiency_bars, Student
         can [:proficiency_bars, :progress_meters], Subject
