@@ -15,6 +15,6 @@ else
   $('#modal_popup').modal('hide')
 
   # # if successful, refresh listing
-  # # todo add spinner here
+  # # todo remove refresh, update name and teachers in current line in subject listing
   window.location.href = "<% sections_path %>"
 

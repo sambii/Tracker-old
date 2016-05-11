@@ -6,6 +6,8 @@ class SectionsController < ApplicationController
   load_and_authorize_resource
   # respond_to :json
 
+  include SectionsHelper
+
   # New UI Tracker Page
   # Teacher Tracker Page (Section Tracker)
   def show
@@ -14,32 +16,13 @@ class SectionsController < ApplicationController
     params[:print_unrated] ||= 0
     params[:print_unrated] = params[:print_unrated].to_i
 
-    @section = Section.scoped
-    @section = @section.includes(
-      section_outcomes: [
-        :section,
-        :subject_outcome
-      ]
-    )
-    @section = @section.where(section_outcomes: {id: params[:so_id]}) if params[:so_id]
-    # @section = @section.where(section_outcomes: {id: [params[:so_ids]]}) if params[:so_ids]
-    @section = @section.find(params[:id])
-
-
-    @marking_periods = Range::new(1,@section.school.marking_periods) #for when we want to set value in the school
-
+    show_prep_h
+    
     params[:marking_periods] ||= @marking_periods.to_a #for when we want the periods that are also changable by user selection in the UI
     params[:marking_periods].map!(&:to_i) #the user may change this to a string value through input boxes
 
     template = "sections/show"
     template = "sections/reports/#{params[:report]}" if params[:report]
-
-    @students = @section.active_students(subsection: params[:subsection], by_first_last: @section.school.has_flag?(School::USER_BY_FIRST_LAST))
-
-    @student_ids              = @students.collect(&:id)
-    @section_outcome_ratings  = @section.hash_of_section_outcome_ratings
-    @evidence_ratings         = @section.hash_of_evidence_ratings
-
 
     Rails.logger.debug("*** respond ***")
     respond_to do |format|
@@ -135,20 +118,26 @@ class SectionsController < ApplicationController
       if @section.update_attributes(params[:section])
         @teaching_assignments = []
         # remove error 500 on filter change in teacher tracker
-        if params[:teaching_assignment_attributes]
-          params[:teaching_assignment_attributes].each do |tapk, tapv|
-            if !tapv[:id]
-              tapv[:section_id] = @section.id
-              @teaching_assignment = TeachingAssignment.create(tapv)
-            else
-              @teaching_assignment = TeachingAssignment.find(tapv[:id])
-              TeachingAssignment.destroy(tapv[:id])
+        if params[:section][:selected_marking_period].present?
+          # update marking period filter
+          show_prep_h
+          format.js { render nothing: true }
+        else
+          if params[:teaching_assignment_attributes]
+            params[:teaching_assignment_attributes].each do |tapk, tapv|
+              if !tapv[:id]
+                tapv[:section_id] = @section.id
+                @teaching_assignment = TeachingAssignment.create(tapv)
+              else
+                @teaching_assignment = TeachingAssignment.find(tapv[:id])
+                TeachingAssignment.destroy(tapv[:id])
+              end
+              @teaching_assignments << @teaching_assignment
             end
-            @teaching_assignments << @teaching_assignment
           end
+          format.html { redirect_to session[:return_to], :notice => 'Section was successfully updated.' }
+          format.js
         end
-        format.html { redirect_to session[:return_to], :notice => 'Section was successfully updated.' }
-        format.js
       else
         err = "Error on update: #{@section.errors}"
         flash[:alert] = err
