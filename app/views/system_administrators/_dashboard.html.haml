@@ -1,13 +1,33 @@
+
+- content_for(:title, 'System Administrator Dashboard')
+- content_for(:page_name, 'System Administrator Dashboard')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :system_administrator_dashboard, @system_administrator
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Dashboard'
+  %h2.h1.page-title
+    %strong="#{@system_administrator.full_name}"
+  - si_time = (@system_administrator.current_sign_in_at.nil?) ? 'Never' : @system_administrator.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
+  %span="(Latest signin time at: #{si_time})"
+.header-block
+  - if @school.nil?
+    %h2.h1.page-title.text-center
+      %strong.red="Please Choose a School"
+  - else
+    %h2.h1.page-title.text-center
+      %strong="School Listing"
+=render('schools/listing')
+.header-block
+  %h2.h1.page-title
+    %strong="Options"
 .row
   .col-md-12
-    %h3='Options'
     %ul
       %li= link_to "Manage Academic Disciplines", disciplines_path
       %li= link_to "Create New Announcement", new_announcement_path
-      %li= link_to "Manage Schools", schools_path
-    - if session[:school_context].blank?
-      %h3='Select a School'
-      %ul
-        - School.order(:name).all.each do |school|
-          %li
-            = link_to school.name, school

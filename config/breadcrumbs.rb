@@ -254,3 +254,15 @@ crumb :school_dashboard do
   link 'School'
   parent :root
 end
+
+crumb :researcher_dashboard do |researcher|
+  link "#{researcher.full_name.truncate(15, omission: '...')}", researcher_path(researcher)
+  # parent :root
+end
+
+crumb :system_administrator_dashboard do |system_administrator|
+  link "#{system_administrator.full_name.truncate(15, omission: '...')}", system_administrator_path(system_administrator)
+  # parent :root
+end
+
+

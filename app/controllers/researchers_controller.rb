@@ -10,6 +10,7 @@ class ResearchersController < ApplicationController
   #   Parameters: {"id"=>"#"}
   #   Rendered researcers/show.html.haml within layouts/application
   def show
+    @schools = School.accessible_by(current_ability).order('name')
     respond_to do |format|
       format.html
     end

@@ -1,0 +1,41 @@
+.row.indent-row
+  .col-sm-12.col-lg-12
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th= 'School Name'
+              %th= 'Acronym'
+              %th= 'City / Town'
+              %th= 'School Year'
+              %th{colspan: 4}= ''
+          %tbody.tbody-body.alternate-highlight
+            - @schools.each do |school|
+              %tr
+                %td.school-name
+                  / = link_to school.name, school
+                  = school.name
+                %td.school-acronym=school.acronym
+                %td.school-city=school.city
+                - if school.school_year
+                  %td.school-year=school.school_year.name
+                - else
+                  %td.school-year=''
+                %td.text-center
+                  - if can? :switch, school
+                    %a{href: school_path(school.id), title: "Make '#{school.acronym} - #{school.name}'' curent school"}
+                      %i.fa.fa-lg.fa-building-o
+                %td.text-center
+                  - if can? :edit, school
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_school_path(school.id, format: :js)}, title: 'Edit School'}
+                      %i.fa.fa-lg.fa-edit
+                %td.text-center
+                  - if can?( :switch, school) && can?(:new_year_rollover, school)
+                    %a{href: new_year_rollover_school_path(school.id), data: {method: :post, confirm: 'Are you sure you want to rollover subjects and LOs?'}, title: 'Rollover to New Year'}
+                      %i.fa.fa-lg.fa-forward
+                %td.text-center
+                  - if school.acronym == 'MOD' && can?(:switch, school) && can?(:upload_lo_file, SubjectOutcome) && school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
+                    %a{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}
+                      %i.fa.fa-lg.fa-lightbulb-o
+                      %i.fa.fa-lg.fa-upload

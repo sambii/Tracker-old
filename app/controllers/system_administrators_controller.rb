@@ -7,6 +7,7 @@ class SystemAdministratorsController < ApplicationController
 
   # New UI - Teacher Dashboard
   def show
+    @schools = School.accessible_by(current_ability).order('name')
     respond_to do |format|
       format.html
     end
