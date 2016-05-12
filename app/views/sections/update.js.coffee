@@ -16,5 +16,13 @@ else
 
   # # if successful, refresh listing
   # # todo remove refresh, update name and teachers in current line in subject listing
-  window.location.href = "<% sections_path(show_section_id: @section.id) %>"
+  console.log 'get section_id'
+  section_id = <%= @section.id %>
+  subject_id = <%= @section.subject_id %>
+  subjects_path = '/subjects?show_subject_id='+subject_id
+  console.log 'log section_id'
+  console.log "#{section_id}"
+  console.log "#{subject_id}"
+  console.log "#{subjects_path}"
+  window.location.href = "<% subjects_path(show_subject_id: @section.subject_id) %>"
 
