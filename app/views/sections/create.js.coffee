@@ -17,5 +17,5 @@ else
 
   # # if successful, refresh listing
   # # todo add spinner here
-  window.location.href = "<% subjects_path %>"
+  window.location.href = "<% subjects_path(show_section_id: @section.id) %>"
 

@@ -16,5 +16,5 @@ else
 
   # # if successful, refresh listing
   # # todo remove refresh, update name and teachers in current line in subject listing
-  window.location.href = "<% sections_path %>"
+  window.location.href = "<% sections_path(show_section_id: @section.id) %>"
 
