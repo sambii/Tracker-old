@@ -155,7 +155,6 @@ crumb :new_section do
   parent :root
 end
 
-
 crumb :student_dashboard do |student|
   if current_user.see_school?
     if student
@@ -164,13 +163,13 @@ crumb :student_dashboard do |student|
     parent :root
   end
 end
+
 crumb :student_tracker do |enrollment|
   link enrollment.section.subject.name.truncate(15, omission: '...'), enrollment_path(enrollment)
   if current_user.see_school?
     parent :student_dashboard, enrollment.student
   end
 end
-
 
 crumb :teacher_dashboard do |teacher|
   if current_user.see_all_school?
@@ -184,6 +183,7 @@ crumb :teacher_dashboard do |teacher|
     # end
   end
 end
+
 crumb :section_dashboard do |section|
   if can?(:update_subject_outcomes, section.subject)
     link section.subject.name.truncate(15, omission: '...'), section.subject
@@ -194,14 +194,12 @@ crumb :section_dashboard do |section|
   end
 end
 
-
 crumb :school_admin_dashboard do |school_admin|
   if current_user.see_all?
     link "#{school_admin.full_name.truncate(15, omission: '...')}", school_administrator_path(school_admin)
     parent :root
   end
 end
-
 
 crumb :system_admin_dashboard do |system_admin|
   link "#{system_admin.full_name.truncate(15, omission: '...')}", system_administrator_path(system_admin)
@@ -212,7 +210,6 @@ crumb :subjects_sections_listing do
   link "Subjects"
   parent :root
 end
-
 
 crumb :school_listing do
   link "Schools"
@@ -233,7 +230,6 @@ crumb :staff_bulk_entry do
   link 'Staff Bulk Upload'
   parent :staff_listing
 end
-
 
 crumb :student_bulk_entry do
   link 'Student Bulk Upload'
@@ -259,10 +255,4 @@ crumb :researcher_dashboard do |researcher|
   link "#{researcher.full_name.truncate(15, omission: '...')}", researcher_path(researcher)
   # parent :root
 end
-
-crumb :system_administrator_dashboard do |system_administrator|
-  link "#{system_administrator.full_name.truncate(15, omission: '...')}", system_administrator_path(system_administrator)
-  # parent :root
-end
-
 
