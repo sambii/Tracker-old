@@ -1,2 +1,6 @@
+PARLO Tracker version v2.01.015
+- Researcher and System Admins dashboards, fix of proui rhs of page
+- stop tracker page reload after marking period change
 PARLO Tracker version v2.01.014
+- Researcher tookkit fixes and ability to see class dashboard
 
