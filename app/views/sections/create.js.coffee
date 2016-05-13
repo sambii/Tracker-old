@@ -20,8 +20,10 @@ else
   console.log 'get section_id'
   section_id = <%= @section.id %>
   subject_id = <%= @section.subject_id %>
+  subjects_path = '/subjects?show_subject_id='+subject_id
   console.log 'log section_id'
   console.log "#{section_id}"
   console.log "#{subject_id}"
-  window.location.href = "<% subjects_path(show_subject_id: @section.subject_id) %>"
+  # window.location.href = "<% subjects_path(show_subject_id: @section.subject_id) %>"
+  window.location.href = subjects_path
 

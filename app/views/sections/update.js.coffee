@@ -24,5 +24,6 @@ else
   console.log "#{section_id}"
   console.log "#{subject_id}"
   console.log "#{subjects_path}"
-  window.location.href = "<% subjects_path(show_subject_id: @section.subject_id) %>"
+  # window.location.href = "<% subjects_path(show_subject_id: @section.subject_id) %>"
+  window.location.href = subjects_path
 
