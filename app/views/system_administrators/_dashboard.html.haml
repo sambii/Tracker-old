@@ -28,7 +28,7 @@
   %span="(Latest signin time at: #{si_time})"
 
 .header-block
-  - if @school.nil?
+  - if @current_school.id.nil?
     %h2.h1.page-title.text-center
       %strong.red="Please Choose a School"
   - else
