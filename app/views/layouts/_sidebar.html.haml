@@ -1,5 +1,7 @@
 / (Left) Sidebar for Application Layout
 / Brand
+- can_see_all_schools = (@current_user.system_administrator? || @current_user.researcher?) ? true : false
+- has_selected_school = !can_see_all_schools || @current_school.id.present?
 %div.sidebar-brand
   %strong TOOLKIT
 / END Brand
@@ -66,6 +68,11 @@
             %a{href: "#{enrollment_url(e.id)}"}= "#{e.section.subject.name} - #{e.section.line_number}"
   - if current_user.staff?
     / toolkit options for all but students and parents
+    - if can?(:switch, School)
+      %li#side-schools
+        %a{href: schools_path}
+          %i.fa.fa-building-o.sidebar-nav-icon>
+          ='Schools'
     %li#side-current{:class => (!@section.nil? && @toolkit_current_section_ids.include?(@section.id)) ? 'active' : ''}
       %a.sidebar-nav-menu{href: "javascript:void(0)", class: (@toolkit_current_sections.count == 0 ? 'disabled' : '')}
         %i.fa.fa-angle-down.sidebar-nav-indicator
@@ -102,31 +109,31 @@
         %i.fa.fa-calendar.sidebar-nav-icon>
         ='Section Attendance'
     %li#side-attendance-maint
-      %a{href: (can?(:update, AttendanceType) ? attendance_maintenance_attendances_path : 'javascript:void(0)'), class: (can?(:update, AttendanceType) ? '' : 'disabled')}
+      - can_see_attendance_maint = has_selected_school && can?(:update, AttendanceType)
+      %a{href: ( can_see_attendance_maint ? attendance_maintenance_attendances_path : 'javascript:void(0)'), class: (can_see_attendance_maint ? '' : 'disabled')}
         %i.fa.fa-calendar.sidebar-nav-extra-icon
         %i.fa.fa-pencil.sidebar-nav-icon>
         ='Attendance Maint.'
     %li#side-reports
-      %a{href: new_generate_path(section_id: (@section.nil? || @section.id.nil? ? '' : @section.id) )}
+      - can_see_reports = has_selected_school
+      %a{href: ( can_see_reports ? new_generate_path(section_id: (@section.nil? || @section.id.nil? ? '' : @section.id) ) : 'javascript:void(0)'), class: (can_see_reports ? '' : 'disabled') }
         %i.fa.fa-files-o.sidebar-nav-icon>
         ='Generate Reports'
     %li#side-staff
-      %a{href: (can?(:staff_listing, User) ? staff_listing_users_path : 'javascript:void(0)'), class: (can?(:staff_listing, User) ? '' : 'disabled')}
+      - can_see_staff = has_selected_school && can?(:staff_listing, User)
+      %a{href: ( can_see_staff ? staff_listing_users_path : 'javascript:void(0)'), class: (can_see_staff ? '' : 'disabled')}
         %i.fa.fa-user.sidebar-nav-icon>
         ='Staff'
     %li#side-students
-      %a{href: students_path}
+      - can_see_students = has_selected_school
+      %a{href: ( can_see_staff ? students_path : 'javascript:void(0)'), class: (can_see_students ? '' : 'disabled')}
         %i.fa.fa-users.sidebar-nav-icon
         ='Students'
     %li#side-subjects
-      %a{href: (can?(:read, Subject) ? subjects_path : 'javascript:void(0)'), class: (can?(:read, Subject) ? '' : 'disabled')}
+      - can_see_subjects = has_selected_school && can?(:read, Subject)
+      %a{href: (can_see_subjects ? subjects_path : 'javascript:void(0)'), class: (can_see_subjects ? '' : 'disabled')}
         %i.fa.fa-book.sidebar-nav-icon
         ='Subjects'
-    - if can?(:switch, School)
-      %li#side-schools
-        %a{href: schools_path}
-          %i.fa.fa-building-o.sidebar-nav-icon>
-          ='Schools'
     - if can?(:upload_bulk_templates, Misc)
       %li#side-templates
         %a{href: upload_bulk_templates_path}
