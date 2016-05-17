@@ -208,7 +208,7 @@ class Ability
         can :switch, School
         can :proficiency_bars, Student
         can [:proficiency_bars, :progress_meters], Subject
-        can [:staff_listing, :account_activity_report], User
+        can [:staff_listing, :account_activity_report, :sections_list], User
 
         cannot [:edit], User
         cannot [:edit], Student

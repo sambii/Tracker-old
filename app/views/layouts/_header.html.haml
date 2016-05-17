@@ -16,7 +16,9 @@
         - if can? :switch, School
           %a{href: schools_path, title: 'Switch School'}
             %i.fa.fa-lg.fa-building-o
-        %span.text-muted{title: (can?(:switch, School) ? 'Current School' : '')}= "#{@current_school.name}"
+          %span{title: (can?(:switch, School) ? 'Current School' : '')}= "#{@current_school.name}"
+        - else
+          %span.text-muted{title: (can?(:switch, School) ? 'Current School' : '')}= "#{@current_school.name}"
 / END Left Header Navigation
 / Right Header Navigation
 %ul.nav.navbar-nav-custom.pull-right

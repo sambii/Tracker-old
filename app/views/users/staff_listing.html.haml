@@ -118,15 +118,19 @@
                     %a{data: {target: "#modal_popup", toggle: 'modal', url: user_path(s.id, format: :js)}}
                       %i.fa.fa-lg.fa-ellipsis-h
                   %td.text-center
-                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_user_path(s.id, format: :js)}}
-                      %i.fa.fa-lg.fa-edit
-                  %td.text-center.clicable-icon{data: {target: "#modal_popup", toggle: 'modal', url: security_user_path(s.id, format: :js)}}
-                    %i.fa.fa-lg.fa-unlock
+                    - if can?(:edit, s)
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_user_path(s.id, format: :js)}}
+                        %i.fa.fa-lg.fa-edit
                   %td.text-center
-                    %div.show-if-active
-                      %a#remove-staff{href: "/users/#{s.id}.js?commit=active&#{{active: false}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}}
-                        %i.fa.fa-lg.fa-times-circle
-                    %div.show-if-deactivated
-                      %a#restore-staff{href: "/users/#{s.id}.js?commit=active&#{{active: true}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}}
-                        %i.fa.fa-lg.fa-undo
+                    - if can?(:security, s)
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: security_user_path(s.id, format: :js)}}
+                        %i.fa.fa-lg.fa-unlock
+                  %td.text-center
+                    - if can?(:update, s)
+                      %div.show-if-active
+                        %a#remove-staff{href: "/users/#{s.id}.js?commit=active&#{{active: false}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}}
+                          %i.fa.fa-lg.fa-times-circle
+                      %div.show-if-deactivated
+                        %a#restore-staff{href: "/users/#{s.id}.js?commit=active&#{{active: true}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}}
+                          %i.fa.fa-lg.fa-undo
 
