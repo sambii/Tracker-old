@@ -67,11 +67,35 @@ describe "Teacher Tracker", js:true do
   def teacher_tracker_is_valid
     visit section_path(@section.id)
     assert_equal("/sections/#{@section.id}", current_path)
+    page.should have_content("All Learning Outcomes")
 
     # todo - enter tests
     within("table[data-section-id='#{@section.id}']") do
+      page.should have_content('Subject Outcome 1')
+      page.should have_css('tbody.tbody-header')
+      page.should have_css("*[data-so-id='1']")
+      page.should have_css('tbody.tbody-header[data-so-id="1"]')
+      page.should have_css('tbody.tbody-header[data-so-id="1"].tbody-open')
+      @section_outcomes.each do |so|
+        # page.should have_css('tbody.tbody-section[data-so-id="#{so.id}"]')
+        # within('tbody.tbody-section[data-so-id="#{so.id}"]') do
+        within('tbody.tbody-section[data-so-id="1"]') do
+          page.should have_content('Test Evidence 1')
+          page.should have_content('Test Evidence 2')
+          page.should have_content('Test Evidence 3')
+          page.should have_content('Test Evidence 4')
+          page.should have_content('Test Evidence 5')
+          page.should have_content('Test Evidence 6')
+        end
+      end
       # page.should have_content('xxxx')
     end
+    find("div#collapse-all-los-button").click
+    page.should have_content('Subject Outcome 1')
+    page.should have_css('tbody.tbody-header')
+    page.should have_css("*[data-so-id='1']")
+    page.should have_css('tbody.tbody-header[data-so-id="1"]')
+    page.should_not have_css('tbody.tbody-header[data-so-id="1"].tbody-open')
 
     # todo - validate links on page
     # page.find("tr a[href='/sections/#{@section.id}/class_dashboard']").click
