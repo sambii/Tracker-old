@@ -4,7 +4,7 @@ module UserFeaturesHelper
     visit schools_path
     assert_match("/schools", current_path)
     click_link(school.name)
-    # assert_match("/schools/#{school.id}", current_path)
+    assert_match("/schools/#{school.id}", current_path)
     page.should have_content(school.name)
   end
 

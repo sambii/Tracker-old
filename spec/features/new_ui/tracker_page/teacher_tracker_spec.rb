@@ -69,33 +69,33 @@ describe "Teacher Tracker", js:true do
     assert_equal("/sections/#{@section.id}", current_path)
     page.should have_content("All Learning Outcomes")
 
-    # todo - enter tests
     within("table[data-section-id='#{@section.id}']") do
-      page.should have_content('Subject Outcome 1')
+      page.should have_content("#{@subject_outcomes.values[0].name}")
       page.should have_css('tbody.tbody-header')
-      page.should have_css("*[data-so-id='1']")
-      page.should have_css('tbody.tbody-header[data-so-id="1"]')
-      page.should have_css('tbody.tbody-header[data-so-id="1"].tbody-open')
+      page.should have_css("*[data-so-id='#{@subject_outcomes.values[0].id}']")
+      page.should have_css("tbody.tbody-header[data-so-id='#{@subject_outcomes.values[0].id}']")
+      page.should have_css("tbody.tbody-header[data-so-id='#{@subject_outcomes.values[0].id}'].tbody-open")
       @section_outcomes.each do |so|
         # page.should have_css('tbody.tbody-section[data-so-id="#{so.id}"]')
         # within('tbody.tbody-section[data-so-id="#{so.id}"]') do
-        within('tbody.tbody-section[data-so-id="1"]') do
-          page.should have_content('Test Evidence 1')
-          page.should have_content('Test Evidence 2')
-          page.should have_content('Test Evidence 3')
-          page.should have_content('Test Evidence 4')
-          page.should have_content('Test Evidence 5')
-          page.should have_content('Test Evidence 6')
+        within("tbody.tbody-section[data-so-id='#{@subject_outcomes.values[0].id}']") do
+          page.should have_content("#{@evidences.values[0].name}")
+          page.should have_content("#{@evidences.values[1].name}")
+          page.should have_content("#{@evidences.values[2].name}")
+          page.should have_content("#{@evidences.values[3].name}")
+          page.should have_content("#{@evidences.values[4].name}")
+          page.should have_content("#{@evidences.values[5].name}")
         end
       end
       # page.should have_content('xxxx')
     end
     find("div#collapse-all-los-button").click
-    page.should have_content('Subject Outcome 1')
+    page.should have_content("#{@subject_outcomes.values[0].name}")
     page.should have_css('tbody.tbody-header')
-    page.should have_css("*[data-so-id='1']")
-    page.should have_css('tbody.tbody-header[data-so-id="1"]')
-    page.should_not have_css('tbody.tbody-header[data-so-id="1"].tbody-open')
+    page.should have_css("*[data-so-id='#{@subject_outcomes.values[0].id}']")
+    page.should have_css("tbody.tbody-header[data-so-id='#{@subject_outcomes.values[0].id}']")
+    page.should_not have_css("tbody.tbody-header[data-so-id='#{@subject_outcomes.values[0].id}'].tbody-open")
+
 
     # todo - validate links on page
     # page.find("tr a[href='/sections/#{@section.id}/class_dashboard']").click
