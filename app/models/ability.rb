@@ -27,6 +27,9 @@ class Ability
           Student,
           { id: user.child_id }
 
+        # student listing
+        cannot [:index], Student
+
         # User (Self)
         can [:read, :change_password, :edit, :update, :profile],
           User,
@@ -49,6 +52,9 @@ class Ability
         can [:show],
           Enrollment,
           { student_id: user.id }
+
+        # student listing
+        cannot [:index], Student
 
         # Student (Self)
         can [:show],
@@ -212,8 +218,8 @@ class Ability
         can [:proficiency_bars, :progress_meters], Subject
         can [:staff_listing, :account_activity_report, :sections_list], User
 
-        cannot [:edit], User
-        cannot [:edit], Student
+        cannot [:edit, :update], User
+        cannot [:edit, :update], Student
         can [:read, :change_password, :edit, :update, :profile],
           User,
           { id: user.id }

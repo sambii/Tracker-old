@@ -6,18 +6,18 @@ module LoadSectionHelper
     Rails.logger.debug("***** load_test_section")
     @teaching_assignment = FactoryGirl.create :teaching_assignment, teacher: teacher, section: section
 
-    @student   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: '1'
+    @student   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-1'
     set_parent_password(@student)
     @enrollment = FactoryGirl.create :enrollment, section: section, student: @student
-    @student2   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: '2'
+    @student2   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-2'
     @enrollment2 = FactoryGirl.create :enrollment, section: section, student: @student2
-    @student3   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: '3'
+    @student3   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-3'
     @enrollment3 = FactoryGirl.create :enrollment, section: section, student: @student3
-    @student4   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: '4'
+    @student4   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-4'
     @enrollment4 = FactoryGirl.create :enrollment, section: section, student: @student4
-    @student5   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: '5'
+    @student5   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-5'
     @enrollment5 = FactoryGirl.create :enrollment, section: section, student: @student5
-    @student6   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: '6'
+    @student6   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-6'
     @enrollment6 = FactoryGirl.create :enrollment, section: section, student: @student6
     @student_unenrolled   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Unenrolled'
     @enrollment_unenrolled = FactoryGirl.create :enrollment, section: section, student: @student_unenrolled

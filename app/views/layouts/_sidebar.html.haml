@@ -126,7 +126,7 @@
         ='Staff'
     %li#side-students
       - can_see_students = has_selected_school
-      %a{href: ( can_see_staff ? students_path : 'javascript:void(0)'), class: (can_see_students ? '' : 'disabled')}
+      %a{href: ( can_see_students ? students_path : 'javascript:void(0)'), class: (can_see_students ? '' : 'disabled')}
         %i.fa.fa-users.sidebar-nav-icon
         ='Students'
     %li#side-subjects

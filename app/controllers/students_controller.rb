@@ -40,6 +40,8 @@ class StudentsController < ApplicationController
   # - Students listing (from toolkit)
   # - Generate Reports - Proficiency Bars
   def index
+    authorize! :index, Student
+
     template = "students/reports/#{params[:report]}" if params[:report].present?
     template ||= "index"
 

@@ -313,6 +313,9 @@ class ApplicationController < ActionController::Base
         Student.send(:define_method, :street_address) do
           SecureRandom.hex(6)
         end
+        Student.send(:define_method, :email) do
+          SecureRandom.hex(7)
+        end
         Student.send(:define_method, :city) do
           SecureRandom.hex(5)
         end
@@ -336,6 +339,9 @@ class ApplicationController < ActionController::Base
         end
         Parent.send(:define_method, :street_address) do
           SecureRandom.hex(6)
+        end
+        Parent.send(:define_method, :email) do
+          SecureRandom.hex(7)
         end
         Parent.send(:define_method, :city) do
           SecureRandom.hex(5)
@@ -363,6 +369,9 @@ class ApplicationController < ActionController::Base
         Student.send(:define_method, :street_address) do
           read_attribute(:street_address)
         end
+        Student.send(:define_method, :email) do
+          read_attribute(:email)
+        end
         Student.send(:define_method, :city) do
           read_attribute(:city)
         end
@@ -386,6 +395,9 @@ class ApplicationController < ActionController::Base
         end
         Parent.send(:define_method, :street_address) do
           read_attribute(:street_address)
+        end
+        Parent.send(:define_method, :email) do
+          read_attribute(:email)
         end
         Parent.send(:define_method, :city) do
           read_attribute(:city)
@@ -494,11 +506,11 @@ class ApplicationController < ActionController::Base
     # Rails.logger.debug("*** layout: #{current_user.nil? ? "public" : "application"}")
     current_user.nil? ? "public" : "application"
   end
-  
+
   # def redirect_to_root(exception)
   #   redirect_to :root
   # end
-  
+
   def handle_fatal_error(ex)
     # you can insert logic in here too to log errors
     # or get more error info and use different templates
