@@ -7,12 +7,12 @@
   %h2.h1.page-title
     %strong="Report Selection and Criterion"
 .row
-  .col-md-12
+  .col-sm-12
     =form_for @generate do |f|
       - @errors = @generate.errors
       %fieldset.input-group
-        %label.col-md-4.control-label='Report Type'
-        %select#generate-type.col-md-5.select-select2{name: "generate[name]", placeholder: 'Select Report to generate:', class: (@generate.errors[:name] ? 'ui_error' : 'no_ui_error' )}
+        %label.col-sm-4.col-lg-4.control-label='Report Type'
+        %select#generate-type.col-sm-8.col-lg-4.select-select2{name: "generate[name]", placeholder: 'Select Report to generate:', class: (@generate.errors[:name] ? 'ui_error' : 'no_ui_error' )}
           %option{id: '', value: '', selected: (@generate.name == ''), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}=''
           - if can? :section_summary_outcome, Section
             %option{id: 'ss_by_lo', value: 'ss_by_lo', selected: (@generate.name == 'ss_by_lo'), data: {ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Section Summary by Learning Outcome'
@@ -39,50 +39,50 @@
           - if can? :account_activity_report, User
             %option{id: 'account_activity', value: 'account_activity', selected: (@generate.name == 'account_activity'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Account Activity Report'
           - if can? :read, Attendance
-            %option{id: 'section_attendance_xls', value: 'section_attendance_xls', selected: (@generate.name == 'section_attendance_xls'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Attendance Spreadsheet by Sections'
+            / %option{id: 'section_attendance_xls', value: 'section_attendance_xls', selected: (@generate.name == 'section_attendance_xls'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Attendance Spreadsheet by Sections'
             %option{id: 'attendance_report', value: 'attendance_report', selected: (@generate.name == 'attendance_report'), data: { ask_subjects: 1, ask_date_range: 1}}='Attendance Report'
         %span.ui-error="#{@errors[:name] if @errors[:name].present?}"
       %fieldset.input-group.display-none{id: 'ask-subjects'}
-        %label.col-md-4.control-label='Subject:'
-        %select#subject.col-md-5.select-select2{name: "generate[subject_id]", placeholder: 'Select Subject:'}
+        %label.col-sm-4.col-lg-4.control-label='Subject:'
+        %select#subject.col-sm-8.col-lg-4.select-select2{name: "generate[subject_id]", placeholder: 'Select Subject:'}
           %option{value: ""}= ""
           - @subjects.each do |subj|
             %option{value: "#{subj.id}", selected: (@generate.subject_id == subj.id)}= "#{subj.name}"
         %span.ui-required{title: 'Required'}='*'
         %span.ui-error="#{@errors[:subject_id] if @errors[:subject_id].present?}"
       %fieldset.input-group.display-none{id: 'ask-grade-level'}
-        %label.col-md-4.control-label='Grade Level:'
-        %select#subject-section.col-md-5.select-select2{name: "generate[grade_level]", placeholder: 'Select grade Level:'}
+        %label.col-sm-4.col-lg-4.control-label='Grade Level:'
+        %select#subject-section.col-sm-8.col-lg-4.select-select2{name: "generate[grade_level]", placeholder: 'Select grade Level:'}
           %option{value: ""}= ""
           - (0..12).each do |gl|
             %option{value: "#{gl}", selected: (@generate.grade_level == gl)}= "#{gl}"
         %span.ui-error="#{@errors[:grade_level] if @errors[:grade_level].present?}"
       %fieldset.input-group.display-none{id: 'ask-sections'}
-        %label.col-md-4.control-label='Section:'
-        %select#subject-section.col-md-5.select-select2{name: "generate[section_id]", placeholder: 'Select Section:'}
+        %label.col-sm-4.col-lg-4.control-label='Section:'
+        %select#subject-section.col-sm-8.col-lg-4.select-select2{name: "generate[section_id]", placeholder: 'Select Section:'}
           %option{value: ""}= ""
           - @subject_sections.each do |sect|
             %option{value: "#{sect.id}", selected: (@generate.section_id == sect.id)}= "#{sect.subject.name} - #{sect.line_number}"
         %span.ui-error="#{@errors[:section_id] if @errors[:section_id].present?}"
       %fieldset.input-group.display-none{id: 'ask-los'}
-        %label.col-md-4.control-label='Learning Outcome:'
+        %label.col-sm-4.col-lg-4.control-label='Learning Outcome:'
         %input.col-md-8{name: 'generate[section_outcome_id]'}
       %fieldset.input-group.display-none{id: 'ask-student'}
-        %label.col-md-4.control-label='Student:'
-        %select#subject-section.col-md-5.select-select2{name: "generate[student_id]"}
+        %label.col-sm-4.col-lg-4.control-label='Student:'
+        %select#subject-section.col-sm-8.col-lg-4.select-select2{name: "generate[student_id]"}
           %option{value: ""}= "All"
           - @school_students.each do |stud|
             %option{value: "#{stud.id}", selected: (@generate.student_id == stud.id)}= "#{stud.full_name}"
         %span.ui-error="#{@errors[:student_id] if @errors[:student_id].present?}"
       %fieldset.input-group.display-none{id: 'ask-marking-periods'}
-        %label.col-md-4.control-label='Marking Periods:'
-        .pull-left.value-fields.col-md-8
+        %label.col-sm-4.col-lg-4.control-label='Marking Periods:'
+        .pull-left.value-fields.col-sm-8.col-lg-4
           - @marking_periods.each do |mp|
             %input.checkbox-input.pull-left{id: "mp_#{mp}", :name => "generate[mp][]", :type => "checkbox", :value => "#{mp}"}
             %label.checkbox-label.pull-left{for: "mp_#{mp}"}="#{mp}"
       %fieldset.input-group.display-none{id: 'ask-date-range'}
-        %label.col-md-4.control-label='Date Range:'
-        .pull-left.value-fields.col-md-8
+        %label.col-sm-4.col-lg-4.control-label='Date Range:'
+        .pull-left.value-fields.col-sm-8.col-lg-4
           %input#start-date.input-datepicker-close{data: {date_format: "yyyy-mm-dd"}, placeholder: "yyyy-mm-dd", type: "text", name: "generate[start_date]", value: @range_start}
           %span.ui-required{title: 'Required'}='*'
           %span.ui-error="#{@errors[:start_date] if @errors[:start_date].present?}"
@@ -92,5 +92,4 @@
           %span.ui-error="#{@errors[:end_date] if @errors[:end_date].present?}"
       %fieldset
         %button.pull-left.btn.btn-primary{name: 'commit', type: "submit"}='Generate'
-  .col-sm-0.col-lg-4
 

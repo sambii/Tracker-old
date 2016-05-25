@@ -51,7 +51,7 @@
                   - pixel_width = 300
                   %td{style: "width: #{pixel_width+11}px;"}
                     .flat-bar-chart{style: "width: 100%;"}
-                      .high-rating-bar.progress-bar{style: "width: #{(student.ratings_count('H')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('H')} of #{total_ratings}"}
-                      .prof-rating-bar.progress-bar{style: "width: #{(student.ratings_count('P')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('P')} of #{total_ratings}"}
-                      .nyp-rating-bar.progress-bar{style: "width: #{(student.ratings_count('N')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('N')} of #{total_ratings}"}
+                      .high-rating-bar.progress-bar{style: "width: #{(student.ratings_count('H')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('H')} of #{total_ratings}"}=student.ratings_count('H')
+                      .prof-rating-bar.progress-bar{style: "width: #{(student.ratings_count('P')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('P')} of #{total_ratings}"}=student.ratings_count('P')
+                      .nyp-rating-bar.progress-bar{style: "width: #{(student.ratings_count('N')*pixel_width/total_ratings).floor}px", title: "#{student.ratings_count('N')} of #{total_ratings}"}=student.ratings_count('N')
   .col-sm-0.col-lg-4

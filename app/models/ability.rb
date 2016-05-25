@@ -209,14 +209,13 @@ class Ability
         can :read, :all
 
         can :manage, Generate
-        can :create, ReportCardRequest
-        can [:section_summary_outcome, :section_summary_student, :nyp_outcome, :nyp_student, :student_info_handout, :student_info_handout_by_grade, :progress_rpt_gen, :class_dashboard], Section
+        can [:section_summary_outcome, :section_summary_student, :nyp_outcome, :nyp_student, :progress_rpt_gen, :class_dashboard], Section
         can :switch, School
         can [:exp_col_all_evid],
             Section
         can :proficiency_bars, Student
         can [:proficiency_bars, :progress_meters], Subject
-        can [:staff_listing, :account_activity_report, :sections_list], User
+        can [:staff_listing, :sections_list], User
 
         cannot [:edit, :update], User
         cannot [:edit, :update], Student
