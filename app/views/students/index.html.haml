@@ -109,28 +109,28 @@
                     %td.user-parent-email
                     %td.user-parent-sub-status='sub-status'
                   %td
-                    %a{href: "/students/#{s.id}"}
+                    %a{href: "/students/#{s.id}", title: 'Student Dashboard'}
                       %i.fa.fa-lg.fa-dashboard
                   %td
-                    %a{href: "/students/#{s.id}/sections_list"}
+                    %a{href: "/students/#{s.id}/sections_list", title: 'Student Sections List'}
                       %i.fa.fa-lg.fa-check
                   %td
-                    %a{data: {target: "#modal_popup", toggle: 'modal', url: student_path(s.id, format: :js)}}
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: student_path(s.id, format: :js)}, title: 'View Student User Information'}
                       %i.fa.fa-lg.fa-ellipsis-h
                   %td
                     - if can? :update, s
-                      %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_student_path(s.id, format: :js)}}
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_student_path(s.id, format: :js)}, title: 'Edit Student User Information'}
                         %i.fa.fa-lg.fa-edit
                   %td
                     - if can? :security, s
-                      %a{data: {target: "#modal_popup", toggle: 'modal', url: security_student_path(s.id, format: :js)}}
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: security_student_path(s.id, format: :js)}, title: 'Student Security'}
                         %i.fa.fa-lg.fa-unlock
                   %td
                     - if can? :deactivate, s
                       %div.show-if-active
-                        %a#remove-student{href: "/students/#{s.id}.js?#{{active: false}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}}
+                        %a#remove-student{href: "/students/#{s.id}.js?#{{active: false}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Deactivate Student'}
                           %i.fa.fa-lg.fa-times-circle
                       %div.show-if-deactivated
-                        %a#restore-student{href: "/students/#{s.id}.js?#{{active: true}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}}
+                        %a#restore-student{href: "/students/#{s.id}.js?#{{active: true}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Restore Deactivated Student'}
                           %i.fa.fa-lg.fa-undo
 
