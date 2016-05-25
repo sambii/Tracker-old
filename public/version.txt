@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.018
+- Researcher fixes
 PARLO Tracker version v2.01.017
 - Add or Edit section keeps subject open on refresh
 PARLO Tracker version v2.01.015
