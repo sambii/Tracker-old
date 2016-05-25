@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.019
+- prevent school year rollovers, add hovers to student and staff listings
 PARLO Tracker version v2.01.018
 - Researcher fixes
 PARLO Tracker version v2.01.017
