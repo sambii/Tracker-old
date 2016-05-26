@@ -47,7 +47,7 @@ describe "Subjects Sections Listing", js:true do
       @school_administrator = FactoryGirl.create :school_administrator, school: @school1
       sign_in(@school_administrator)
     end
-    it { has_valid_subjects_listing(true) }
+    it { has_valid_subjects_listing(false, true) }
   end
 
   # describe "as researcher" do
@@ -90,7 +90,7 @@ describe "Subjects Sections Listing", js:true do
     assert_equal("/students/#{@student.id}", current_path)
   end
 
-  def has_valid_subjects_listing(can_create)
+  def has_valid_subjects_listing(can_create_subject, can_create_section)
     visit subjects_path
     within("#page-content") do
       page.should have_content('Subjects / Sections Listing')
@@ -146,108 +146,125 @@ describe "Subjects Sections Listing", js:true do
       end
 
       # click on right arrow should minimize subject
-      page.should have_css("tbody#subj_header_#{@subject1.id}.show-tbody-body")
-      find("a#subj_header_#{@subject1.id}_a").click
       page.should_not have_css("tbody#subj_header_#{@subject1.id}.show-tbody-body")
+      page.should_not have_css("tbody#subj_header_#{@subject2.id}.show-tbody-body")
       # click on down arrow should maximize subject
       find("a#subj_header_#{@subject1.id}_a").click
       page.should have_css("tbody#subj_header_#{@subject1.id}.show-tbody-body")
+      # click on again (up) arrow should minimize subject
+      find("a#subj_header_#{@subject1.id}_a").click
+      page.should_not have_css("tbody#subj_header_#{@subject1.id}.show-tbody-body")
 
       # todo - click on right arrow at top of page should minimize all subjects
 
       # todo - click on down arrow at top of page should maximize all subjects
 
+      if (can_create_subject)
+        # click on add subject should show add subject popup
+
+        sleep 20
+
+        page.should have_css("a#add-subject")
+        find("a#add-subject").click
+        within('#modal-body') do
+          within('h3') do
+            page.should have_content('Create Subject')
+          end
+          page.should have_content(@school1.name)
+          page.should have_selector("#subject-discipline-id")
+          # page.all('select#subject-discipline-id option').map(&:value).should == ['', '1', '2', '3' ]
+          find("select#subject-discipline-id").value.should == ''
+          select(@discipline.name, from: "subject-discipline-id")
+          page.fill_in 'subject-name', :with => 'New Subject Name'
+          select(@teacher1.full_name, from: 'subject_subject_manager_id')
+          page.click_button('Save')
+        end
+        # save should go back to subject / section listing
+        within('#page-content') do
+          page.should have_content("#{@discipline.name} : New Subject Name")
+        end
+      end
+
+      if (can_create_subject)
+        # click on edit subject should show edit subject popup
+        find("a[data-url='/subjects/#{@subject1.id}/edit.js']").click
+        within('#modal-body') do
+          within('h3') do
+            page.should have_content("Edit Subject - #{@subject1.name}")
+          end
+          page.should have_content(@school1.name)
+          page.should have_selector("#subject-discipline-id")
+          # page.all('select#subject-discipline-id option').map(&:value).should == ['', '1', '2', '3' ]
+          find("select#subject-discipline-id").value.should == "#{@discipline.id}"
+          select(@discipline2.name, from: "subject-discipline-id")
+          page.should have_selector("#subject-name", value: "#{@subject1.name}")
+          # todo - checks for duplicate subject name within school - is this allowed?
+          page.fill_in 'subject-name', :with => 'Changed Subject Name'
+          find("#subject_subject_manager_id").value.should == "#{@teacher1.id}"
+          select(@teacher2.full_name, from: 'subject_subject_manager_id')
+          page.click_button('Save')
+        end
+        # save should go back to subject / section listing
+        within('#page-content') do
+          page.should have_content("#{@discipline2.name} : Changed Subject Name")
+        end
+      end
+
+      if (can_create_section)
+        # click on edit section should show edit section popup
+        find("a[data-url='/sections/#{@section1_2.id}/edit.js']").click
+        # find("a#edit_section_{@section1_2.id}").click
+        within('#modal-body') do
+          within('h3') do
+            page.should have_content("Edit Section: #{@section1_2.name} - #{@section1_2.line_number}")
+          end
+          within('#section_line_number') do
+            page.should_not have_content(@section1_2.subject.name)
+          end
+          page.should have_selector("#section_line_number", value: "#{@section1_2.line_number}")
+          page.fill_in 'section_line_number', :with => 'Changed Section ID'
+          within('#section_message') do
+            page.should have_content(@section1_2.message)
+          end
+          page.should have_selector("#section_school_year_id", value: "#{@section1_2.school_year.name}")
+          page.click_button('Save')
+        end
+        # save should go back to section listing
+        page.should have_selector("#sect_#{@section1_2.id}")
+        within("#sect_#{@section1_2.id}") do
+          page.should have_selector(".sect-section", value: "Changed Section ID")
+        end
+      end
+
+      if (can_create_section)
+        # # click on add section should show add section popup
+        # Rails.logger.debug("*** subj_header_#{@section1_2.subject.id}")
+        # find("subj_header_#{@section1_2.subject.id} a.add-section").click
+        # within('#modal-body') do
+        #   within('h3') do
+        #     page.should have_content("Add Section")
+        #   end
+        #   # within('#section_line_number') do
+        #   #   page.should_not have_content(@section1_2.subject.name)
+        #   # end
+        #   # page.should have_selector("#section_line_number", value: "#{@section1_2.line_number}")
+        #   # page.fill_in 'section_line_number', :with => 'Changed Section ID'
+        #   # within('#section_message') do
+        #   #   page.should have_content(@section1_2.message)
+        #   # end
+        #   # page.should have_selector("#section_school_year_id", value: "#{@section1_2.school_year.name}")
+        #   # page.click_button('Save')
+        # end
+
+        # # save should go back to section listing
+
+      end
+
+      if (can_create)
+        # # click on add section should show add section popup
+      end
+
     end # within("#page-content") do
-
-    if (can_create)
-      # click on add subject should show add subject popup
-      find("a#add-subject").click
-      within('#modal-body') do
-        within('h3') do
-          page.should have_content('Create Subject')
-        end
-        page.should have_content(@school1.name)
-        page.should have_selector("#subject-discipline-id")
-        # page.all('select#subject-discipline-id option').map(&:value).should == ['', '1', '2', '3' ]
-        find("select#subject-discipline-id").value.should == ''
-        select(@discipline.name, from: "subject-discipline-id")
-        page.fill_in 'subject-name', :with => 'New Subject Name'
-        select(@teacher1.full_name, from: 'subject_subject_manager_id')
-        page.click_button('Save')
-      end
-      # save should go back to subject / section listing
-      within('#page-content') do
-        page.should have_content("#{@discipline.name} : New Subject Name")
-      end
-
-      # click on edit subject should show edit subject popup
-      find("a[data-url='/subjects/#{@subject1.id}/edit.js']").click
-      within('#modal-body') do
-        within('h3') do
-          page.should have_content("Edit Subject - #{@subject1.name}")
-        end
-        page.should have_content(@school1.name)
-        page.should have_selector("#subject-discipline-id")
-        # page.all('select#subject-discipline-id option').map(&:value).should == ['', '1', '2', '3' ]
-        find("select#subject-discipline-id").value.should == "#{@discipline.id}"
-        select(@discipline2.name, from: "subject-discipline-id")
-        page.should have_selector("#subject-name", value: "#{@subject1.name}")
-        # todo - checks for duplicate subject name within school - is this allowed?
-        page.fill_in 'subject-name', :with => 'Changed Subject Name'
-        find("#subject_subject_manager_id").value.should == "#{@teacher1.id}"
-        select(@teacher2.full_name, from: 'subject_subject_manager_id')
-        page.click_button('Save')
-      end
-      # save should go back to subject / section listing
-      within('#page-content') do
-        page.should have_content("#{@discipline2.name} : Changed Subject Name")
-      end
-
-      # click on edit section should show edit section popup
-      find("a[data-url='/sections/#{@section1_2.id}/edit.js']").click
-      within('#modal-body') do
-        within('h3') do
-          page.should have_content("Edit Section: #{@section1_2.name} - #{@section1_2.line_number}")
-        end
-        within('#section_line_number') do
-          page.should_not have_content(@section1_2.subject.name)
-        end
-        page.should have_selector("#section_line_number", value: "#{@section1_2.line_number}")
-        page.fill_in 'section_line_number', :with => 'Changed Section ID'
-        within('#section_message') do
-          page.should have_content(@section1_2.message)
-        end
-        page.should have_selector("#section_school_year_id", value: "#{@section1_2.school_year.name}")
-        page.click_button('Save')
-      end
-      # save should go back to section listing
-      page.should have_selector("#sect_#{@section1_2.id}")
-      within("#sect_#{@section1_2.id}") do
-        page.should have_selector(".sect-section", value: "Changed Section ID")
-      end
-
-      # click on add section should show add section popup
-      # Rails.logger.debug("*** subj_header_#{@section1_2.subject.id}")
-      # find("subj_header_#{@section1_2.subject.id} a.add-section").click
-      # within('#modal-body') do
-      #   within('h3') do
-      #     page.should have_content("Add Section")
-      #   end
-      #   # within('#section_line_number') do
-      #   #   page.should_not have_content(@section1_2.subject.name)
-      #   # end
-      #   # page.should have_selector("#section_line_number", value: "#{@section1_2.line_number}")
-      #   # page.fill_in 'section_line_number', :with => 'Changed Section ID'
-      #   # within('#section_message') do
-      #   #   page.should have_content(@section1_2.message)
-      #   # end
-      #   # page.should have_selector("#section_school_year_id", value: "#{@section1_2.school_year.name}")
-      #   # page.click_button('Save')
-      # end
-
-      # # save should go back to section listing
-
-    end
 
   end # def has_valid_subjects_listing
 
