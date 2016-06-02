@@ -93,7 +93,7 @@ describe "Subjects Sections Listing", js:true do
   def has_valid_subjects_listing(can_create_subject, can_create_section)
     visit subjects_path
 
-    # ensure subject managers and subject administrators can see their subjects
+    # ensure subject managers and subject administrators can edit their subject outcomes, all else can view.
     if(@test_user.id == @subject1.subject_manager_id ||
       @test_user.has_permission?('subject_admin') ||
       @test_user.role_symbols.include?('system_administrator'.to_sym)
@@ -117,6 +117,17 @@ describe "Subjects Sections Listing", js:true do
       page.should have_css("a[data-url='/subjects/#{@subject2.id}/view_subject_outcomes']")
     end
     # no tests for subject3, because it is in a different school, so whould not be shown
+
+    # ensure users can either edit or view the section outcomes based upon their authority
+    # Note at initial failing test driven development state
+    if(@test_user.role_symbols.include?('system_administrator'.to_sym) ||
+      (@test_user.role_symbols.include?('school_administrator'.to_sym) && @test_user.school_id == @school1.id)
+      # add counselors for school, researchers, and subject admins.
+    )
+      page.should have_css("a[data-url='/section/view_section_outcomes']")
+    else
+      page.should_not have_css("a[data-url='/section/view_section_outcomes']")
+    end
 
     within("#page-content") do
       page.should have_content('Subjects / Sections Listing')
