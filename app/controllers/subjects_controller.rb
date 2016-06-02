@@ -111,6 +111,15 @@ class SubjectsController < ApplicationController
   end
 
   # new UI
+  # View Learning Outcomes (add/edit subject outcomes):
+  # - subjects/#/view_subject_outcomes
+  def view_subject_outcomes
+    respond_to do |format|
+      format.js
+    end
+  end
+
+  # new UI
   # Edit Learning Outcomes (add/edit subject outcomes):
   # - subjects/#/edit_subject_outcomes - edit button on sections/#/new_section_outcome
   def edit_subject_outcomes

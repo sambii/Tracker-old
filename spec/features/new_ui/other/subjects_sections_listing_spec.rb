@@ -93,38 +93,30 @@ describe "Subjects Sections Listing", js:true do
   def has_valid_subjects_listing(can_create_subject, can_create_section)
     visit subjects_path
 
-    # ensure subject managers can see their subjects
-    if(@test_user.id == @subject1.subject_manager_id || @test_user.has_permission?('subject_admin'))
+    # ensure subject managers and subject administrators can see their subjects
+    if(@test_user.id == @subject1.subject_manager_id ||
+      @test_user.has_permission?('subject_admin') ||
+      @test_user.role_symbols.include?('system_administrator'.to_sym)
+      # School administrators must be given subject administrator to see this
+      # (@test_user.role_symbols.include?('school_administrator'.to_sym) && @test_user.school_id == @school1.id)
+    )
       page.should have_css("a[href='/subjects/#{@subject1.id}/edit_subject_outcomes']")
+    else
+      page.should_not have_css("a[href='/subjects/#{@subject1.id}/edit_subject_outcomes']")
+      page.should have_css("a[data-url='/subjects/#{@subject1.id}/view_subject_outcomes']")
     end
-    if(@test_user.id == @subject2.subject_manager_id || @test_user.has_permission?('subject_admin'))
+    if(@test_user.id == @subject2.subject_manager_id ||
+      @test_user.has_permission?('subject_admin') ||
+      @test_user.role_symbols.include?('system_administrator'.to_sym)
+      # School administrators must be given subject administrator to see this
+      # (@test_user.role_symbols.include?('school_administrator'.to_sym) && @test_user.school_id == @school1.id)
+    )
       page.should have_css("a[href='/subjects/#{@subject2.id}/edit_subject_outcomes']")
+    else
+      page.should_not have_css("a[href='/subjects/#{@subject2.id}/edit_subject_outcomes']")
+      page.should have_css("a[data-url='/subjects/#{@subject2.id}/view_subject_outcomes']")
     end
-    if(@test_user.id == @subject3.subject_manager_id || @test_user.has_permission?('subject_admin'))
-      page.should have_css("a[href='/subjects/#{@subject3.id}/edit_subject_outcomes']")
-    end
-    # # ensure subject managers can see their subjects
-    # if(@test_user.id == @subject1.subject_manager_id ||
-    #   @test_user.has_permission?('subject_admin') ||
-    #   @test_user.role_symbols.include? ('system_administrator'.to_sym) ||
-    #   (@test_user.role_symbols.include? ('school_administrator'.to_sym) && @test_user.school_id == @school1.id)
-    # )
-    #   page.should have_css("a[href='/subjects/#{@subject1.id}/edit_subject_outcomes']")
-    # end
-    # if(@test_user.id == @subject2.subject_manager_id ||
-    #   @test_user.has_permission?('subject_admin') ||
-    #   @test_user.role_symbols.include? ('system_administrator'.to_sym) ||
-    #   (@test_user.role_symbols.include? ('school_administrator'.to_sym) && @test_user.school_id == @school1.id)
-    # )
-    #   page.should have_css("a[href='/subjects/#{@subject2.id}/edit_subject_outcomes']")
-    # end
-    # if(@test_user.id == @subject3.subject_manager_id ||
-    #   @test_user.has_permission?('subject_admin') ||
-    #   @test_user.role_symbols.include? ('system_administrator'.to_sym) ||
-    #   (@test_user.role_symbols.include? ('school_administrator'.to_sym) && @test_user.school_id == @school1.id)
-    # )
-    #   page.should have_css("a[href='/subjects/#{@subject3.id}/edit_subject_outcomes']")
-    # end
+    # no tests for subject3, because it is in a different school, so whould not be shown
 
     within("#page-content") do
       page.should have_content('Subjects / Sections Listing')

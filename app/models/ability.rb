@@ -97,7 +97,7 @@ class Ability
         end
 
         # Subject
-        can [:read, :proficiency_bars],
+        can [:read, :proficiency_bars, :view_subject_outcomes],
             Subject,
             { school_id: user.school_id }
 
@@ -170,7 +170,7 @@ class Ability
         can [:read],
             Subject,
             { school_id: user.school_id }
-        can [:edit_subject_outcomes, :update_subject_outcomes],
+        can [:edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
             Subject,
             { subject_manager_id: user.id }
 
@@ -214,7 +214,7 @@ class Ability
         can [:exp_col_all_evid],
             Section
         can :proficiency_bars, Student
-        can [:proficiency_bars, :progress_meters], Subject
+        can [:proficiency_bars, :progress_meters, :view_subject_outcomes], Subject
         can [:staff_listing, :sections_list], User
 
         cannot [:edit, :update], User
@@ -276,11 +276,7 @@ class Ability
           { school_id: user.school_id }
 
         # Subject
-        can [:read],
-            Subject,
-            { school_id: user.school_id }
-
-        can [:proficiency_bars, :progress_meters],
+        can [:read, :view_subject_outcomes, :proficiency_bars, :progress_meters],
             Subject,
             { school_id: user.school_id }
 
@@ -324,7 +320,7 @@ class Ability
       # permission based abilities:
       # note school authorization must be done elsewhere
       if user.has_permission?('subject_admin')
-        can [:read, :create, :update, :subject_admin, :edit_subject_outcomes, :update_subject_outcomes],
+        can [:read, :create, :update, :subject_admin, :edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
         Subject
       end
 

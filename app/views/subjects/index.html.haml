@@ -83,8 +83,11 @@
                     - if can?(:subject_admin, Subject) || can?(:edit_subject_outcomes, subj)
                       %a.assign-los{href: edit_subject_outcomes_subject_path(subj.id), title: 'Edit Subject Outcomes'}
                         %i.fa.fa-lg.fa-lightbulb-o
-                      / %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: edit_subject_outcomes_subject_path(subj.id, format: :js)}, title: 'Link to Edit Subject Outcomes'}
+                      / %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: edit_subject_outcomes_subject_path(subj.id, format: :js)}, title: 'Edit Subject Outcomes popup'}
                       /   %i.fa.fa-lg.fa-lightbulb-o
+                    - else
+                      %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: view_subject_outcomes_subject_path(subj.id, format: :js)}, title: 'View Subject Outcomes popup'}
+                        %i.fa.fa-lg.fa-lightbulb-o
               %tbody.tbody-body{id: "subj_body_#{subj.id}"}
                 - subj.sections.each do |s|
                   %tr{id: "sect_#{s.id}"}

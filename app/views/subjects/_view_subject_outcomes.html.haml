@@ -1,0 +1,20 @@
+
+- content_for(:title, 'View Learning Outcomes')
+- content_for(:page_name, 'View Learning Outcomes')
+- content_for(:page_class, 'view_subject_outcomes')
+
+.view_subject_outcomes
+  %h1.text-center
+    = "View Learning Outcomes for:"
+    = link_to "#{@subject.name}", subject_path(@subject)
+    = " (Discipline: #{@subject.discipline.name})"
+  .row
+    .col-md-12
+      .sectioned-list
+        .row.header-row
+          %h4.pull-left='Learning Outcomes'
+        %table#current_los
+          %tbody.alternate-highlight
+            - @subject.subject_outcomes.each_with_index do |subjo, ix|
+              %tr
+                %td=subjo.name

@@ -48,6 +48,7 @@ Tracker2::Application.routes.draw do
   match "subjects/update_subject_outcomes" => "home#index", via: :get
   resources :subjects do
     member do
+      get 'view_subject_outcomes', defaults: {format: :js} # new UI
       get 'edit_subject_outcomes'
       put 'update_subject_outcomes'
     end
