@@ -15,9 +15,9 @@ describe "Subjects Sections Listing", js:true do
     load_test_section(@section1_1, @teacher1)
 
     @section1_2 = FactoryGirl.create :section, subject: @subject1
-    ta1 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_2
+    @ta1 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_2
     @section1_3 = FactoryGirl.create :section, subject: @subject1
-    ta2 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_3
+    @ta2 = FactoryGirl.create :teaching_assignment, teacher: @teacher1, section: @section1_3
 
     @subject2 = FactoryGirl.create :subject, subject_manager: @teacher1
     @section2_1 = FactoryGirl.create :section, subject: @subject2
@@ -35,7 +35,7 @@ describe "Subjects Sections Listing", js:true do
 
   end
 
-  describe "as teacher" do
+  describe "as assigned teacher" do
     before do
       sign_in(@teacher1)
     end
@@ -93,7 +93,7 @@ describe "Subjects Sections Listing", js:true do
   def has_valid_subjects_listing(can_create_subject, can_create_section)
     visit subjects_path
 
-    # ensure subject managers and subject administrators can edit their subject outcomes, all else can view.
+    # ensure users can edit the appropriate subject outcomes, all else can view.
     if(@test_user.id == @subject1.subject_manager_id ||
       @test_user.has_permission?('subject_admin') ||
       @test_user.role_symbols.include?('system_administrator'.to_sym)
@@ -116,18 +116,38 @@ describe "Subjects Sections Listing", js:true do
       page.should_not have_css("a[href='/subjects/#{@subject2.id}/edit_subject_outcomes']")
       page.should have_css("a[data-url='/subjects/#{@subject2.id}/view_subject_outcomes']")
     end
-    # no tests for subject3, because it is in a different school, so whould not be shown
+    # note: subject3 is in a different school, so whould not be shown
+    page.should_not have_css("a[href='/subjects/#{@subject3.id}/edit_subject_outcomes']")
+    page.should_not have_css("a[data-url='/subjects/#{@subject3.id}/view_subject_outcomes']")
 
-    # ensure users can either edit or view the section outcomes based upon their authority
-    # Note at initial failing test driven development state
-    if(@test_user.role_symbols.include?('system_administrator'.to_sym) ||
-      (@test_user.role_symbols.include?('school_administrator'.to_sym) && @test_user.school_id == @school1.id)
-      # add counselors for school, researchers, and subject admins.
-    )
-      page.should have_css("a[data-url='/section/view_section_outcomes']")
-    else
-      page.should_not have_css("a[data-url='/section/view_section_outcomes']")
-    end
+    # ensure users can view section outcomes
+    # note: future enhance UI to allow those who can, to edit instead of view
+    # if(@test_user.role_symbols.include?('system_administrator'.to_sym) ||
+    #   @test_user.role_symbols.include?('researcher'.to_sym) ||
+    #   (@test_user.role_symbols.include?('school_administrator'.to_sym) && @test_user.school_id == @school1.id) ||
+    #   (@test_user.role_symbols.include?('counselor'.to_sym) && @test_user.school_id == @school1.id) ||
+    #   (@test_user.role_symbols.include?('teacher'.to_sym) && @test_user.school_id == @school1.id)
+    #   # (@test_user.role_symbols.include?('teacher'.to_sym) &&
+    #   #   ( @test_user.id == @subject1.subject_manager_id || @test_user.has_permission?('subject_admin')  || @ta1.teacher_id == @test_user.id
+    #   #   )
+    #   # )
+    # )
+    #   page.should have_css("a[data-url='/sections/#{@section1_1.id}/section_outcomes.js']")
+    #   page.should have_css("a[data-url='/sections/#{@section1_2.id}/section_outcomes.js']")
+    #   page.should have_css("a[data-url='/sections/#{@section1_3.id}/section_outcomes.js']")
+    # else
+    #   page.should_not have_css("a[data-url='/sections/#{@section1_1.id}/section_outcomes.js']")
+    #   page.should_not have_css("a[data-url='/sections/#{@section1_2.id}/section_outcomes.js']")
+    #   page.should_not have_css("a[data-url='/sections/#{@section1_3.id}/section_outcomes.js']")
+    # end
+
+    # all users should be able to view section outcomes (since they can see subject outcomes)
+    page.should have_css("a[data-url='/sections/#{@section1_1.id}/section_outcomes.js']")
+    page.should have_css("a[data-url='/sections/#{@section1_2.id}/section_outcomes.js']")
+    page.should have_css("a[data-url='/sections/#{@section1_3.id}/section_outcomes.js']")
+    page.should have_css("a[data-url='/sections/#{@section2_1.id}/section_outcomes.js']")
+    page.should have_css("a[data-url='/sections/#{@section2_2.id}/section_outcomes.js']")
+    page.should have_css("a[data-url='/sections/#{@section2_3.id}/section_outcomes.js']")
 
     within("#page-content") do
       page.should have_content('Subjects / Sections Listing')

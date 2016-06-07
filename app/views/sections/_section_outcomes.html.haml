@@ -1,0 +1,23 @@
+
+- content_for(:title, 'View Section Learning Outcomes')
+- content_for(:page_name, 'View Section Learning Outcomes')
+- content_for(:page_class, 'misc')
+
+.view_subject_outcomes
+  %h1.text-center
+    = "View Learning Outcomes for Section:"
+    = link_to "#{@section.name} - #{@section.line_number}", section_path(@section)
+  .row
+    .col-md-12
+      .sectioned-list
+        .row.header-row
+          %h4.pull-left='Section Learning Outcomes'
+        %table#current_los
+          %tbody.alternate-highlight
+            - @all_section_outcomes.each do |ix, vector|
+              - subjo = vector[0]
+              - secto = vector[1]
+              %tr
+                %td=subjo.lo_code
+                %td=subjo.description
+                %td=secto.present? ? 'Assigned' : 'Not Assigned'

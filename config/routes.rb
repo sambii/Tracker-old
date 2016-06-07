@@ -70,7 +70,7 @@ Tracker2::Application.routes.draw do
       get 'remove_enrollment' # new UI
       get 'new_evidence', defaults: { format: :html } # new UI
       get 'new_section_outcome', defaults: { format: :html } # new UI
-      get 'section_outcomes', defaults: { format: :json }
+      get 'section_outcomes'
       # get 'show_experimental'
       get 'restore_evidence', defaults: { format: :html } #new UI
       get 'section_summary_outcome', defaults: { format: :html } #new UI

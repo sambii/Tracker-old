@@ -113,6 +113,6 @@
                       - if can? :edit, s
                         %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_section_path(s.id, format: :js)}, title: 'Edit Section'}
                           %i.fa.fa-lg.fa-edit
-                      - if can?(:view_section_outcomes, Section)
-                        %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: view_section_outcomes_section_path(s.id, format: :js)}, title: 'View Section Outcomes popup'}
+                      - if can?(:section_outcomes, s)
+                        %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: section_outcomes_section_path(s.id, format: :js)}, title: 'View Section Outcomes popup'}
                           %i.fa.fa-lg.fa-lightbulb-o

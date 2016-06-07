@@ -278,10 +278,21 @@ class SectionsController < ApplicationController
   end
 
   def section_outcomes
-    @section_outcomes = Section.find(params[:id]).section_outcomes
+    @section_outcomes = @section.section_outcomes
+    @subject_outcome_ids = @section_outcomes.pluck(:subject_outcome_id)
+    @section_outcomes_by_id = @section_outcomes.index_by { |so| so.subject_outcome_id }
+    @possible_subject_outcomes = @section.subject.subject_outcomes
+    @all_section_outcomes = Hash.new
+    @possible_subject_outcomes.each do |pso|
+      Rails.logger.debug("*** @possible_section_outcome: #{pso.inspect}")
+      matched_so = @subject_outcome_ids.include?(pso.id) ? @section_outcomes_by_id[pso.id] : nil
+      ix = (pso.position.present? && !@all_section_outcomes[pso.position].present?) ? pso.position : pso.id
+      @all_section_outcomes[ix] = [pso, matched_so]
+    end
 
     respond_to do |format|
       format.json
+      format.js
     end
   end
 

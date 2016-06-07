@@ -89,7 +89,8 @@ class Ability
             Evidence,
           { school_id: user.school_id }
 
-        can [:show_section_outcomes],
+        # Section
+        can [:section_outcomes],
           Section,
           { subject: { school_id: user.school_id } }
 
@@ -150,15 +151,24 @@ class Ability
 
         # Section
         can [:create, :new_enrollment, :new_evidence, :new_section_outcome,
-             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :show_section_outcomes],
+             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :section_outcomes],
             Section,
             { teaching_assignments: {teacher_id: user.id }}
-        can [:new, :create], Section # added this for creation of new sections (where record has no subject yet)
+        # teachers can create new sections in their school for any subject
+        can [:new, :create], Section,
+            { subject: { subject_manager_id: user.id }}
+        # all teachers can see all section outcomes for their school (same as subject outcomes)
+        can [:section_outcomes],
+            Section,
+            { subject: { school_id: user.school_id } }
 
         # SectionOutcome
         can [:create, :show, :sort, :update, :evidences_left, :evidences_right, :toggle_marking_period],
             SectionOutcome,
             {section_id: user.teacher.teaching_assignments.pluck(:section_id) }
+        can [:edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
+            SectionOutcome,
+            {section: { subject: { subject_manager_id: user.id }}}
 
         # SectionOutcomeRating
         can [:create, :update],
@@ -215,7 +225,7 @@ class Ability
         can :manage, Generate
         can [:section_summary_outcome, :section_summary_student, :nyp_outcome, :nyp_student, :progress_rpt_gen, :class_dashboard], Section
         can :switch, School
-        can [:exp_col_all_evid, :show_section_outcomes],
+        can [:exp_col_all_evid, :section_outcomes],
             Section
         can :proficiency_bars, Student
         can [:proficiency_bars, :progress_meters, :view_subject_outcomes], Subject
@@ -254,10 +264,9 @@ class Ability
 
         # Section
         can [:create, :index, :new_enrollment, :new_evidence, :new_section_outcome,
-             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :student_info_handout_by_grade, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :enter_bulk, :update_bulk, :show_section_outcomes],
+             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :student_info_handout_by_grade, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :enter_bulk, :update_bulk, :section_outcomes, :new, :create],
           Section,
           { subject: {school_id: user.school_id }}
-        can [:new, :create], Section # added this for creation of new sections (where record has no subject yet)
 
         # SectionOutcome
         can [:create, :show, :sort, :update, :evidences_left, :evidences_right, :toggle_marking_period],
@@ -324,14 +333,13 @@ class Ability
       # permission based abilities:
       # note school authorization must be done elsewhere
       if user.has_permission?('subject_admin')
-        can [:read, :create, :update, :subject_admin, :edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
-          Subject
         if user.school_id.present? && user.school_id > 0
-          can [:show_section_outcomes],
+          can [:section_outcomes],
             Section,
             { subject: { school_id: user.school_id } }
-        else
-          can [:show_section_outcomes], Section
+          can [:read, :create, :update, :subject_admin, :edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
+            Subject,
+            { school_id: user.school_id }
         end
       end
 
