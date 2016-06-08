@@ -285,12 +285,12 @@ module SubjectOutcomesHelper
         @school = match_model_schools.first
       else
         @errors[:school] = 'ERROR: Missing Model School'
-        raise @errors[:school] 
+        raise @errors[:school]
       end
     end
     if @school.school_year_id.blank?
       @errors[:school] = 'ERROR: Missing school year for Model School'
-      raise @errors[:school] 
+      raise @errors[:school]
     else
       @school_year = @school.school_year
       session[:school_context] = @school.id
@@ -298,7 +298,7 @@ module SubjectOutcomesHelper
     end
     if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
       @errors[:school] = 'Error: Bulk Upload LO is for schools with grade in subject name only.'
-      raise @errors[:school] 
+      raise @errors[:school]
     end
     return @school
   end
@@ -322,7 +322,7 @@ module SubjectOutcomesHelper
 
   def lo_get_file_from_hidden(params)
     # recreate uploaded records to process
-    new_los_by_rec = Hash.new      
+    new_los_by_rec = Hash.new
     params['pair'].each do |p|
       pold = p[1]['o']
       pold ||= {}
@@ -352,7 +352,7 @@ module SubjectOutcomesHelper
     @filename = params['file'].original_filename
     # @errors[:filename] = 'Choose file again to rerun'
     # note: 'headers: true' uses column header as the key for the name (and hash key)
-    new_los_by_rec = Hash.new      
+    new_los_by_rec = Hash.new
     ix = 0 # record number (ignore other subject records if matching subject)
     CSV.foreach(params['file'].path, headers: true) do |row|
       rhash = validate_csv_fields(row.to_hash.with_indifferent_access, @subject_names)
@@ -384,7 +384,7 @@ module SubjectOutcomesHelper
     return new_los_by_rec
   end
 
-  def lo_get_file_from_upload
+  def lo_get_old_los
     # get the subject outcomes from the database for all subjects to process
     old_los_by_lo = Hash.new
     # optimize active record for one db call
@@ -405,10 +405,35 @@ module SubjectOutcomesHelper
           grade: so.subject.grade_from_subject_name,
           mp: SubjectOutcome.get_bitmask_string(so.marking_period),
           active: so.active
-        } 
+        }
       end
     end
     return old_los_by_lo
+  end
+
+  def lo_set_selections_as_matched
+    # get the selections from params
+    # set :matched flag for selected pairs (from radio button selection)
+    # detect when new record is assigned to multiple old records.
+    pairs_matched = []
+    selection_params = params['selections'].present? ? params['selections'] : {}
+    selection_params.each do |old_lo_code, new_rec_id|
+      val_new_new_rec_id = Integer(new_rec_id) rescue -1
+      Rails.logger.debug("*** old_lo_code: #{old_lo_code}, new_rec_id: #{new_rec_id}")
+      if val_new_new_rec_id < 0 || old_lo_code == new_rec_id
+        # resetting this assignment - ignore it
+      elsif @new_los_by_rec[new_rec_id][:matched].present?
+        #
+        @new_los_by_rec[new_rec_id][:error] = true
+        @old_los_by_lo[old_lo_code][:error] = true
+        @old_los_by_lo[old_lo_code][:matched] = nil
+      else
+        @old_los_by_lo[old_lo_code][:matched] = new_rec_id
+        @new_los_by_rec[new_rec_id][:matched] = old_lo_code
+        pairs_matched << [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
+      end
+    end
+    return pairs_matched
   end
 
 end
