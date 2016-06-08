@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.020 Jun 8, 2016
+- Researcher view subject and section outcomes
 PARLO Tracker version v2.01.019
 - prevent school year rollovers, add hovers to student and staff listings
 PARLO Tracker version v2.01.018
