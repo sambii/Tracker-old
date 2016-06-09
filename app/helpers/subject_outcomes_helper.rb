@@ -265,16 +265,6 @@ module SubjectOutcomesHelper
     return sorted_array
   end
 
-  def lo_add_new(new_rec)
-    return_array = []
-    new_rec_clone = new_rec.clone
-    new_rec_clone[:action] = :'+'
-    new_rec_clone[:unique] = true
-    new_rec_clone[:matched] = '-1'
-    match_h = get_matching_level({}, new_rec_clone)
-    return_array << [{}, new_rec_clone, match_h]
-  end
-
   def lo_get_model_school(params)
     # get school from school_id parameter if there
     @school = (params['school_id'].present?) ? School.find(params['school_id']) : nil
@@ -318,11 +308,13 @@ module SubjectOutcomesHelper
       end
     end
     Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
+    return @match_subject
   end
 
   def lo_get_file_from_hidden(params)
     # recreate uploaded records to process
     new_los_by_rec = Hash.new
+    records = Array.new
     params['pair'].each do |p|
       pold = p[1]['o']
       pold ||= {}
@@ -340,11 +332,11 @@ module SubjectOutcomesHelper
         rec[COL_OUTCOME_NAME] = pnew[COL_OUTCOME_NAME]
         rec[PARAM_ID] = pnew[PARAM_ID]
         rec[PARAM_ACTION] =  pnew[PARAM_ACTION]
-        @records << rec
+        records << rec
         new_los_by_rec[pnew[COL_REC_ID]] = rec
       end
     end
-    return new_los_by_rec
+    return {records: records, los_by_rec: new_los_by_rec}
   end
 
   def lo_get_file_from_upload(params)
@@ -369,7 +361,7 @@ module SubjectOutcomesHelper
         Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
         Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
         @records << rhash if !rhash[COL_EMPTY]
-        new_los_by_rec[pnew[COL_REC_ID]] = rhash
+        new_los_by_rec[rhash[COL_REC_ID]] = rhash
       else
         matched_subject = (@match_subject.name == check_subject)
         if matched_subject
@@ -377,7 +369,7 @@ module SubjectOutcomesHelper
           Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
           Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
           @records << rhash if !rhash[COL_EMPTY]
-          new_los_by_rec[pnew[COL_REC_ID]] = rhash
+          new_los_by_rec[rhash[COL_REC_ID]] = rhash
         end
       end
     end  # end CSV.foreach
@@ -413,7 +405,7 @@ module SubjectOutcomesHelper
 
   def lo_set_selections_as_matched
     # get the selections from params
-    # set :matched flag for selected pairs (from radio button selection)
+    # set :matched to corresponding old/new IDs for selected pairs from radio button selection (or possibly exact matches)
     # detect when new record is assigned to multiple old records.
     pairs_matched = []
     selection_params = params['selections'].present? ? params['selections'] : {}
@@ -435,5 +427,99 @@ module SubjectOutcomesHelper
     end
     return pairs_matched
   end
+
+  def lo_get_matches_for_old
+    # add matches to old records to @pairs_matched
+    # find any matching new records for each old record (at @match_level)
+    @old_los_by_lo.each do |rk, old_rec|
+      # only match pairs for pairs not selected by user yet (in the @pairs_matched array)
+      if old_rec[:matched].nil? || !old_rec[:error].present?
+        Rails.logger.debug("*** Matching: rk: #{rk}, old_rec: #{old_rec}")
+        matching_pairs = lo_match_old(old_rec, @records, @match_level)
+        @pairs_matched.concat(matching_pairs)
+      else
+        Rails.logger.debug("*** Already Matched: rk: #{rk}, old_rec: #{old_rec}")
+        # # pair has already been selected, pass it forward
+        # new_rec = @new_los_by_rec[old_rec[:matched]]
+        # @pairs_matched << [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
+      end
+    end
+  end
+
+  def lo_process_pairs
+    @pairs_matched.each_with_index do |pair, ix|
+      old_rec_to_match = pair[0]
+      matched_new_rec = pair[1].clone # only change state for this matching pair
+      matched_weights = pair[2]
+
+      # :unique flag set to ensure new (input records from CSV file) records are rebuilt without duplicates
+      matched_rec_num = Integer(matched_new_rec[COL_REC_ID]) rescue -1
+      if matched_rec_num > -1
+        Rails.logger.debug("*** pair: #{ix} - matched_rec_num: #{matched_rec_num}")
+        if @records[matched_rec_num][COL_STATE] != 'unique_match'
+          # not matched yet, set as matched.
+          @records[matched_rec_num][COL_STATE] = 'unique_match'
+          # set as unique.
+          matched_new_rec[:unique] = true
+        end
+      else
+        Rails.logger.error("Error: Invalid record id for unique matching")
+      end
+
+      # Always set exact matches as :matched (for initial implementation & probably also for final implentation)
+      if matched_weights[:total_match] == MAX_MATCH_LEVEL
+        Rails.logger.debug("*** matched #{matched_new_rec.inspect} #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
+        matched_new_rec[:matched] = old_rec_to_match[DB_OUTCOME_CODE]
+      else
+        Rails.logger.debug("*** not matched #{old_rec_to_match[DB_OUTCOME_CODE]} weight: #{matched_weights[:total_match]} at #{MAX_MATCH_LEVEL}")
+      end
+
+      # Initial - no user matching process, based upon weight based matching.
+      if old_rec_to_match[:active] == true
+        # active old record
+        if matched_new_rec[:rec_id].present?
+          matched_new_rec[:action] = :'='
+          @do_nothing_count += 1 if matched_new_rec[:matched].present?
+        else
+          matched_new_rec[:action] = :'-'
+          @deactivate_count += 1 if matched_new_rec[:matched].present?
+        end
+      else
+        # inactive old record
+        if matched_new_rec[:rec_id].present?
+          # reactivate it
+          matched_new_rec[:action] = :'+'
+          @reactivate_count += 1 if matched_new_rec[:matched].present?
+        else
+          matched_new_rec[:action] = :'='
+          @do_nothing_count += 1 if matched_new_rec[:matched].present?
+        end
+      end
+
+      Rails.logger.debug("*** unique: #{matched_new_rec[:unique]}")
+      @pairs_filtered << [old_rec_to_match, matched_new_rec, matched_weights]
+
+    end
+  end
+
+  def lo_add_unmatched
+    # Any unmatched new records are output as an 'Add' pair
+    @records.each_with_index do |rx, ix|
+      Rails.logger.debug("*** Check matching of rx #{ix}: #{rx.inspect}")
+      if rx[COL_STATE].blank?
+        @add_count += 1
+        Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
+        add_pair = []
+        rx_clone = rx.clone
+        rx_clone[:action] = :'+'
+        rx_clone[:unique] = true
+        rx_clone[:matched] = '-1'
+        match_h = get_matching_level({}, rx_clone)
+        add_pair << [{}, rx_clone, match_h]
+        @pairs_filtered.concat(add_pair)
+      end
+    end
+  end
+
 
 end
