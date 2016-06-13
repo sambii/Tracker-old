@@ -27,13 +27,24 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     @section2_3 = FactoryGirl.create :section, subject: @subject2
     @discipline2 = @subject2.discipline
 
-    # another subject in @school2
-    @section3_1 = FactoryGirl.create :section
-    @subject3 = @section3_1.subject
-    @school2 = @section3_1.school
-    @teacher2 = @subject1.subject_manager
-    @section3_2 = FactoryGirl.create :section, subject: @subject3
-    @section3_3 = FactoryGirl.create :section, subject: @subject3
+    # # Subject 3 in School 2
+    # @school2 = FactoryGirl.create :school, :arabic, marking_periods:"2", name: 'School 2', acronym: 'S2'
+    # @subject3 = FactoryGirl.create :subject, school: @school2
+    # @section3_1 = FactoryGirl.create :section, subject: @subject3
+    # @school2 = @section3_1.school
+    # @teacher2 = @subject1.subject_manager
+    # @section3_2 = FactoryGirl.create :section, subject: @subject3
+    # @section3_3 = FactoryGirl.create :section, subject: @subject3
+
+
+    # # Subject 4 in School 3 (invalid for Bulk LO Uploads - no grade in subject)
+    # @section4_1 = FactoryGirl.create :section
+    # @subject4 = @section4_1.subject
+    # @school3 = @section4_1.school
+    # @teacher3 = @subject4.subject_manager
+    # @section4_2 = FactoryGirl.create :section, subject: @subject4
+    # @section4_3 = FactoryGirl.create :section, subject: @subject4
+
 
     # @file = fixture_file_upload('files/bulk_upload_los_initial.csv', 'text/csv')
     @file = Rack::Test::UploadedFile.new(
@@ -45,7 +56,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
   describe "as teacher" do
     before do
-      sign_in(@teacher)
+      sign_in(@teacher1)
     end
     it { cannot_bulk_upload_los }
   end
@@ -55,7 +66,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       @school_administrator = FactoryGirl.create :school_administrator, school: @school1
       sign_in(@school_administrator)
     end
-    it { cannot_bulk_upload_los(true) }
+    it { cannot_bulk_upload_los }
   end
 
   describe "as researcher" do
@@ -212,7 +223,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content('4')
       end
       within("#add-count") do
-        page.should have_content('1')
+        page.should have_content('2')
+      end
+      within("#do-nothing-count") do
+        page.should have_content('2')
       end
       page.should have_button("SAVE ALL")
       find('#save').click
@@ -246,7 +260,7 @@ describe "Subject Outcomes Bulk Upload LOs Invalid School", js:true do
   def cannot_see_bulk_upload_los
     visit upload_lo_file_subject_outcomes_path()
     assert_equal("/subject_outcomes/upload_lo_file", current_path)
-    page.should have_content('Upload Learning Outcomes from Curriculum')
+    # page.should have_content('Upload Learning Outcomes from Curriculum')
     page.should have_content('This school is not configured for Bulk Uploading Learning Outcomes')
   end
 

@@ -74,6 +74,7 @@ class SubjectOutcomesController < ApplicationController
       @reactivate_count = 0
       @deactivate_count = 0
 
+      @pairs_filtered = Array.new
       action_count = 0
 
       # get the model school
@@ -154,7 +155,6 @@ class SubjectOutcomesController < ApplicationController
       lo_get_matches_for_old
 
       step = 4
-      @pairs_filtered = Array.new
       lo_process_pairs
 
       step = 5
@@ -201,7 +201,7 @@ class SubjectOutcomesController < ApplicationController
         @errors[:filename] = nil
         # Ignore this, first display where user is asked filename
       else
-        msg_str = "ERROR: lo_matching Exception at step #{step} - item #{action_count+1} - #{e.message}"
+        msg_str = "ERROR: lo_matching Exception at @stage: #{@stage}, step #{step}, item #{action_count+1} - #{e.message}"
         @errors[:base] = append_with_comma(@errors[:base], msg_str)
         Rails.logger.error(msg_str)
         flash.now[:alert] = msg_str
