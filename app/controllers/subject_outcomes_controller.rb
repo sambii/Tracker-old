@@ -249,11 +249,6 @@ class SubjectOutcomesController < ApplicationController
       # - creates/updates @match_subject, @subject_id, @errors[:subject]
       @match_subject = lo_get_match_subject(params)
 
-      if params['file'].blank? && !first_display
-        @errors[:filename] = "Error: Missing Curriculum (LOs) Upload File."
-        raise @errors[:filename]
-      end
-
       @stage = 2
       Rails.logger.debug("*** Stage: #{@stage}")
 

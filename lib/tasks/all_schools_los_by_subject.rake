@@ -182,6 +182,6 @@ namespace :all_schools_los_by_subject do
       STDOUT.puts 'Done.'
     end
 
-  end # task :delete
+  end # task :copy
 
 end
