@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.021 Jun 14, 2016
+- refactored Bulk LO Upload
 PARLO Tracker version v2.01.020 Jun 8, 2016
 - Researcher view subject and section outcomes
 PARLO Tracker version v2.01.019
