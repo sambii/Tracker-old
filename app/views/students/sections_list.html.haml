@@ -52,7 +52,7 @@
                 %tr{id: "student_#{e.student_id}"}
                   %td=e.section.name
                   %td=e.section.line_number
-                  %td=e.section.teaching_assignments.first.teacher.full_name
+                  %td=e.section.teaching_assignments.first.teacher.full_name if e.section.teaching_assignments.present?
                   %td
                     %a{href: "/enrollments/#{e.id}"}
                       %i.fa.fa-lg.fa-check
