@@ -1,4 +1,4 @@
-# Note: this migration was not done.
+# Note: this migration was not done (note rb.ignore extension)
 # first attempt was without text limit and index length specification, as it caused problems with mysql.
 # second attempt, the index length was ignored.
 class LoDescToText < ActiveRecord::Migration

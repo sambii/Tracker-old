@@ -380,7 +380,7 @@ module SubjectOutcomesHelper
     # get the subject outcomes from the database for all subjects to process
     old_los_by_lo = Hash.new
     # optimize active record for one db call
-    SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
+    SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}, active: true).each do |so|
       subject_name = @subject_ids[so.subject_id].name
       # only add record if all subjects or the matching selected subject
       if @match_subject.blank? || @match_subject.name == subject_name
@@ -478,21 +478,26 @@ module SubjectOutcomesHelper
       if old_rec_to_match[:active] == true
         # active old record
         if matched_new_rec[:rec_id].present?
-          matched_new_rec[:action] = :'='
-          @do_nothing_count += 1 if matched_new_rec[:matched].present?
+          if matched_new_rec[:matched].present?
+            matched_new_rec[:action] = :'='
+            @do_nothing_count += 1
+          else
+            matched_new_rec[:action] = :'?'
+            @error_count += 1
+          end
         else
           matched_new_rec[:action] = :'-'
-          @deactivate_count += 1 if matched_new_rec[:matched].present?
+          @deactivate_count += 1
         end
       else
         # inactive old record
         if matched_new_rec[:rec_id].present?
           # reactivate it
-          matched_new_rec[:action] = :'+'
-          @reactivate_count += 1 if matched_new_rec[:matched].present?
+          matched_new_rec[:action] = :'^'
+          @reactivate_count += 1
         else
-          matched_new_rec[:action] = :'='
-          @do_nothing_count += 1 if matched_new_rec[:matched].present?
+          matched_new_rec[:action] = :'x'
+          @do_nothing_count += 1
         end
       end
 

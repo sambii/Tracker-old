@@ -221,6 +221,8 @@ module LoadSectionHelper
 
     @subj_capstone_3s1 = FactoryGirl.create :subject, name: 'Capstone 3s1', subject_manager: @model_subject_manager, school: model_school
 
+    @subj_math_1 = FactoryGirl.create :subject, name: 'Math 1', subject_manager: @model_subject_manager, school: model_school
+
   end
 
 
@@ -274,6 +276,20 @@ module LoadSectionHelper
     @cp_3_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.03', description: 'CP.3.03 Original', marking_period: '1'
     @cp_3_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.04', description: 'CP.3.04 Original', marking_period: '1'
 
+
+    # @subj_math_1 = FactoryGirl.create :subject, name: 'Math 1', subject_manager: @model_subject_manager, school: model_school
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.01', description: 'Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.', marking_period: '1'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.02', description: 'Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.', marking_period: '1'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.03', description: 'Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.', marking_period: '1'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.04', description: 'will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).', marking_period: '1'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.05', description: 'Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.', marking_period: '1'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.06', description: 'Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.', marking_period: '1&2'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.07', description: 'Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.', marking_period: '1&2'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.08', description: 'Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.', marking_period: '2'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.09', description: 'Will have a description that is very similar to 10.', marking_period: '2'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.10', description: 'Will have a description that is very similar to 09.', marking_period: '2'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.11', description: 'Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.', marking_period: '2'
+    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.12', description: 'Will be reactivated. Apply determinants and their properties in real-world situations.', marking_period: '2', active: false
   end
 
 end

@@ -135,9 +135,27 @@
               %span#do-nothing-count.col-sm-2
                 = @do_nothing_count
               .col-sm-3
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='Reactivated Count:'
+              %span#reactivated-count.col-sm-2
+                = @reactivate_count
+              .col-sm-3
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='Deactivated Count:'
+              %span#deactivated-count.col-sm-2
+                = @deactivate_count
+              .col-sm-3
+            %fieldset
+              .col-sm-5
+              %label.col-sm-2.control-label='Error Count:'
+              %span#error-count.col-sm-2
+                = @error_count
+              .col-sm-3
           .row.text-center
             .btn.btn.btn-default
-              %a#upload-again{href: upload_lo_file_subject_outcomes_path, data: {method: :post}, title: 'Upload Learning Outcomes'}= "UPLOAD"
+              %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"
             - if false
               %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
             - if @allow_save_all

@@ -73,6 +73,7 @@ class SubjectOutcomesController < ApplicationController
       @do_nothing_count = 0
       @reactivate_count = 0
       @deactivate_count = 0
+      @error_count = 0
 
       @pairs_filtered = Array.new
       action_count = 0
@@ -195,6 +196,12 @@ class SubjectOutcomesController < ApplicationController
       @allow_save_all = false if @records.count != @do_nothing_count + @add_count
       @allow_save_all = false if @deactivate_count > 0
       @allow_save_all = false if @reactivate_count > 0
+      # if cannot update all records without matching, then start matching process on first subject.
+      if !@allow_save_all
+        @process_by_subject = @subjects.first
+      else
+        @process_by_subject = nil
+      end
 
     rescue => e
       if @errors[:filename] == "Info: First Display"
@@ -235,10 +242,10 @@ class SubjectOutcomesController < ApplicationController
       @do_nothing_count = 0
       @reactivate_count = 0
       @deactivate_count = 0
-
-      action_count = 0
+      @error_count = 0
 
       @pairs_filtered = Array.new
+      action_count = 0
 
       # get the model school
       # - creates/udpates @school, @school_year
@@ -291,7 +298,6 @@ class SubjectOutcomesController < ApplicationController
       lo_get_matches_for_old
 
       step = 4
-      @pairs_filtered = Array.new
       lo_process_pairs
 
       step = 5

@@ -47,10 +47,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
 
     # @file = fixture_file_upload('files/bulk_upload_los_initial.csv', 'text/csv')
-    @file = Rack::Test::UploadedFile.new(
-      Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'),
-      'text/csv'
-    )
+    # @file = Rack::Test::UploadedFile.new(
+    #   Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'),
+    #   'text/csv'
+    # )
 
   end
 
@@ -84,10 +84,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       sign_in(@system_administrator)
       set_users_school(@school1)
     end
-    it { bulk_upload_all_matching }
-    it { bulk_upload_art_matching }
+    it { bulk_upload_all_same }
+    it { bulk_upload_art_same }
     it { bulk_upload_advisory_add }
     it { bulk_upload_art_mismatches }
+    it { bulk_upload_all_mismatches }
   end
 
   describe "as student" do
@@ -114,13 +115,14 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
   end
 
   # test for all subjects bulk upload of Learning Outcomes into Model School
-  def bulk_upload_all_matching
+  # no mismatches (only adds) - can update all learning outcomes immediately without matching
+  def bulk_upload_all_same
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
       within("#ask-filename") do
-        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'))
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_initial.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
@@ -128,12 +130,24 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
       within("#old-lo-count") do
-        page.should have_content('27')
+        page.should have_content('38')
       end
       within("#new-lo-count") do
-        page.should have_content('27')
+        page.should have_content('38')
       end
       within("#add-count") do
+        page.should have_content('0')
+      end
+      within("#do-nothing-count") do
+        page.should have_content('38')
+      end
+      within("#reactivated-count") do
+        page.should have_content('0')
+      end
+      within("#deactivated-count") do
+        page.should have_content('0')
+      end
+      within("#error-count") do
         page.should have_content('0')
       end
       page.should have_button("SAVE ALL")
@@ -142,13 +156,13 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
   end # def bulk_upload_all_matching
 
   # test for single subject bulk upload of Learning Outcomes into Model School
-  def bulk_upload_art_matching
+  def bulk_upload_art_same
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
       within("#ask-filename") do
-        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'))
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_initial.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
         select('Art 1', from: "subject_id")
       end
@@ -178,7 +192,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
       within("#ask-filename") do
-        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_updates.csv'))
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
         select('Advisory 1', from: "subject_id")
       end
@@ -208,13 +222,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_content('Upload Learning Outcomes from Curriculum')
       page.should have_content('Upload Curriculum / LOs File')
       within("#ask-filename") do
-        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_updates.csv'))
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
         select('Art 2', from: "subject_id")
       end
       find('#upload').click
-      # if no errors, then save button should be showing
-      page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
       within("#old-lo-count") do
         page.should have_content('4')
@@ -228,10 +240,54 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within("#do-nothing-count") do
         page.should have_content('2')
       end
-      page.should have_button("SAVE ALL")
-      find('#save').click
+      # errors - save button should be showing
+      page.should_not have_css("#save")
+      page.should_not have_button("SAVE ALL")
+      # find('#save').click
     end # within #page-content
   end # def bulk_upload_art_matching
+
+  # test for all subjects bulk upload of Learning Outcomes into Model School
+  # some mismatches (deactivates, reactivates or changes) - requires subject by subject matching
+  def bulk_upload_all_mismatches
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+      end
+      find('#upload').click
+      save_and_open_page
+      page.should have_content('Match Old LOs to New LOs')
+      within("#old-lo-count") do
+        page.should have_content('38')
+      end
+      within("#new-lo-count") do
+        page.should have_content('39')
+      end
+      within("#add-count") do
+        page.should have_content('9')
+      end
+      within("#do-nothing-count") do
+        page.should have_content('30')
+      end
+      within("#reactivated-count") do
+        page.should have_content('0') # should be 1
+      end
+      within("#deactivated-count") do
+        page.should have_content('8')
+      end
+      within("#error-count") do
+        page.should have_content('0')
+      end
+      # errors - save button should be showing
+      page.should_not have_css("#save")
+      page.should_not have_button("SAVE ALL")
+      # find('#save').click
+    end # within #page-content
+  end # def bulk_upload_all_matching
 
 
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20160211175640) do
+ActiveRecord::Schema.define(:version => 20160615141521) do
 
   create_table "announcements", :force => true do |t|
     t.text     "content"
@@ -361,6 +361,7 @@ ActiveRecord::Schema.define(:version => 20160211175640) do
     t.integer  "marking_period"
     t.string   "lo_code",        :default => ""
     t.boolean  "active",         :default => true
+    t.integer  "model_lo_id"
   end
 
   add_index "subject_outcomes", ["subject_id", "description"], :name => "altered_subject_outcomes_multi"
@@ -369,10 +370,13 @@ ActiveRecord::Schema.define(:version => 20160211175640) do
   create_table "subjects", :force => true do |t|
     t.string   "name"
     t.integer  "discipline_id"
-    t.datetime "created_at",         :null => false
-    t.datetime "updated_at",         :null => false
+    t.datetime "created_at",            :null => false
+    t.datetime "updated_at",            :null => false
     t.integer  "school_id"
     t.integer  "subject_manager_id"
+    t.string   "bulk_lo_seq_year"
+    t.datetime "bulk_lo_seq_timestamp"
+    t.boolean  "active"
   end
 
   add_index "subjects", ["discipline_id"], :name => "index_subjects_on_discipline_id"
