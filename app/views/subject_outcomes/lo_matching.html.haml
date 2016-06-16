@@ -36,7 +36,7 @@
             %thead.table-title
               %tr
                 %th{colspan: 12}
-                  = @match_subject.present? ? "#{@match_subject.name}" : "All Subjects"
+                  = @match_subject.present? ? "Processing Only #{@match_subject.name}" : (@process_by_subject.present? ? "Processing #{@process_by_subject.name} of All Subjects" : "Processing All Subjects")
                   = # " - Matching Level: "
                   = # select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
                   %input{type: 'hidden', name: "school_id", value: @school.id}
@@ -68,11 +68,13 @@
                   - break_class = 'break'
                 - else
                   - break_class = ''
+                - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != rx[:subject_id] ? 'display-none' : '') : ''
+                - Rails.logger.debug("++++ @process_by_subject.name: #{@process_by_subject.name}, rx[:subject_name]: #{rx[:subject_name]}, ry[SubjectOutcomesHelper::COL_COURSE_ID]: #{ry[SubjectOutcomesHelper::COL_COURSE_ID]}, rx[:subject_id]: #{rx[:subject_id]}") if @process_by_subject.present?
                 - prior_old_code = rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]
                 - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
                 - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
                 - lo_name = rx[:lo_code].present? ? rx[:lo_code] : (ry[:lo_code].present? ? ry[:lo_code] : ry[SubjectOutcomesHelper::COL_REC_ID])
-                %tr{ class: "#{highlight_class} #{break_class}"}
+                %tr{ class: "#{highlight_class} #{break_class} #{hide_subject_class}"}
                   - deact_class = (rx[:active] == false ? 'deactivated ' : '')
                   - # error_class = (rx[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch' || ry[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch') ? 'ui-error' : ''
                   - error_class = (![''].include?(rx[SubjectOutcomesHelper::PARAM_ACTION]) || !['', 'Add'].include?(ry[SubjectOutcomesHelper::PARAM_ACTION])) ? 'ui-error' : ''

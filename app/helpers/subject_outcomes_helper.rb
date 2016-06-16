@@ -198,6 +198,8 @@ module SubjectOutcomesHelper
 
   def get_matching_level(old_rec, new_rec)
     match_h = Hash.new
+    # match_h[:course] = old_rec[:course].present? ? old_rec[:course] : new_rec[COL_COURSE]
+    # match_h[:grade] = old_rec[:grade].present? ? old_rec[:course] : new_rec[COL_GRADE]
     # match_h[:course_match] = 0
     # match_h[:grade_match] = 0
     # match_h[:mp_match] = 0

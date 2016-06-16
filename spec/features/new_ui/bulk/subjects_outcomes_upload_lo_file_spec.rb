@@ -260,31 +260,22 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       save_and_open_page
+      within('thead.table-title') do
+        page.should have_content("Processing #{@subj_advisory_1.name} of All Subjects")
+      end
       page.should have_content('Match Old LOs to New LOs')
-      within("#old-lo-count") do
-        page.should have_content('38')
-      end
-      within("#new-lo-count") do
-        page.should have_content('39')
-      end
-      within("#add-count") do
-        page.should have_content('9')
-      end
-      within("#do-nothing-count") do
-        page.should have_content('30')
-      end
-      within("#reactivated-count") do
-        page.should have_content('0') # should be 1
-      end
-      within("#deactivated-count") do
-        page.should have_content('8')
-      end
-      within("#error-count") do
-        page.should have_content('0')
-      end
+      # using find text to ensure exact match, not if it contains the characters
+      # page.should have_css("#old-lo-count", text: /\s*3\s*/)
+      find("#old-lo-count").text.should == "3"
+      find("#new-lo-count").text.should == "3"
+      find("#add-count").text.should == "0"
+      find("#do-nothing-count").text.should == "3"
+      find("#reactivated-count").text.should == "0"
+      find("#deactivated-count").text.should == "0"
+      find("#error-count").text.should == "0"
       # errors - save button should be showing
-      page.should_not have_css("#save")
-      page.should_not have_button("SAVE ALL")
+      page.should have_css("#save")
+      page.should have_button("SAVE #{@subj_advisory_1.name} LOs")
       # find('#save').click
     end # within #page-content
   end # def bulk_upload_all_matching
