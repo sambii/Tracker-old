@@ -20,7 +20,8 @@ module SubjectOutcomesHelper
   COL_ERROR = :'error'
   COL_SUCCESS = :'success'
   COL_EMPTY = :'empty'
-  COL_COURSE_ID = :'course_id'
+  COL_COURSE_ID = :'subject_id'
+  COL_SUBJECT_ID = :'subject_id'
   COL_DB_ID = :'db_id'
   COL_ACTIVE = :'active'
   COL_STATE = :'state'
@@ -79,7 +80,7 @@ module SubjectOutcomesHelper
             subj_grade = "#{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}"
             if subject_names[subj_grade].present?
               # Rails.logger.debug("+++ Matched Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
-              csv_hash[COL_COURSE_ID] = subject_names[subj_grade][:id]
+              csv_hash[COL_SUBJECT_ID] = subject_names[subj_grade][:id]
               csv_hash[COL_SUBJECT] = subj_grade
             else
               # check if semester in subject name
@@ -87,7 +88,7 @@ module SubjectOutcomesHelper
               # Rails.logger.debug("+++ No match on Course and Grade for #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}")
               subj_grade_mp = "#{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}s#{bitmask_str}"
               if subject_names[subj_grade_mp].present?
-                csv_hash[COL_COURSE_ID] = subject_names[subj_grade_mp][:id]
+                csv_hash[COL_SUBJECT_ID] = subject_names[subj_grade_mp][:id]
                 csv_hash[COL_SUBJECT] = subj_grade_mp
               else
                 csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Invalid Subject & Grade #{csv_hash[COL_SUBJECT]} - #{csv_hash[COL_COURSE]} #{csv_hash[COL_GRADE]}s#{csv_hash[COL_MP_BITMAP]}")
@@ -98,7 +99,7 @@ module SubjectOutcomesHelper
               csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Invalid Subject #{csv_hash[COL_COURSE]}")
               csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "#{csv_hash[COL_COURSE]}")
             else
-              csv_hash[COL_COURSE_ID] = subject_names[csv_hash[COL_COURSE]][:id]
+              csv_hash[COL_SUBJECT_ID] = subject_names[csv_hash[COL_COURSE]][:id]
             end
           end
         end
@@ -111,7 +112,7 @@ module SubjectOutcomesHelper
       csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Error validating csv fields: #{e.inspect}")
     end
     # only keep fields that we need for processing.
-    csv_hash.slice!(COL_COURSE, COL_GRADE, COL_SEMESTER, COL_MARK_PER, COL_OUTCOME_CODE, COL_OUTCOME_NAME, COL_EMPTY, COL_ERROR, COL_COURSE_ID, COL_SUBJECT, COL_MP_BITMAP)
+    csv_hash.slice!(COL_COURSE, COL_GRADE, COL_SEMESTER, COL_MARK_PER, COL_OUTCOME_CODE, COL_OUTCOME_NAME, COL_EMPTY, COL_ERROR, COL_SUBJECT_ID, COL_SUBJECT, COL_MP_BITMAP)
     return csv_hash
   end
 
@@ -299,8 +300,8 @@ module SubjectOutcomesHelper
     # if only processing one subject, look up the subject by selected subject ID
     @match_subject = nil
     @subject_id = ''
-    if params[:subject_id].present?
-      match_subjects = Subject.where(id: params[:subject_id])
+    if params[SubjectOutcomesHelper::COL_SUBJECT_ID].present?
+      match_subjects = Subject.where(id: params[SubjectOutcomesHelper::COL_SUBJECT_ID])
       if match_subjects.count == 0
         @errors[:subject] = "Error: Cannot find subject"
         raise @errors[:subject]
@@ -327,7 +328,7 @@ module SubjectOutcomesHelper
         rec  = Hash.new
         rec[COL_REC_ID] = pnew[COL_REC_ID]
         rec[COL_COURSE] = pnew[COL_COURSE]
-        rec[COL_COURSE_ID] = pnew[COL_COURSE_ID]
+        rec[COL_SUBJECT_ID] = pnew[COL_SUBJECT_ID]
         rec[COL_GRADE] = pnew[COL_GRADE]
         rec[COL_MP_BITMAP] = pnew[COL_MP_BITMAP]
         rec[COL_OUTCOME_CODE] = pnew[COL_OUTCOME_CODE]

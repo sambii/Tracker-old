@@ -375,7 +375,7 @@ class SubjectOutcomesController < ApplicationController
               so = SubjectOutcome.new
               so.lo_code = rec[COL_OUTCOME_CODE]
               so.description = rec[COL_OUTCOME_NAME]
-              so.subject_id = rec[COL_COURSE_ID].to_i
+              so.subject_id = rec[COL_SUBJECT_ID].to_i
               so.marking_period = rec[COL_MP_BITMAP]
               so.save!
               action_count += 1
