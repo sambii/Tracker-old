@@ -32,6 +32,7 @@
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
 
+          - valid_update = true
           %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
             %thead.table-title
               %tr
@@ -40,7 +41,10 @@
                   = # " - Matching Level: "
                   = # select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
                   %input{type: 'hidden', name: "school_id", value: @school.id}
-                  %input{type: 'hidden', name: "subject_id", value: @subject_id}
+                  - if @match_subject.present?
+                    %input{type: 'hidden', name: "match_subject_id", value: @match_subject.id}
+                  - if @process_by_subject.present?
+                    %input{type: 'hidden', name: "process_subject_id", value: @process_by_subject.id}
               %tr
                 %th= 'Old Subject'
                 %th= 'Old Active'
@@ -70,8 +74,11 @@
                   - break_class = ''
                 - pair_subject_id = rx[SubjectOutcomesHelper::COL_SUBJECT_ID]
                 - pair_subject_id = ry[SubjectOutcomesHelper::COL_SUBJECT_ID] if !pair_subject_id.present?
-                - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != pair_subject_id ? 'display-none' : '') : ''
-                - # Rails.logger.debug("++++ @process_by_subject: #{@process_by_subject.id} - #{@process_by_subject.name}, rx[SubjectOutcomesHelper::COL_SUBJECT_ID]: #{rx[SubjectOutcomesHelper::COL_SUBJECT_ID]}, ry[SubjectOutcomesHelper::COL_SUBJECT_ID]: #{ry[SubjectOutcomesHelper::COL_SUBJECT_ID]}, ry[:subject_id]: #{ry[:subject_id]}, rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]: #{rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]}, ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]: #{ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]}") if @process_by_subject.present?
+                - pair_subject_id_i = Integer(pair_subject_id) rescue -1
+
+                - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != pair_subject_id_i ? 'display-none' : '') : ''
+                - # Rails.logger.debug("++++ @process_by_subject: #{@process_by_subject.id} - #{@process_by_subject.name}, rx: #{rx.inspect}, ry: #{ry.inspect}") if @process_by_subject.present?
+                - # Rails.logger.debug("++++ pair_subject_id: #{pair_subject_id.inspect}, hide_subject_class: #{hide_subject_class}, test: #{@process_by_subject.id != pair_subject_id_i}")
                 - prior_old_code = rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]
                 - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
                 - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
@@ -87,6 +94,7 @@
                     %td{class: "#{deact_class}"}=rx[:lo_code]
                     %td{class: "#{deact_class}"}=rx[:desc]
                     %td.text-center{class: "#{error_class}"}
+                      - valid_update = false if !['=', '+'].include?(ry[:action].to_s)
                       - is_add = false #ry[:action].present? && ry[:action] == :'+' ? true : false
                       - is_equal = false # ry[:action].present? && ry[:action] == :'=' ? true : false
                       - is_matched = ry[:matched].present? && (ry[:matched] == prior_old_code || ry[:matched] == '-1')
@@ -124,56 +132,56 @@
                   %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_MP_BITMAP}]", value: ry[SubjectOutcomesHelper::COL_MP_BITMAP]}
                   %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_CODE}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]}
                   %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_NAME}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]}
-          .row
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Old LO Count:'
-              %span#old-lo-count.col-sm-2
-                = @old_records_counts
-              .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='New LO Count:'
-              %span#new-lo-count.col-sm-2
-                = @records.count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Add Count:'
-              %span#add-count.col-sm-2
-                = @add_count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Do Nothing Count:'
-              %span#do-nothing-count.col-sm-2
-                = @do_nothing_count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Reactivated Count:'
-              %span#reactivated-count.col-sm-2
-                = @reactivate_count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Deactivated Count:'
-              %span#deactivated-count.col-sm-2
-                = @deactivate_count
-              .col-sm-3
-            %fieldset
-              .col-sm-5
-              %label.col-sm-2.control-label='Error Count:'
-              %span#error-count.col-sm-2
-                = @error_count
-              .col-sm-3
+          / .row
+          /   %fieldset
+          /     .col-sm-5
+          /     %label.col-sm-2.control-label='Old LO Count:'
+          /     %span#old-lo-count.col-sm-2
+          /       = @old_records_counts
+          /     .col-sm-3
+          /   %fieldset
+          /     .col-sm-5
+          /     %label.col-sm-2.control-label='New LO Count:'
+          /     %span#new-lo-count.col-sm-2
+          /       = @records.count
+          /     .col-sm-3
+          /   %fieldset
+          /     .col-sm-5
+          /     %label.col-sm-2.control-label='Add Count:'
+          /     %span#add-count.col-sm-2
+          /       = @add_count
+          /     .col-sm-3
+          /   %fieldset
+          /     .col-sm-5
+          /     %label.col-sm-2.control-label='Do Nothing Count:'
+          /     %span#do-nothing-count.col-sm-2
+          /       = @do_nothing_count
+          /     .col-sm-3
+          /   %fieldset
+          /     .col-sm-5
+          /     %label.col-sm-2.control-label='Reactivated Count:'
+          /     %span#reactivated-count.col-sm-2
+          /       = @reactivate_count
+          /     .col-sm-3
+          /   %fieldset
+          /     .col-sm-5
+          /     %label.col-sm-2.control-label='Deactivated Count:'
+          /     %span#deactivated-count.col-sm-2
+          /       = @deactivate_count
+          /     .col-sm-3
+          /   %fieldset
+          /     .col-sm-5
+          /     %label.col-sm-2.control-label='Error Count:'
+          /     %span#error-count.col-sm-2
+          /       = @error_count
+          /     .col-sm-3
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"
-            - if false
-              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'match'}='Set Matches'
+            - if valid_update
+              %button#save_matches.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'set_matches'}='Save Matches'
             - if @allow_save_all
-              %button#save.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
+              %button#save_all.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
 .col-sm-1
 
 

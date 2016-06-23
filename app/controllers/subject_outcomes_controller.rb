@@ -68,6 +68,7 @@ class SubjectOutcomesController < ApplicationController
       @errors = Hash.new
       @records = Array.new
 
+      @process_count = 0
       @mismatch_count = 0
       @add_count = 0
       @do_nothing_count = 0
@@ -83,7 +84,8 @@ class SubjectOutcomesController < ApplicationController
       # errors are added to @errors and raised
       @school = lo_get_model_school(params)
       # get the subjects for the model school
-      @subjects = Subject.where(school_id: @school.id)
+      # @subjects = Subject.where(school_id: @school.id)
+      @subjects = Subject.where(school_id: @school.id).includes(:discipline).order('disciplines.name, subjects.name')
       # if only processing one subject
       # - creates/updates @match_subject, @subject_id
       # errors are added to @errors and raised
@@ -161,19 +163,19 @@ class SubjectOutcomesController < ApplicationController
       step = 5
       lo_add_unmatched
 
-      @match_count = @pairs_matched.count
-      Rails.logger.debug("*** @match_count: #{@match_count}")
+      # @match_count = @pairs_matched.count
+      # Rails.logger.debug("*** @match_count: #{@match_count}")
 
-      Rails.logger.debug("*** database records count: #{@old_los_by_lo.count}")
-      Rails.logger.debug("*** csv records read count: #{@records.count}")
-      Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
-      Rails.logger.debug("*** match_count : #{@match_count}")
-      Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
-      Rails.logger.debug("*** not_add_count : #{@not_add_count}")
-      Rails.logger.debug("*** add_count : #{@add_count}")
-      Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
-      Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
-      Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
+      # Rails.logger.debug("*** database records count: #{@old_los_by_lo.count}")
+      # Rails.logger.debug("*** csv records read count: #{@records.count}")
+      # Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
+      # Rails.logger.debug("*** match_count : #{@match_count}")
+      # Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
+      # Rails.logger.debug("*** not_add_count : #{@not_add_count}")
+      # Rails.logger.debug("*** add_count : #{@add_count}")
+      # Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
+      # Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
+      # Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
 
 
       if @errors.count == 0 && @error_list.length == 0 && !first_display
@@ -237,6 +239,7 @@ class SubjectOutcomesController < ApplicationController
       @errors = Hash.new
       @records = Array.new
 
+      @process_count = 0
       @mismatch_count = 0
       @add_count = 0
       @do_nothing_count = 0
@@ -251,10 +254,11 @@ class SubjectOutcomesController < ApplicationController
       # - creates/udpates @school, @school_year
       @school = lo_get_model_school(params)
       # get the subjects for the model school
-      @subjects = Subject.where(school_id: @school.id)
+      @subjects = Subject.where(school_id: @school.id).includes(:discipline).order('disciplines.name, subjects.name')
       # if only processing one subject
       # - creates/updates @match_subject, @subject_id, @errors[:subject]
       @match_subject = lo_get_match_subject(params)
+      @process_by_subject = lo_get_processed_subject(params)
 
       @stage = 2
       Rails.logger.debug("*** Stage: #{@stage}")
@@ -325,69 +329,69 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
       Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
       Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
+      Rails.logger.debug("*** process_count : #{@process_count}")
 
-      old_rec_actions = []
-
-      @allow_save_all = true
-      @allow_save_all = false if @records.count != @do_nothing_count + @add_count
-      @allow_save_all = false if @deactivate_count > 0
-      @allow_save_all = false if @reactivate_count > 0
-
-      if params[:submit_action] == 'save_all' && !@allow_save_all
-        raise("Error: cannot update - must currently only add learning outcomes.")
-      end
+      @allow_save = true
+      @allow_save = false if @process_count != @do_nothing_count + @add_count
+      @allow_save = false if @deactivate_count > 0
+      @allow_save = false if @reactivate_count > 0
 
       step = 7
-      @records4 = []
-      if @allow_save_all && params[:submit_action] == 'save_all'
+      Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}")
+      if @allow_save
         ActiveRecord::Base.transaction do
-          old_rec_actions.each do |rec|
-            # Rails.logger.debug("*** old rec: #{rec}")
-            case rec[PARAM_ACTION]
-            when :'-'
-              so = SubjectOutcome.find(rec[COL_REC_ID])
-              so.active = false
-              so.save!
-              action_count += 1
-              action = 'Removed'
-              @records4 << [so, 'Removed']
-            when :'+'
-              so = SubjectOutcome.find(rec[COL_REC_ID])
-              so.active = true
-              so.save!
-              action_count += 1
-              action = 'Restored'
-              @records4 << [so, 'Restored']
-            when ''
-              # ignore
-              # Rails.logger.debug("*** 'ignore' action")
-            when 'Mismatch'
-              raise("Attempt to update with Mismatch - item #{action_count+1}")
-            else
-              raise("Invalid subject outcome action - item #{action_count+1}")
+          @pairs_matched.each_with_index do |pair, ix|
+            rec = pair[0]
+            matched_new_rec = pair[1].clone # only change state for this matching pair
+            matched_weights = pair[2]
+            # Rails.logger.debug("*** num: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].inspect}, Fixnum?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].instance_of?(Fixnum)}, to_i Integer?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i.instance_of?(Integer)}, class?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].class}")
+            if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && rec[PARAM_ACTION].present?
+              Rails.logger.debug("*** Update old rec: #{rec}")
+              case rec[PARAM_ACTION]
+              when :'-'
+                so = SubjectOutcome.find(rec[COL_REC_ID])
+                so.active = false
+                so.save!
+                action_count += 1
+                action = 'Removed'
+              when :'+'
+                so = SubjectOutcome.find(rec[COL_REC_ID])
+                so.active = true
+                so.save!
+                action_count += 1
+                action = 'Restored'
+              when :'=', nil
+                # ignore
+                # Rails.logger.debug("*** 'ignore' action")
+              when 'Mismatch'
+                raise("Attempt to update with Mismatch - item #{action_count+1}")
+              else
+                raise("Invalid subject outcome action: #{rec[PARAM_ACTION].inspect} - item #{action_count+1}")
+              end
             end
 
           end
           @records.each do |rec|
-            Rails.logger.debug("*** new rec action: #{rec[PARAM_ACTION]}")
-            case rec[PARAM_ACTION]
-            when '+'
-              so = SubjectOutcome.new
-              so.lo_code = rec[COL_OUTCOME_CODE]
-              so.description = rec[COL_OUTCOME_NAME]
-              so.subject_id = rec[COL_SUBJECT_ID].to_i
-              so.marking_period = rec[COL_MP_BITMAP]
-              so.save!
-              action_count += 1
-              action = 'Added'
-              @records4 << [so, 'Added']
-            when '='
-              # ignore
-              # Rails.logger.debug("*** 'ignore' action")
-            when 'Mismatch'
-              raise("Attempt to update with Mismatch - item #{action_count+1}")
-            else
-              raise("Invalid subject outcome action - item #{action_count+1}")
+            if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID])
+              Rails.logger.debug("*** Add new rec: #{rec.inspect}")
+              case rec[PARAM_ACTION]
+              when '+'
+                so = SubjectOutcome.new
+                so.lo_code = rec[COL_OUTCOME_CODE]
+                so.description = rec[COL_OUTCOME_NAME]
+                so.subject_id = rec[COL_SUBJECT_ID].to_i
+                so.marking_period = rec[COL_MP_BITMAP]
+                so.save!
+                action_count += 1
+                action = 'Added'
+              when '='
+                # ignore
+                # Rails.logger.debug("*** 'ignore' action")
+              when 'Mismatch'
+                raise("Attempt to update with Mismatch - item #{action_count+1}")
+              else
+                raise("Invalid subject outcome action - item #{action_count+1}")
+              end
             end
 
           end
@@ -397,7 +401,7 @@ class SubjectOutcomesController < ApplicationController
       else
         # @errors[:base] =  'Invalid Upload (only adds allowed) - Not Saved'
         @stage = 5
-      end # if update
+      end # if @allow_save
 
     rescue => e
       msg_str = "ERROR: lo_matching Exception at step #{step} - item #{action_count+1} - #{e.message}"
@@ -413,10 +417,26 @@ class SubjectOutcomesController < ApplicationController
       if @errors.count > 0
         flash[:alert] = (@errors[:base].present?) ? @errors[:base] : 'Errors'
       end
-      if @stage == 9
+      if @stage == 9 && @process_by_subject.blank?
         format.html { render :action => "lo_matching_update" }
       else
-        format.html
+        # process_by_subject increment to next subject after update
+        current_subject_ix = 0
+        @subjects.each_with_index do |subj, ix|
+          if subj.id == @process_by_subject_id
+            current_subject_ix = ix
+            break
+          end
+        end
+        if current_subject_ix == @subjects.length
+          # at end of subjects, go to reporting page
+          format.html { render :action => "lo_matching_update" }
+        else
+          # process next subject
+          @process_by_subject = @subjects[current_subject_ix+1]
+          @process_by_subject_id = @process_by_subject.id
+          format.html
+        end
       end
     end
 

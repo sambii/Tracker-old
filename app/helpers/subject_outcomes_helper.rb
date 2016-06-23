@@ -310,8 +310,26 @@ module SubjectOutcomesHelper
         @subject_id = @match_subject.present? ? @match_subject.id : ''
       end
     end
-    Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
+    # Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
     return @match_subject
+  end
+
+  def lo_get_processed_subject(params)
+    # matching process required, determine which is the current subject to be processed as well as the nextprocessing one subject, look up the subject by selected subject ID
+    @process_by_subject = nil
+    @process_by_subject_next = nil
+    @process_subject_id = params['process_subject_id']
+    if params['process_subject_id'].present?
+      process_subjects = Subject.where(id: params['process_subject_id'])
+      if process_subjects.count == 0
+        @errors[:subject] = "Error: Cannot find subject to process"
+        raise @errors[:subject]
+      else
+        @process_by_subject = process_subjects.first
+        @process_by_subject_id = @process_by_subject.present? ? @process_by_subject.id : ''
+      end
+    end
+    return @process_by_subject
   end
 
   def lo_get_file_from_hidden(params)
@@ -323,6 +341,7 @@ module SubjectOutcomesHelper
       pold ||= {}
       pnew = p[1]['n']
       pnew ||= {}
+      Rails.logger.debug("*** pnew: #{pnew.inspect}")
       # recreate upload records (with only fields needed)
       if pnew.length > 0 && pnew[COL_REC_ID] && pnew[COL_OUTCOME_CODE]
         rec  = Hash.new
@@ -336,6 +355,7 @@ module SubjectOutcomesHelper
         rec[PARAM_ID] = pnew[PARAM_ID]
         rec[PARAM_ACTION] =  pnew[PARAM_ACTION]
         records << rec
+        Rails.logger.debug("*** Recreated record: #{rec.inspect}")
         new_los_by_rec[pnew[COL_REC_ID]] = rec
       end
     end
@@ -361,16 +381,16 @@ module SubjectOutcomesHelper
         ix += 1
         matched_subject = false
         # processing all subjects in file
-        Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
-        Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+        # Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+        # Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
         @records << rhash if !rhash[COL_EMPTY]
         new_los_by_rec[rhash[COL_REC_ID]] = rhash
       else
         matched_subject = (@match_subject.name == check_subject)
         if matched_subject
           ix += 1
-          Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
-          Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
+          # Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+          # Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
           @records << rhash if !rhash[COL_EMPTY]
           new_los_by_rec[rhash[COL_REC_ID]] = rhash
         end
@@ -437,11 +457,11 @@ module SubjectOutcomesHelper
     @old_los_by_lo.each do |rk, old_rec|
       # only match pairs for pairs not selected by user yet (in the @pairs_matched array)
       if old_rec[:matched].nil? || !old_rec[:error].present?
-        Rails.logger.debug("*** Matching: rk: #{rk}, old_rec: #{old_rec}")
+        # Rails.logger.debug("*** Matching: rk: #{rk}, old_rec: #{old_rec}")
         matching_pairs = lo_match_old(old_rec, @records, @match_level)
         @pairs_matched.concat(matching_pairs)
       else
-        Rails.logger.debug("*** Already Matched: rk: #{rk}, old_rec: #{old_rec}")
+        # Rails.logger.debug("*** Already Matched: rk: #{rk}, old_rec: #{old_rec}")
         # # pair has already been selected, pass it forward
         # new_rec = @new_los_by_rec[old_rec[:matched]]
         # @pairs_matched << [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
@@ -450,6 +470,7 @@ module SubjectOutcomesHelper
   end
 
   def lo_process_pairs
+    Rails.logger.debug("*** @records.length: #{@records.length}")
     @pairs_matched.each_with_index do |pair, ix|
       old_rec_to_match = pair[0]
       matched_new_rec = pair[1].clone # only change state for this matching pair
@@ -458,15 +479,18 @@ module SubjectOutcomesHelper
       # :unique flag set to ensure new (input records from CSV file) records are rebuilt without duplicates
       matched_rec_num = Integer(matched_new_rec[COL_REC_ID]) rescue -1
       if matched_rec_num > -1
-        Rails.logger.debug("*** pair: #{ix} - matched_rec_num: #{matched_rec_num}")
+        Rails.logger.debug("*** pair: #{pair.inspect}")
+        Rails.logger.debug("*** pair: #{ix} - matched_rec_num: #{matched_rec_num}, @records[matched_rec_num]: #{@records[matched_rec_num]}")
         if @records[matched_rec_num][COL_STATE] != 'unique_match'
           # not matched yet, set as matched.
           @records[matched_rec_num][COL_STATE] = 'unique_match'
           # set as unique.
           matched_new_rec[:unique] = true
+        else
+          # Note: unique is not set to false here, because we want the first unique records for input file recreation
         end
       else
-        Rails.logger.error("Error: Invalid record id for unique matching")
+        Rails.logger.error("Info: Invalid record id for unique matching")
       end
 
       # Always set exact matches as :matched (for initial implementation & probably also for final implentation)
@@ -478,29 +502,30 @@ module SubjectOutcomesHelper
       end
 
       # Initial - no user matching process, based upon weight based matching.
+      @process_count += 1 if lo_subject_to_process?(old_rec_to_match[SubjectOutcomesController::COL_SUBJECT_ID])
       if old_rec_to_match[:active] == true
         # active old record
         if matched_new_rec[:rec_id].present?
           if matched_new_rec[:matched].present?
             matched_new_rec[:action] = :'='
-            @do_nothing_count += 1
+            @do_nothing_count += 1 if lo_subject_to_process?(old_rec_to_match[SubjectOutcomesController::COL_SUBJECT_ID])
           else
             matched_new_rec[:action] = :'?'
-            @error_count += 1
+            @error_count += 1 if lo_subject_to_process?(old_rec_to_match[SubjectOutcomesController::COL_SUBJECT_ID])
           end
         else
           matched_new_rec[:action] = :'-'
-          @deactivate_count += 1
+          @deactivate_count += 1 if lo_subject_to_process?(old_rec_to_match[SubjectOutcomesController::COL_SUBJECT_ID])
         end
       else
         # inactive old record
         if matched_new_rec[:rec_id].present?
           # reactivate it
           matched_new_rec[:action] = :'^'
-          @reactivate_count += 1
+          @reactivate_count += 1 if lo_subject_to_process?(old_rec_to_match[SubjectOutcomesController::COL_SUBJECT_ID])
         else
           matched_new_rec[:action] = :'x'
-          @do_nothing_count += 1
+          @do_nothing_count += 1 if lo_subject_to_process?(old_rec_to_match[SubjectOutcomesController::COL_SUBJECT_ID])
         end
       end
 
@@ -513,9 +538,9 @@ module SubjectOutcomesHelper
   def lo_add_unmatched
     # Any unmatched new records are output as an 'Add' pair
     @records.each_with_index do |rx, ix|
-      Rails.logger.debug("*** Check matching of rx #{ix}: #{rx.inspect}")
-      if rx[COL_STATE].blank?
-        @add_count += 1
+      if rx[COL_STATE].blank? && rx[:action].blank?
+        @process_count += 1 if lo_subject_to_process?(rx[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
+        @add_count += 1 if lo_subject_to_process?(rx[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         Rails.logger.debug("*** Add @record #{ix}: #{rx.inspect}")
         add_pair = []
         rx_clone = rx.clone
@@ -529,5 +554,19 @@ module SubjectOutcomesHelper
     end
   end
 
+  def lo_subject_to_process?(subject_id)
+    if @match_subject
+      # Rails.logger.debug("***  lo_subject_to_process? @match_subject.id: #{@match_subject.id}, return: #{@match_subject.id == subject_id}")
+      return @match_subject.id == subject_id
+    else
+      if @process_by_subject
+        # Rails.logger.debug("*** lo_subject_to_process? @process_by_subject.id: #{@process_by_subject.id},  @process_by_subject_id: #{@process_by_subject_id}, return: #{@process_by_subject_id == subject_id}")
+        return @process_by_subject_id == subject_id
+      else
+        # Rails.logger.debug("*** lo_subject_to_process? return: always true")
+        return true
+      end
+    end
+  end
 
 end

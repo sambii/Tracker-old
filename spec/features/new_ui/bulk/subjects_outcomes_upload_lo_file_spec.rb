@@ -27,31 +27,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     @section2_3 = FactoryGirl.create :section, subject: @subject2
     @discipline2 = @subject2.discipline
 
-    # # Subject 3 in School 2
-    # @school2 = FactoryGirl.create :school, :arabic, marking_periods:"2", name: 'School 2', acronym: 'S2'
-    # @subject3 = FactoryGirl.create :subject, school: @school2
-    # @section3_1 = FactoryGirl.create :section, subject: @subject3
-    # @school2 = @section3_1.school
-    # @teacher2 = @subject1.subject_manager
-    # @section3_2 = FactoryGirl.create :section, subject: @subject3
-    # @section3_3 = FactoryGirl.create :section, subject: @subject3
-
-
-    # # Subject 4 in School 3 (invalid for Bulk LO Uploads - no grade in subject)
-    # @section4_1 = FactoryGirl.create :section
-    # @subject4 = @section4_1.subject
-    # @school3 = @section4_1.school
-    # @teacher3 = @subject4.subject_manager
-    # @section4_2 = FactoryGirl.create :section, subject: @subject4
-    # @section4_3 = FactoryGirl.create :section, subject: @subject4
-
-
-    # @file = fixture_file_upload('files/bulk_upload_los_initial.csv', 'text/csv')
-    # @file = Rack::Test::UploadedFile.new(
-    #   Rails.root.join('spec/fixtures/files/bulk_upload_los_initial.csv'),
-    #   'text/csv'
-    # )
-
   end
 
   describe "as teacher" do
@@ -126,6 +101,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
+      sleep 20
+      save_and_open_page
       # if no errors, then save button should be showing
       page.should have_css("#save")
       page.should have_content('Match Old LOs to New LOs')
@@ -151,7 +128,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content('0')
       end
       page.should have_button("SAVE ALL")
-      find('#save').click
+      find('#save_all').click
     end # within #page-content
   end # def bulk_upload_all_matching
 
@@ -180,7 +157,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content('0')
       end
       page.should have_button("SAVE ALL")
-      find('#save').click
+      find('#save_all').click
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -210,7 +187,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content('1')
       end
       page.should have_button("SAVE ALL")
-      find('#save').click
+      find('#save_all').click
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -241,9 +218,9 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content('2')
       end
       # errors - save button should be showing
-      page.should_not have_css("#save")
+      page.should_not have_css("#save_all")
       page.should_not have_button("SAVE ALL")
-      # find('#save').click
+      # find('#save_all').click
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -259,31 +236,83 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      sleep 20
-      save_and_open_page
-      # test for lines displayed
+      page.should have_content('Match Old LOs to New LOs')
       within('thead.table-title') do
         page.should have_content("Processing #{@subj_advisory_1.name} of All Subjects")
       end
-      page.should have_content('Match Old LOs to New LOs')
-      # using find text to ensure exact match, not if it contains the characters
-      # page.should have_css("#old-lo-count", text: /\s*3\s*/)
-
       # confirm current subject los are displayed and others are not
-
-      # accumulate counts in html, then display them????
-      # find("#old-lo-count").text.should == "3"
-      # find("#new-lo-count").text.should == "3"
-      # find("#add-count").text.should == "0"
-      # find("#do-nothing-count").text.should == "3"
-      # find("#reactivated-count").text.should == "0"
-      # find("#deactivated-count").text.should == "0"
-      # find("#error-count").text.should == "0"
+      within("tr[data-displayed-pair='pair_1_1_0']") do
+        page.should have_content("AD.1.01")
+        page.should have_content("=")
+      end
+      within('form table') do
+        page.should_not have_content("AD.2.01")
+        page.should_not have_content("MA.1.12")
+      end
+      within("tr[data-displayed-pair='pair_1__1']") do
+        page.should have_content("AD.1.02")
+        page.should have_content("+")
+      end
       
-      # errors - save button should be showing
-      page.should have_css("#save")
-      page.should have_button("SAVE #{@subj_advisory_1.name} LOs")
-      # find('#save').click
+      # no errors - save button should be showing
+      page.should have_css("#save_matches")
+      page.should have_button("Save Matches")
+      find('#save_matches').click
+
+      page.should have_content('Match Old LOs to New LOs')
+      within('thead.table-title') do
+        page.should have_content("Processing #{@subj_advisory_2.name} of All Subjects")
+      end
+      # confirm current subject los are displayed and others are not
+      within('form table') do
+        page.should_not have_content("AD.1.01")
+        page.should_not have_content("MA.1.12")
+      end
+      within("tr[data-displayed-pair='pair_2_2_2']") do
+        page.should have_content("AD.2.01")
+        page.should have_content("=")
+      end
+      within("tr[data-displayed-pair='pair_2_3_3']") do
+        page.should have_content("AD.2.02")
+        page.should have_content("=")
+      end
+      page.should_not have_css("tr[data-displayed-pair='pair_2__2']")
+
+      
+      # no errors - save button should be showing
+      page.should have_css("#save_matches")
+      page.should have_button("Save Matches")
+      Rails.logger.debug("+++")
+      Rails.logger.debug("+++")
+      Rails.logger.debug("+++")
+      Rails.logger.debug("+++")
+      Rails.logger.debug("+++")
+      Rails.logger.debug("+++")
+      Rails.logger.debug("+++ save_matches click")
+
+      find('#save_matches').click
+      sleep 10
+      save_and_open_page
+
+      page.should have_content('Match Old LOs to New LOs')
+      within('thead.table-title') do
+        page.should have_content("Processing #{@subj_advisory_2.name} of All Subjects")
+      end
+      # confirm current subject los are displayed and others are not
+      within('form table') do
+        page.should_not have_content("AD.1.01")
+        page.should_not have_content("MA.1.12")
+      end
+      within("tr[data-displayed-pair='pair_2_2_2']") do
+        page.should have_content("AD.2.01")
+        page.should have_content("=")
+      end
+      within("tr[data-displayed-pair='pair_2_3_3']") do
+        page.should have_content("AD.2.02")
+        page.should have_content("=")
+      end
+      page.should_not have_css("tr[data-displayed-pair='pair_2__2']")
+
     end # within #page-content
   end # def bulk_upload_all_matching
 
