@@ -155,7 +155,8 @@ class SubjectOutcomesController < ApplicationController
 
       step = 3
       # @pairs_matched set with any matching new records for each old record (at @match_level)
-      lo_get_matches_for_old
+      # lo_get_matches_for_old
+      lo_get_matches_for_new
 
       step = 4
       lo_process_pairs
@@ -299,7 +300,8 @@ class SubjectOutcomesController < ApplicationController
 
       step = 3
       # @pairs_matched set with any matching new records for each old record (at @match_level), ignoring any previously matched old records.
-      lo_get_matches_for_old
+      # lo_get_matches_for_old
+      lo_get_matches_for_new
 
       step = 4
       lo_process_pairs

@@ -233,35 +233,29 @@ module SubjectOutcomesHelper
       match_h = get_matching_level(old_rec, new_rec)
       return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
     end
-    # return_array.each do |a|
-    #   old_rec_to_match = a[0]
-    #   matched_new_rec = a[1]
-    #   matched_weights = a[2]
-    #   if old_rec_to_match[:active] == true
-    #     # active old record
-    #     if matched_new_rec[:rec_id].present?
-    #       matched_new_rec[:action] = :'='
-    #       # @do_nothing_count += 1
-    #     else
-    #       matched_new_rec[:action] = :'-'
-    #       # @deactivate_count += 1
-    #     end
-    #   else
-    #     # inactive old record
-    #     if matched_new_rec[:rec_id].present?
-    #       # reactivate it
-    #       matched_new_rec[:action] = :'+'
-    #       # @reactivate_count += 1
-    #     else
-    #       matched_new_rec[:action] = :'='
-    #       # @do_nothing_count += 1
-    #     end
-    #   end
-    # end
     # if no matches add a pair with a blank new record (for deactivation)
     if return_array.length == 0
       match_h = get_matching_level(old_rec, {})
       return_array << [old_rec, {action: :'-'}, match_h]
+    end
+    # return matches in descending match_level order
+    sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
+    return sorted_array
+  end
+
+  def lo_match_new(new_rec, old_recs, match_level)
+    return_array = []
+    # check matching against all new records, returning all that match at or above match_level
+    old_recs.each do |k, old_rec|
+      Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
+      match_h = get_matching_level(old_rec, new_rec)
+      Rails.logger.debug("*** match_h: #{match_h.inspect}")
+      return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
+    end
+    # if no matches add a pair with a blank new record (for deactivation)
+    if return_array.length == 0
+      match_h = get_matching_level({}, new_rec)
+      return_array << [{action: :'-'}, new_rec, match_h]
     end
     # return matches in descending match_level order
     sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
@@ -462,6 +456,24 @@ module SubjectOutcomesHelper
         @pairs_matched.concat(matching_pairs)
       else
         # Rails.logger.debug("*** Already Matched: rk: #{rk}, old_rec: #{old_rec}")
+        # # pair has already been selected, pass it forward
+        # new_rec = @new_los_by_rec[old_rec[:matched]]
+        # @pairs_matched << [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
+      end
+    end
+  end
+
+  def lo_get_matches_for_new
+    # add matches to new records to @pairs_matched
+    # find any matching database records for each new record (at @match_level)
+    @new_los_by_rec.each do |rk, new_rec|
+      # only match pairs for pairs not selected by user yet (in the @pairs_matched array)
+      if new_rec[:matched].nil? || !new_rec[:error].present?
+        Rails.logger.debug("*** Matching: rk: #{rk}, new_rec: #{new_rec}")
+        matching_pairs = lo_match_new(new_rec, @old_los_by_lo, @match_level)
+        @pairs_matched.concat(matching_pairs)
+      else
+        Rails.logger.debug("*** Already Matched: rk: #{rk}, old_rec: #{old_rec}")
         # # pair has already been selected, pass it forward
         # new_rec = @new_los_by_rec[old_rec[:matched]]
         # @pairs_matched << [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
