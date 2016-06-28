@@ -67,17 +67,10 @@ class SubjectOutcomesController < ApplicationController
       @stage = 1
       @errors = Hash.new
       @records = Array.new
-
-      @process_count = 0
-      @mismatch_count = 0
-      @add_count = 0
-      @do_nothing_count = 0
-      @reactivate_count = 0
-      @deactivate_count = 0
-      @error_count = 0
-
       @pairs_filtered = Array.new
+
       action_count = 0
+      clear_matching_counts
 
       # get the model school
       # - creates/udpates @school, @school_year
@@ -140,14 +133,14 @@ class SubjectOutcomesController < ApplicationController
 
       step = 1
       # get the subject outcomes from the database for all subjects to process
-      @old_los_by_lo = lo_get_old_los
-      Rails.logger.debug("*** Subject Outcomes read from Database (count): #{@old_los_by_lo.count}")
+      @old_los_by_lo_clean = lo_get_old_los
+      @old_los_by_lo = @old_los_by_lo_clean.clone
       @old_records_counts = @old_los_by_lo.count
 
       # initial matching level from default value
       @match_level = DEFAULT_MATCH_LEVEL
 
-      # process the database records in lo_code order, and generate all matching pairs for the current matching level.
+      # process the new LO records in lo_code order, and generate all matching pairs for the current matching level.
 
       step = 2
       # no matching pairs from matching form, so set to empty array
@@ -162,22 +155,52 @@ class SubjectOutcomesController < ApplicationController
       lo_process_pairs
 
       step = 5
-      lo_add_unmatched
+      lo_deactivate_unmatched_old
 
-      # @match_count = @pairs_matched.count
-      # Rails.logger.debug("*** @match_count: #{@match_count}")
+      step = 6
+      check_matching_counts
 
-      # Rails.logger.debug("*** database records count: #{@old_los_by_lo.count}")
-      # Rails.logger.debug("*** csv records read count: #{@records.count}")
-      # Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
-      # Rails.logger.debug("*** match_count : #{@match_count}")
-      # Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
-      # Rails.logger.debug("*** not_add_count : #{@not_add_count}")
-      # Rails.logger.debug("*** add_count : #{@add_count}")
-      # Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
-      # Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
-      # Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
+      @allow_save = true
+      Rails.logger.debug("*** @do_nothing_count: #{@do_nothing_count}")
+      Rails.logger.debug("*** @add_count: #{@add_count}")
+      @allow_save = false if @records.count != @do_nothing_count + @add_count
+      @allow_save = false if @old_los_by_lo.count != @do_nothing_count
+      @allow_save = false if @deactivate_count > 0
+      @allow_save = false if @reactivate_count > 0
+      # if cannot update all records without matching, then start matching process on first subject.
+      if !@allow_save
+        @process_by_subject = @subjects.first
+      else
+        @process_by_subject = nil
+      end
 
+      # # tighten @match_level until no deactivates or reactivates for first subject
+      # if @process_by_subject.present?
+      #   first_process = true
+      #   # tighten @match_level until no deactivates or reactivates
+      #   if @deactivate_count > 0 || @reactivate_count > 0
+      #     until @match_level == 0
+      #       @match_level -= 1 if !first_process
+      #       first_process = false
+      #       Rails.logger.debug("***")
+      #       Rails.logger.debug("*** @match_level set to #{@match_level}")
+      #       Rails.logger.debug("***")
+      #       action_count = 0
+      #       clear_matching_counts
+      #       @errors = Hash.new
+      #       @records = Array.new
+      #       @pairs_filtered = Array.new
+      #       @old_los_by_lo = @old_los_by_lo_clean.clone
+      #       @old_records_counts = @old_los_by_lo.count
+      #       @pairs_matched = []
+      #       lo_get_matches_for_new
+      #       lo_process_pairs
+      #       lo_deactivate_unmatched_old
+      #       check_matching_counts
+      #       break if @deactivate_count == 0 && @reactivate_count == 0
+      #     end
+      #   end
+      # end
 
       if @errors.count == 0 && @error_list.length == 0 && !first_display
 
@@ -192,19 +215,6 @@ class SubjectOutcomesController < ApplicationController
 
       @rollback = false
 
-
-      @allow_save_all = true
-      Rails.logger.debug("*** @do_nothing_count: #{@do_nothing_count}")
-      Rails.logger.debug("*** @add_count: #{@add_count}")
-      @allow_save_all = false if @records.count != @do_nothing_count + @add_count
-      @allow_save_all = false if @deactivate_count > 0
-      @allow_save_all = false if @reactivate_count > 0
-      # if cannot update all records without matching, then start matching process on first subject.
-      if !@allow_save_all
-        @process_by_subject = @subjects.first
-      else
-        @process_by_subject = nil
-      end
 
     rescue => e
       if @errors[:filename] == "Info: First Display"
@@ -239,17 +249,10 @@ class SubjectOutcomesController < ApplicationController
       @stage = 1
       @errors = Hash.new
       @records = Array.new
-
-      @process_count = 0
-      @mismatch_count = 0
-      @add_count = 0
-      @do_nothing_count = 0
-      @reactivate_count = 0
-      @deactivate_count = 0
-      @error_count = 0
-
       @pairs_filtered = Array.new
+
       action_count = 0
+      clear_matching_counts
 
       # get the model school
       # - creates/udpates @school, @school_year
@@ -282,8 +285,8 @@ class SubjectOutcomesController < ApplicationController
 
       step = 1
       # get the subject outcomes from the database for all subjects to process
-      @old_los_by_lo = lo_get_old_los
-      Rails.logger.debug("*** Subject Outcomes read from Database (count): #{@old_los_by_lo.count}")
+      @old_los_by_lo_clean = lo_get_old_los
+      @old_los_by_lo = @old_los_by_lo_clean.clone
       @old_records_counts = @old_los_by_lo.count
 
       # @old_los_by_lo.each do |rk, old_rec|
@@ -292,8 +295,7 @@ class SubjectOutcomesController < ApplicationController
       # development manual adjustmenmt of matching level from input field in matching page.
       @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
 
-      # process the database records in lo_code order, and generate all matching pairs for the current matching level.
-
+      # process the new LO records in lo_code order, and generate all matching pairs for the current matching level.
       step = 2
       # all pairs set as selected in matching form are set as matched in @new_los_by_rec and @old_los_by_lo
       @pairs_matched = lo_set_selections_as_matched
@@ -307,36 +309,34 @@ class SubjectOutcomesController < ApplicationController
       lo_process_pairs
 
       step = 5
-      lo_add_unmatched
+      lo_deactivate_unmatched_old
 
-      @match_count = @pairs_matched.count
-      Rails.logger.debug("*** @match_count: #{@match_count}")
+      step = 6
+      check_matching_counts
 
-      # need to turn on is_matched logic in lo_matching.html.haml
-      # need to turn on radio buttons
-      # when is :matched set on new records (see lo_matching.html.haml, subject_outcome_helper.rb/lo_set_selections_as_matched)
-      # matching on @old_los_by_lo gets matched groupings for display to user.  Note these need to be grouped by the UI.  Note these need to be presented to user for selection by radio buttons.
-      # How are items matched in lo_set_selections_as_matched determined to not have radio buttons in UI
+      # # tighten @match_level until no deactivates or reactivates
+      # if @deactivate_count > 0 || @reactivate_count > 0
+      #   until @match_level <= 0
+      #     @match_level -= 1
+      #     Rails.logger.debug("***")
+      #     Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
+      #     Rails.logger.debug("***")
+      #     action_count = 0
+      #     clear_matching_counts
+      #     @errors = Hash.new
+      #     @records = Array.new
+      #     @pairs_filtered = Array.new
+      #     @old_los_by_lo = @old_los_by_lo_clean.clone
+      #     @old_records_counts = @old_los_by_lo.count
+      #     @pairs_matched = lo_set_selections_as_matched
+      #     lo_get_matches_for_new
+      #     lo_process_pairs
+      #     lo_deactivate_unmatched_old
+      #     check_matching_counts
+      #     break if @deactivate_count == 0 && @reactivate_count == 0
+      #   end
+      # end
 
-      Rails.logger.debug("*** @mismatch_count: #{@mismatch_count}")
-      Rails.logger.debug("*** submit_action: #{params[:submit_action]}")
-      Rails.logger.debug("*** Update? : #{@mismatch_count == 0 && params[:submit_action] == 'save_all'}")
-
-      Rails.logger.debug("*** records count: #{@records.count}")
-      Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
-      Rails.logger.debug("*** match_count : #{@match_count}")
-      Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
-      Rails.logger.debug("*** not_add_count : #{@not_add_count}")
-      Rails.logger.debug("*** add_count : #{@add_count}")
-      Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
-      Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
-      Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
-      Rails.logger.debug("*** process_count : #{@process_count}")
-
-      @allow_save = true
-      @allow_save = false if @process_count != @do_nothing_count + @add_count
-      @allow_save = false if @deactivate_count > 0
-      @allow_save = false if @reactivate_count > 0
 
       step = 7
       Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}")

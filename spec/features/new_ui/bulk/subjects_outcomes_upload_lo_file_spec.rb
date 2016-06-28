@@ -236,82 +236,76 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_advisory_1.name} of All Subjects")
-      end
-      # confirm current subject los are displayed and others are not
-      within("tr[data-displayed-pair='pair_1_1_0']") do
-        page.should have_content("AD.1.01")
-        page.should have_content("=")
-      end
-      within('form table') do
-        page.should_not have_content("AD.2.01")
-        page.should_not have_content("MA.1.12")
-      end
-      within("tr[data-displayed-pair='pair_1__1']") do
-        page.should have_content("AD.1.02")
-        page.should have_content("+")
-      end
-      
-      # no errors - save button should be showing
-      page.should have_css("#save_matches")
-      page.should have_button("Save Matches")
-      find('#save_matches').click
-
-      page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_advisory_2.name} of All Subjects")
-      end
-      # confirm current subject los are displayed and others are not
-      within('form table') do
-        page.should_not have_content("AD.1.01")
-        page.should_not have_content("MA.1.12")
-      end
-      within("tr[data-displayed-pair='pair_2_2_2']") do
-        page.should have_content("AD.2.01")
-        page.should have_content("=")
-      end
-      within("tr[data-displayed-pair='pair_2_3_3']") do
-        page.should have_content("AD.2.02")
-        page.should have_content("=")
-      end
-      page.should_not have_css("tr[data-displayed-pair='pair_2__2']")
-
-      
-      # no errors - save button should be showing
-      page.should have_css("#save_matches")
-      page.should have_button("Save Matches")
-      Rails.logger.debug("+++")
-      Rails.logger.debug("+++")
-      Rails.logger.debug("+++")
-      Rails.logger.debug("+++")
-      Rails.logger.debug("+++")
-      Rails.logger.debug("+++")
-      Rails.logger.debug("+++ save_matches click")
-
-      find('#save_matches').click
-      sleep 10
+      sleep 20
       save_and_open_page
 
       page.should have_content('Match Old LOs to New LOs')
       within('thead.table-title') do
-        page.should have_content("Processing #{@subj_advisory_2.name} of All Subjects")
+        page.should have_content("Processing #{@subj_art_1.name} of All Subjects")
       end
       # confirm current subject los are displayed and others are not
       within('form table') do
         page.should_not have_content("AD.1.01")
         page.should_not have_content("MA.1.12")
       end
-      within("tr[data-displayed-pair='pair_2_2_2']") do
-        page.should have_content("AD.2.01")
+
+      #@ #{prior_old_id}_#{new_rec_id}
+
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_01.id}_0']") do
+        page.should have_content("AT.1.01")
         page.should have_content("=")
       end
-      within("tr[data-displayed-pair='pair_2_3_3']") do
-        page.should have_content("AD.2.02")
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_02.id}_1']") do
+        page.should have_content("AT.1.02")
         page.should have_content("=")
       end
-      page.should_not have_css("tr[data-displayed-pair='pair_2__2']")
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_03.id}_2']") do
+        page.should have_content("AT.1.03")
+        page.should have_content("=")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_04.id}_3']") do
+        page.should have_content("AT.1.04")
+        page.should have_content("=")
+      end
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}__2']")
+
+      find('#save_matches').click
+      sleep 20
+      save_and_open_page
+
+      page.should have_content('Match Old LOs to New LOs')
+      within('thead.table-title') do
+        page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
+      end
+      # confirm current subject los are displayed and others are not
+      within('form table') do
+        page.should_not have_content("AT.1.01")
+        page.should_not have_content("MA.1.12")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__4']") do
+        page.should have_content("AT.2.01")
+        page.should have_content("+")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_02.id}_5']") do
+        page.should have_content("AT.2.02")
+        page.should have_content("=")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_03.id}_6']") do
+        page.should have_content("AT.2.03")
+        page.should have_content("=")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__7']") do
+        page.should have_content("AT.2.04")
+        page.should have_content("+")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_01.id}_']") do
+        page.should have_content("AT.2.01")
+        page.should have_content("-")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_04.id}_']") do
+        page.should have_content("AT.2.04")
+        page.should have_content("-")
+      end
 
     end # within #page-content
   end # def bulk_upload_all_matching

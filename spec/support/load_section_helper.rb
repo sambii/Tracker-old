@@ -205,9 +205,9 @@ module LoadSectionHelper
     # note the subject outcome creates below match the spec/fixtures/files/bulk_uploads_los_initial.csv file
     @model_subject_manager = FactoryGirl.create :teacher, school: model_school
 
-    @subj_advisory_1 = FactoryGirl.create :subject, name: 'Advisory 1', subject_manager: @model_subject_manager, school: model_school
+    # @subj_advisory_1 = FactoryGirl.create :subject, name: 'Advisory 1', subject_manager: @model_subject_manager, school: model_school
 
-    @subj_advisory_2 = FactoryGirl.create :subject, name: 'Advisory 2', subject_manager: @model_subject_manager, school: model_school
+    # @subj_advisory_2 = FactoryGirl.create :subject, name: 'Advisory 2', subject_manager: @model_subject_manager, school: model_school
 
     @subj_art_1 = FactoryGirl.create :subject, name: 'Art 1', subject_manager: @model_subject_manager, school: model_school
 
@@ -233,12 +233,12 @@ module LoadSectionHelper
     # note the subject outcome creates below match the spec/fixtures/files/bulk_uploads_los_initial.csv file
     @model_subject_manager = FactoryGirl.create :teacher, school: model_school
 
-    # @subj_advisory_1 = FactoryGirl.create :subject, name: 'Advisory 1', subject_manager: @model_subject_manager, school: model_school
-    @so_ad_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_advisory_1, lo_code: 'AD.1.01', description: 'AD.1.01 Original', marking_period: '1'
+    # # @subj_advisory_1 = FactoryGirl.create :subject, name: 'Advisory 1', subject_manager: @model_subject_manager, school: model_school
+    # @so_ad_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_advisory_1, lo_code: 'AD.1.01', description: 'AD.1.01 Original', marking_period: '1'
 
-    # @subj_advisory_2 = FactoryGirl.create :subject, name: 'Advisory 2', subject_manager: @model_subject_manager, school: model_school
-    @so_ad_2_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_advisory_2, lo_code: 'AD.2.01', description: 'AD.2.01 Original', marking_period: '1'
-    @so_ad_2_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_advisory_2, lo_code: 'AD.2.02', description: 'AD.2.02 Original', marking_period: '2'
+    # # @subj_advisory_2 = FactoryGirl.create :subject, name: 'Advisory 2', subject_manager: @model_subject_manager, school: model_school
+    # @so_ad_2_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_advisory_2, lo_code: 'AD.2.01', description: 'AD.2.01 Original', marking_period: '1'
+    # @so_ad_2_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_advisory_2, lo_code: 'AD.2.02', description: 'AD.2.02 Original', marking_period: '2'
 
     # @subj_art_1 = FactoryGirl.create :subject, name: 'Art 1', subject_manager: @model_subject_manager, school: model_school
     @so_at_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.01', description: 'AT.1.01 Original', marking_period: '1&2' # note 'Year Long' doesn't work in factory loading because coding is not at model level, but in the controller.
