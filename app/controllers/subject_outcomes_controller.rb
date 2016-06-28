@@ -277,8 +277,10 @@ class SubjectOutcomesController < ApplicationController
 
       # get records and hash of new LO records from hidden variables (params)
       recs_from_hidden = lo_get_file_from_hidden(params)
-      @records = recs_from_hidden[:records]
-      @new_los_by_rec = recs_from_hidden[:los_by_rec]
+      @records_clean = recs_from_hidden[:records]
+      @records = @records_clean.clone
+      @new_los_by_rec_clean = recs_from_hidden[:los_by_rec]
+      @new_los_by_rec = @new_los_by_rec_clean.clone
 
       @stage = 3
       Rails.logger.debug("*** Stage: #{@stage}")
@@ -314,30 +316,6 @@ class SubjectOutcomesController < ApplicationController
       step = 6
       check_matching_counts
 
-      # # tighten @match_level until no deactivates or reactivates
-      # if @deactivate_count > 0 || @reactivate_count > 0
-      #   until @match_level <= 0
-      #     @match_level -= 1
-      #     Rails.logger.debug("***")
-      #     Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
-      #     Rails.logger.debug("***")
-      #     action_count = 0
-      #     clear_matching_counts
-      #     @errors = Hash.new
-      #     @records = Array.new
-      #     @pairs_filtered = Array.new
-      #     @old_los_by_lo = @old_los_by_lo_clean.clone
-      #     @old_records_counts = @old_los_by_lo.count
-      #     @pairs_matched = lo_set_selections_as_matched
-      #     lo_get_matches_for_new
-      #     lo_process_pairs
-      #     lo_deactivate_unmatched_old
-      #     check_matching_counts
-      #     break if @deactivate_count == 0 && @reactivate_count == 0
-      #   end
-      # end
-
-
       step = 7
       Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}")
       if @allow_save
@@ -346,7 +324,7 @@ class SubjectOutcomesController < ApplicationController
             rec = pair[0]
             matched_new_rec = pair[1].clone # only change state for this matching pair
             matched_weights = pair[2]
-            # Rails.logger.debug("*** num: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].inspect}, Fixnum?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].instance_of?(Fixnum)}, to_i Integer?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i.instance_of?(Integer)}, class?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].class}")
+            Rails.logger.debug("*** num: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].inspect}, Fixnum?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].instance_of?(Fixnum)}, to_i Integer?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i.instance_of?(Integer)}, class?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].class}")
             if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && rec[PARAM_ACTION].present?
               Rails.logger.debug("*** Update old rec: #{rec}")
               case rec[PARAM_ACTION]
@@ -364,7 +342,7 @@ class SubjectOutcomesController < ApplicationController
                 action = 'Restored'
               when :'=', nil
                 # ignore
-                # Rails.logger.debug("*** 'ignore' action")
+                Rails.logger.debug("*** 'ignore' action")
               when 'Mismatch'
                 raise("Attempt to update with Mismatch - item #{action_count+1}")
               else
@@ -437,6 +415,23 @@ class SubjectOutcomesController < ApplicationController
           # process next subject
           @process_by_subject = @subjects[current_subject_ix+1]
           @process_by_subject_id = @process_by_subject.id
+          Rails.logger.debug("***")
+          Rails.logger.debug("*** Running at @match_level #{@match_level}")
+          Rails.logger.debug("***")
+          lo_matching_at_level
+
+          # tighten @match_level until no deactivates or reactivates
+          if @deactivate_count > 0 || @reactivate_count > 0
+            until @match_level <= 0
+              @match_level -= 1
+              Rails.logger.debug("***")
+              Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
+              Rails.logger.debug("***")
+              action_count = 0
+              lo_matching_at_level
+              break if @deactivate_count == 0 && @reactivate_count == 0
+            end
+          end
           format.html
         end
       end
