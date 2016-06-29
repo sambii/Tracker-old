@@ -65,12 +65,10 @@ class SubjectOutcomesController < ApplicationController
       first_display = (request.method == 'GET' && params['utf8'].blank?)
 
       @stage = 1
-      @errors = Hash.new
       @records = Array.new
-      @pairs_filtered = Array.new
+      @errors = Hash.new
 
       action_count = 0
-      clear_matching_counts
 
       # get the model school
       # - creates/udpates @school, @school_year
@@ -106,7 +104,8 @@ class SubjectOutcomesController < ApplicationController
       end
 
       # create hash of new LO records from uploaded csv file
-      @new_los_by_rec = lo_get_file_from_upload(params)
+      @new_los_by_rec_clean = lo_get_file_from_upload(params)
+      # @new_los_by_rec = @new_los_by_rec_clean.clone
 
       # Check for duplicate LO codes in uploaded file
       @error_list = Hash.new
@@ -125,40 +124,27 @@ class SubjectOutcomesController < ApplicationController
       @error_list2 = dup_lo_descs_checked[:error_list]
       Rails.logger.debug("*** @error_list2: #{@error_list2.inspect}")
       @records = dup_lo_descs_checked[:records]
+      @records_clean = @records.clone
       Rails.logger.debug("*** records count: #{@records.count}")
       @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
 
       @stage = 3
       Rails.logger.debug("*** Stage: #{@stage}")
+      # @new_recs_to_process = lo_get_new_recs_to_process(@records)
 
       step = 1
       # get the subject outcomes from the database for all subjects to process
       @old_los_by_lo_clean = lo_get_old_los
       @old_los_by_lo = @old_los_by_lo_clean.clone
-      @old_records_counts = @old_los_by_lo.count
+      # @old_records_counts = @old_los_by_lo.count
+      # @old_recs_to_process = Hash.new
+      @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
 
       # initial matching level from default value
       @match_level = DEFAULT_MATCH_LEVEL
 
       # process the new LO records in lo_code order, and generate all matching pairs for the current matching level.
-
-      step = 2
-      # no matching pairs from matching form, so set to empty array
-      @pairs_matched = []
-
-      step = 3
-      # @pairs_matched set with any matching new records for each old record (at @match_level)
-      # lo_get_matches_for_old
-      lo_get_matches_for_new
-
-      step = 4
-      lo_process_pairs
-
-      step = 5
-      lo_deactivate_unmatched_old
-
-      step = 6
-      check_matching_counts
+      lo_matching_at_level(true)
 
       @allow_save = true
       Rails.logger.debug("*** @do_nothing_count: #{@do_nothing_count}")
@@ -174,31 +160,17 @@ class SubjectOutcomesController < ApplicationController
         @process_by_subject = nil
       end
 
-      # # tighten @match_level until no deactivates or reactivates for first subject
-      # if @process_by_subject.present?
-      #   first_process = true
-      #   # tighten @match_level until no deactivates or reactivates
-      #   if @deactivate_count > 0 || @reactivate_count > 0
-      #     until @match_level == 0
-      #       @match_level -= 1 if !first_process
-      #       first_process = false
-      #       Rails.logger.debug("***")
-      #       Rails.logger.debug("*** @match_level set to #{@match_level}")
-      #       Rails.logger.debug("***")
-      #       action_count = 0
-      #       clear_matching_counts
-      #       @errors = Hash.new
-      #       @records = Array.new
-      #       @pairs_filtered = Array.new
-      #       @old_los_by_lo = @old_los_by_lo_clean.clone
-      #       @old_records_counts = @old_los_by_lo.count
-      #       @pairs_matched = []
-      #       lo_get_matches_for_new
-      #       lo_process_pairs
-      #       lo_deactivate_unmatched_old
-      #       check_matching_counts
-      #       break if @deactivate_count == 0 && @reactivate_count == 0
-      #     end
+      # # tighten @match_level until no deactivates or reactivates
+      # # if @deactivate_count > 0 || @reactivate_count > 0
+      # if @process_by_subject.present? && @pairs_filtered.count < (@new_recs_to_process.count * 2)
+      #   until @match_level <= 0
+      #     @match_level -= 1
+      #     Rails.logger.debug("***")
+      #     Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
+      #     Rails.logger.debug("***")
+      #     action_count = 0
+      #     lo_matching_at_level(false)
+      #     break if @pairs_filtered.count > (@new_recs_to_process.count * 2)
       #   end
       # end
 
@@ -247,12 +219,10 @@ class SubjectOutcomesController < ApplicationController
     step = 0
     begin
       @stage = 1
-      @errors = Hash.new
       @records = Array.new
-      @pairs_filtered = Array.new
+      @errors = Hash.new
 
       action_count = 0
-      clear_matching_counts
 
       # get the model school
       # - creates/udpates @school, @school_year
@@ -279,17 +249,20 @@ class SubjectOutcomesController < ApplicationController
       recs_from_hidden = lo_get_file_from_hidden(params)
       @records_clean = recs_from_hidden[:records]
       @records = @records_clean.clone
+      # @new_recs_to_process = lo_get_new_recs_to_process(@records)
       @new_los_by_rec_clean = recs_from_hidden[:los_by_rec]
-      @new_los_by_rec = @new_los_by_rec_clean.clone
+      # @new_los_by_rec = @new_los_by_rec_clean.clone
 
       @stage = 3
       Rails.logger.debug("*** Stage: #{@stage}")
 
       step = 1
       # get the subject outcomes from the database for all subjects to process
-      @old_los_by_lo_clean = lo_get_old_los
-      @old_los_by_lo = @old_los_by_lo_clean.clone
-      @old_records_counts = @old_los_by_lo.count
+      @old_los_by_lo = lo_get_old_los
+      # @old_records_counts = @old_los_by_lo.count
+      # @old_recs_to_process = Hash.new
+      @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
+      # Rails.logger.debug("*** @old_records_counts #{@old_records_counts}")
 
       # @old_los_by_lo.each do |rk, old_rec|
       #   Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
@@ -298,23 +271,7 @@ class SubjectOutcomesController < ApplicationController
       @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
 
       # process the new LO records in lo_code order, and generate all matching pairs for the current matching level.
-      step = 2
-      # all pairs set as selected in matching form are set as matched in @new_los_by_rec and @old_los_by_lo
-      @pairs_matched = lo_set_selections_as_matched
-
-      step = 3
-      # @pairs_matched set with any matching new records for each old record (at @match_level), ignoring any previously matched old records.
-      # lo_get_matches_for_old
-      lo_get_matches_for_new
-
-      step = 4
-      lo_process_pairs
-
-      step = 5
-      lo_deactivate_unmatched_old
-
-      step = 6
-      check_matching_counts
+      lo_matching_at_level(false)
 
       step = 7
       Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}")
@@ -418,18 +375,19 @@ class SubjectOutcomesController < ApplicationController
           Rails.logger.debug("***")
           Rails.logger.debug("*** Running at @match_level #{@match_level}")
           Rails.logger.debug("***")
-          lo_matching_at_level
+          lo_matching_at_level(false)
 
           # tighten @match_level until no deactivates or reactivates
-          if @deactivate_count > 0 || @reactivate_count > 0
+          # if @deactivate_count > 0 || @reactivate_count > 0
+          if @pairs_filtered.count < (@new_recs_to_process.count * 2)
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")
               Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
               Rails.logger.debug("***")
               action_count = 0
-              lo_matching_at_level
-              break if @deactivate_count == 0 && @reactivate_count == 0
+              lo_matching_at_level(false)
+              break if @pairs_filtered.count > (@new_recs_to_process.count * 2)
             end
           end
           format.html

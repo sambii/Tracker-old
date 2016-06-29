@@ -57,7 +57,7 @@
                 %th= 'Old LO Code'
                 %th= 'Old Description'
             %tbody.tbody-body
-              - prior_old_id = 0
+              - prior_new_rec_num = 0
               - highlight_class = ''
               - @pairs_filtered.each_with_index do |set, ix|
                 - rx = set[0]
@@ -65,9 +65,10 @@
                 - match = set[2]
                 - # Rails.logger.debug("++++ pairs_filtered ----  rx: #{rx.inspect} ---- ry: #{ry.inspect} ---- match: #{match.inspect}")
                 - # set up alternate old record highlighting
-                - if prior_old_id == 0
-                  - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
-                - if prior_old_id != rx[SubjectOutcomesHelper::COL_DB_ID]
+                - if prior_new_rec_num == 0
+                  - prior_new_rec_num = ry[SubjectOutcomesHelper::COL_REC_ID]
+                - if prior_new_rec_num != ry[SubjectOutcomesHelper::COL_REC_ID]
+                  - prior_new_rec_num = ry[SubjectOutcomesHelper::COL_REC_ID]
                   - highlight_class = (highlight_class == 'on' ? '' : 'on')
                   - break_class = 'break'
                 - else
@@ -77,12 +78,12 @@
                 - pair_subject_id_i = Integer(pair_subject_id) rescue -1
 
                 - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != pair_subject_id_i ? 'display-none' : '') : ''
+                - prior_old_rec_num = rx[SubjectOutcomesHelper::COL_DB_ID]
                 - prior_old_code = rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]
-                - prior_old_id = rx[SubjectOutcomesHelper::COL_DB_ID]
                 - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
                 - lo_name = rx[:lo_code].present? ? rx[:lo_code] : (ry[:lo_code].present? ? ry[:lo_code] : ry[SubjectOutcomesHelper::COL_REC_ID])
                 - if hide_subject_class.blank?
-                  %tr{ class: "#{highlight_class} #{break_class}", data: {displayed_pair: "pair_#{pair_subject_id}_#{prior_old_id}_#{new_rec_id}"}}
+                  %tr{ class: "#{highlight_class} #{break_class}", data: {displayed_pair: "pair_#{pair_subject_id}_#{prior_old_rec_num}_#{new_rec_id}"}}
                     - deact_class = (rx[:active] == false ? 'deactivated ' : '')
                     - # error_class = (rx[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch' || ry[SubjectOutcomesHelper::PARAM_ACTION] == 'Mismatch') ? 'ui-error' : ''
                     - error_class = (![''].include?(rx[SubjectOutcomesHelper::PARAM_ACTION]) || !['', 'Add'].include?(ry[SubjectOutcomesHelper::PARAM_ACTION])) ? 'ui-error' : ''
@@ -97,6 +98,8 @@
                       - is_equal = false # ry[:action].present? && ry[:action] == :'=' ? true : false
                       - is_matched = ry[:matched].present? && (ry[:matched] == prior_old_code || ry[:matched] == '-1')
                       %label{for: "selections[#{lo_name}_#{new_rec_id}]"}=rx[:action].present? ? rx[:action].to_s : '??'
+                      %span='*'*match[:total_match]
+                      %span=match[:lo_code]
                       = # radio_button_tag "selections[#{lo_name}]", "#{new_rec_id}", (is_add || is_equal || is_matched), id: "selections[#{lo_name}_#{new_rec_id}]"
                       - if false # is_matched
                         %br
