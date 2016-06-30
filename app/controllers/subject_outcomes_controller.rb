@@ -155,7 +155,7 @@ class SubjectOutcomesController < ApplicationController
         Rails.logger.debug("***")
         lo_matching_at_level(true)
         # tighten @match_level until no deactivates or reactivates
-        if !@allow_save && @pairs_filtered.count < (@new_recs_to_process.count * 2)
+        if !@allow_save && (@pairs_filtered.count - @exact_match_count) < ((@new_recs_to_process.count - @exact_match_count) * 2)
           until @match_level <= 0
             @match_level -= 1
             Rails.logger.debug("***")
@@ -163,7 +163,7 @@ class SubjectOutcomesController < ApplicationController
             Rails.logger.debug("***")
             action_count = 0
             lo_matching_at_level(true)
-            break if @allow_save || @pairs_filtered.count > (@new_recs_to_process.count * 2)
+            break if @allow_save || (@pairs_filtered.count - @exact_match_count) >= ((@new_recs_to_process.count - @exact_match_count) * 2)
           end
         end
       else
@@ -378,7 +378,7 @@ class SubjectOutcomesController < ApplicationController
 
           # tighten @match_level until no deactivates or reactivates
           # if @deactivate_count > 0 || @reactivate_count > 0
-          if !@allow_save && @pairs_filtered.count < (@new_recs_to_process.count * 2)
+          if !@allow_save && (@pairs_filtered.count - @exact_match_count) < ((@new_recs_to_process.count - @exact_match_count) * 2)
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")
@@ -386,7 +386,7 @@ class SubjectOutcomesController < ApplicationController
               Rails.logger.debug("***")
               action_count = 0
               lo_matching_at_level(false)
-              break if @allow_save || @pairs_filtered.count > (@new_recs_to_process.count * 2)
+              break if @allow_save || (@pairs_filtered.count - @exact_match_count) >= ((@new_recs_to_process.count - @exact_match_count) * 2)
             end
           end
           format.html

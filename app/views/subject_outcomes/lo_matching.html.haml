@@ -93,14 +93,15 @@
                     %td=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
                     %td=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
                     %td.text-center{class: "#{error_class}"}
-                      - valid_update = false if !['=', '+'].include?(ry[:action].to_s)
-                      - is_add = false #ry[:action].present? && ry[:action] == :'+' ? true : false
-                      - is_equal = false # ry[:action].present? && ry[:action] == :'=' ? true : false
-                      - is_matched = ry[:matched].present? && (ry[:matched] == prior_old_code || ry[:matched] == '-1')
-                      %label{for: "selections[#{lo_name}_#{new_rec_id}]"}=rx[:action].present? ? rx[:action].to_s : '??'
+                      - #valid_update = false if !['=', '+'].include?(ry[:action].to_s)
+                      - #is_add = false #ry[:action].present? && ry[:action] == :'+' ? true : false
+                      - #is_equal = false # ry[:action].present? && ry[:action] == :'=' ? true : false
+                      - #is_matched = ry[:matched].present? && (ry[:matched] == prior_old_code || ry[:matched] == '-1')
+                      - is_exact = rx[:exact]
+                      %label{for: "selections[#{new_rec_id}_#{prior_old_code}]"}=rx[:action].present? ? rx[:action].to_s : '??'
                       %span='*'*match[:total_match]
                       %span=match[:lo_code]
-                      = # radio_button_tag "selections[#{lo_name}]", "#{new_rec_id}", (is_add || is_equal || is_matched), id: "selections[#{lo_name}_#{new_rec_id}]"
+                      = radio_button_tag "selections[#{new_rec_id}]", "#{prior_old_code}", is_exact, id: "selections[#{new_rec_id}_#{prior_old_code}]"
                       - if false # is_matched
                         %br
                         %label{for: "selections[#{lo_name}_#{new_rec_id}]"}='<-'

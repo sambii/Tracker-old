@@ -425,23 +425,26 @@ module SubjectOutcomesHelper
     # set :matched to corresponding old/new IDs for selected pairs from radio button selection (or possibly exact matches)
     # detect when new record is assigned to multiple old records.
     pairs_matched = []
+
     selection_params = params['selections'].present? ? params['selections'] : {}
-    selection_params.each do |old_lo_code, new_rec_id|
-      val_new_new_rec_id = Integer(new_rec_id) rescue -1
-      # Rails.logger.debug("*** old_lo_code: #{old_lo_code}, new_rec_id: #{new_rec_id}")
-      if val_new_new_rec_id < 0 || old_lo_code == new_rec_id
-        # resetting this assignment - ignore it
-      elsif @new_los_by_rec[new_rec_id][:matched].present?
-        #
-        @new_los_by_rec[new_rec_id][:error] = true
-        @old_los_by_lo[old_lo_code][:error] = true
-        @old_los_by_lo[old_lo_code][:matched] = nil
+    Rails.logger.debug("*** selection_params: #{selection_params.inspect}")
+    
+    selection_params.each do |new_rec_id, old_lo_code|
+      # val_new_new_rec_id = Integer(new_rec_id) rescue -1
+      Rails.logger.debug("*** lo_set_selections_as_matched new_rec_id: #{new_rec_id}, old_db_id: #{old_lo_code}")
+      Rails.logger.debug("*** @new_los_by_rec[new_rec_id]: #{@new_los_by_rec[new_rec_id].inspect}")
+      new_rec = @new_los_by_rec[new_rec_id].present? ? @new_los_by_rec[new_rec_id] : Hash.new
+      Rails.logger.debug("*** @old_los_by_lo[old_lo_code]: #{@old_los_by_lo[old_lo_code].inspect}")
+      old_rec = @old_los_by_lo[old_lo_code].present? ? @old_los_by_lo[old_lo_code] : Hash.new
+      if new_rec[:matched].present?
+        new_rec[:error] = true
+        new_rec[:matched] = nil
       else
-        @old_los_by_lo[old_lo_code][:matched] = new_rec_id
-        @new_los_by_rec[new_rec_id][:matched] = old_lo_code
+        new_rec[:matched] = old_lo_code
         pairs_matched << [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
       end
     end
+    Rails.logger.debug("*** pairs_matched: #{pairs_matched.inspect}")
     return pairs_matched
   end
 
@@ -492,34 +495,38 @@ module SubjectOutcomesHelper
       new_rec_to_match = pair[1].clone  # cloned to safely set unique flag
       matched_weights = pair[2]
 
-      # Rails.logger.debug("*** pair: #{[matched_old_rec, new_rec_to_match, matched_weights].inspect}")
+      Rails.logger.debug("*** pair: #{[matched_old_rec, new_rec_to_match, matched_weights].inspect}")
 
       matched_db_id = matched_old_rec[:db_id]
       matched_rec_num = Integer(new_rec_to_match[:rec_id]) rescue -1
       # Rails.logger.debug("*** matched_db_id: #{matched_db_id}")
       # Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
 
-      # :unique flag set to ensure new (input records from CSV file) records are rebuilt without duplicates
-      # flag set in both @records and in pairs
-      if matched_rec_num != last_matched_new_rec_id
-        last_matched_new_rec_id = matched_rec_num
-        # Rails.logger.debug("*** @records[matched_rec_num]: #{@records[matched_rec_num].inspect}")
-        @records[matched_rec_num][:state] = 'unique_match'
-        new_rec_to_match[:unique] = true
-      end
+      # # :unique flag set to ensure new (input records from CSV file) records are rebuilt without duplicates
+      # # flag set in both @records and in pairs
+      # if matched_rec_num != last_matched_new_rec_id
+      #   last_matched_new_rec_id = matched_rec_num
+      #   # Rails.logger.debug("*** @records[matched_rec_num]: #{@records[matched_rec_num].inspect}")
+      #   @records[matched_rec_num][:state] = 'unique_match'
+      #   new_rec_to_match[:unique] = true
+      # end
 
+      old_lo_code = matched_old_rec[:lo_code]
       # Always set exact matches as :matched (for initial implementation & probably also for final implentation)
       if matched_weights[:total_match] == MAX_MATCH_LEVEL
         # Rails.logger.debug("*** matched")
-        new_rec_to_match[:matched] = matched_old_rec[:db_id]
-        matched_old_rec[:matched] = new_rec_to_match[:rec_id]
-        old_lo_code = matched_old_rec[:lo_code]
-        old_rec = @old_los_by_lo[old_lo_code]
-        # Rails.logger.debug("matched_old_rec[:db_id]: #{matched_old_rec[:lo_code].inspect}, old_lo_code: #{old_lo_code}, old_rec: #{old_rec}")
-        old_rec[:matched] = new_rec_to_match[:rec_id]
+        new_rec_to_match[:exact] = matched_old_rec[:db_id]
+        matched_old_rec[:exact] = new_rec_to_match[:rec_id]
+        @old_los_by_lo[old_lo_code][:exact] = new_rec_to_match[:rec_id] if matched_old_rec[:db_id].present?
       else
         # Rails.logger.debug("*** not matched")
+        new_rec_to_match[:exact] = nil
+        matched_old_rec[:exact] = nil
+        @old_los_by_lo[old_lo_code][:exact] = nil if matched_old_rec[:db_id].present?
       end
+      new_rec_to_match[:matched] = matched_old_rec[:db_id]
+      matched_old_rec[:matched] = new_rec_to_match[:rec_id]
+      @old_los_by_lo[old_lo_code][:matched] = matched_old_rec[:db_id] if matched_old_rec[:db_id].present?
 
       # Initial - no user matching process, based upon weight based matching.
       if lo_subject_to_process?(matched_old_rec[SubjectOutcomesController::COL_SUBJECT_ID])
@@ -670,7 +677,9 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @process_by_subject : #{@process_by_subject_id} - #{@process_by_subject.name}") if @process_by_subject.present?
     Rails.logger.debug("*** process_count : #{@process_count}")
     Rails.logger.debug("*** @do_nothing_count + @add_count : #{@do_nothing_count + @add_count}")
-    Rails.logger.debug("*** process_count : #{@process_count}")
+    Rails.logger.debug("*** @exact_match_count : #{@exact_match_count}")
+    Rails.logger.debug("*** (@pairs_filtered.count - @exact_match_count) : #{(@pairs_filtered.count - @exact_match_count)}")
+    Rails.logger.debug("*** (@new_recs_to_process.count - @exact_match_count) : #{(@new_recs_to_process.count - @exact_match_count)}")
 
     @allow_save = true
     @allow_save = false if @process_count != @do_nothing_count + @add_count
@@ -705,6 +714,9 @@ module SubjectOutcomesHelper
     #   Rails.logger.debug("*** new_recs_to_process: #{p.inspect}")
     # end
     @new_los_by_rec = @new_los_by_rec_clean.clone
+    # @new_los_by_rec.each do |rec|
+    #   Rails.logger.debug("*** @new_los_by_rec: #{rec.inspect}")
+    # end
     @pairs_filtered = Array.new
     @old_los_by_lo = lo_get_old_los
     @old_records_counts = @old_los_by_lo.count
@@ -721,15 +733,19 @@ module SubjectOutcomesHelper
     lo_deactivate_unmatched_old
     @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
     lo_with_exact_match = ''
+    @exact_match_count = 0
     @pairs_filtered_n = Array.new
+    # remove all other options if there is an exact match
     @pairs_filtered.each do |p|
-      Rails.logger.debug("*** lo_deactivate_unmatched_old pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:total_match]}, lo_with_exact_match")
+      # Rails.logger.debug("*** lo_deactivate_unmatched_old pairs: #{p[0].inspect}, #{p[1].inspect}, #{p[2].inspect}")
+      Rails.logger.debug("*** rec_id: #{p[1][COL_REC_ID]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}")
       if p[2][:total_match] == MAX_MATCH_LEVEL
         lo_with_exact_match = p[1][COL_OUTCOME_CODE]
+        @exact_match_count += 1
       elsif lo_with_exact_match != p[1][COL_OUTCOME_CODE]
         lo_with_exact_match = ''
       end
-      Rails.logger.debug("*** lo_with_exact_match: #{lo_with_exact_match} t1: #{lo_with_exact_match != p[1][COL_OUTCOME_CODE]}, t2: #{lo_with_exact_match == p[1][COL_OUTCOME_CODE]}, t3: #{p[2][:total_match] == MAX_MATCH_LEVEL}")
+      # Rails.logger.debug("*** lo_with_exact_match: #{lo_with_exact_match} t1: #{lo_with_exact_match != p[1][COL_OUTCOME_CODE]}, t2: #{lo_with_exact_match == p[1][COL_OUTCOME_CODE]}, t3: #{p[2][:total_match] == MAX_MATCH_LEVEL}")
       # keep lo if no exact match for this lo_code, or is the exact match for this lo code
       @pairs_filtered_n << p if lo_with_exact_match != p[1][COL_OUTCOME_CODE] || (lo_with_exact_match == p[1][COL_OUTCOME_CODE] && p[2][:total_match] == MAX_MATCH_LEVEL)
     end
