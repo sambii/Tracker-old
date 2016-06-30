@@ -65,8 +65,8 @@
                 - match = set[2]
                 - # Rails.logger.debug("++++ pairs_filtered ----  rx: #{rx.inspect} ---- ry: #{ry.inspect} ---- match: #{match.inspect}")
                 - # set up alternate old record highlighting
-                - if prior_new_rec_num == 0
-                  - prior_new_rec_num = ry[SubjectOutcomesHelper::COL_REC_ID]
+                / - if prior_new_rec_num == 0
+                /   - prior_new_rec_num = ry[SubjectOutcomesHelper::COL_REC_ID]
                 - if prior_new_rec_num != ry[SubjectOutcomesHelper::COL_REC_ID]
                   - prior_new_rec_num = ry[SubjectOutcomesHelper::COL_REC_ID]
                   - highlight_class = (highlight_class == 'on' ? '' : 'on')
