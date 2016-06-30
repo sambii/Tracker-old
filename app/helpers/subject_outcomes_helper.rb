@@ -330,11 +330,9 @@ module SubjectOutcomesHelper
     # recreate uploaded records to process
     new_los_by_rec = Hash.new
     records = Array.new
-    params['pair'].each do |p|
-      pold = p[1]['o']
-      pold ||= {}
-      pnew = p[1]['n']
-      pnew ||= {}
+    params['r'].each do |p|
+      seq = p[0]
+      pnew = p[1]
       # Rails.logger.debug("*** pnew: #{pnew.inspect}")
       # recreate upload records (with only fields needed)
       if pnew.length > 0 && pnew[COL_REC_ID] && pnew[COL_OUTCOME_CODE]
@@ -617,8 +615,12 @@ module SubjectOutcomesHelper
   end
 
   def lo_get_new_recs_to_process(recs)
+    Rails.logger.debug("@match_subject: #{@match_subject.inspect}")
+    Rails.logger.debug("@process_by_subject: #{@process_by_subject.inspect}")
+    Rails.logger.debug("@process_by_subject_id: #{@process_by_subject_id.inspect}")
     return_recs = Hash.new
     recs.each do |r|
+      Rails.logger.debug("r[COL_SUBJECT_ID]: #{r[COL_SUBJECT_ID]} - include rec: #{lo_subject_to_process?((Integer(r[COL_SUBJECT_ID]) rescue -1))}")
       return_recs[r[COL_REC_ID]] = r if lo_subject_to_process?((Integer(r[COL_SUBJECT_ID]) rescue -1))
     end
     Rails.logger.debug("new return_recs: #{return_recs.inspect}")
@@ -666,12 +668,15 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
     Rails.logger.debug("*** @process_by_subject : #{@process_by_subject_id} - #{@process_by_subject.name}") if @process_by_subject.present?
     Rails.logger.debug("*** process_count : #{@process_count}")
+    Rails.logger.debug("*** @do_nothing_count + @add_count : #{@do_nothing_count + @add_count}")
+    Rails.logger.debug("*** process_count : #{@process_count}")
 
     @allow_save = true
     @allow_save = false if @process_count != @do_nothing_count + @add_count
     @allow_save = false if @old_los_by_lo.count != @do_nothing_count
     @allow_save = false if @deactivate_count > 0
     @allow_save = false if @reactivate_count > 0
+    Rails.logger.debug("*** allow_save : #{@allow_save}")
   end
 
   def clear_matching_counts
@@ -689,7 +694,15 @@ module SubjectOutcomesHelper
     clear_matching_counts
     @errors = Hash.new
     @records = @records_clean.clone
+    Rails.logger.debug("*** records ***")
+    @records.each do |p|
+      Rails.logger.debug("*** record: #{p.inspect}")
+    end
     @new_recs_to_process = lo_get_new_recs_to_process(@records)
+    Rails.logger.debug("*** new_recs_to_process ***")
+    @new_recs_to_process.each do |p|
+      Rails.logger.debug("*** new_recs_to_process: #{p.inspect}")
+    end
     @new_los_by_rec = @new_los_by_rec_clean.clone
     @pairs_filtered = Array.new
     @old_los_by_lo = lo_get_old_los

@@ -110,28 +110,18 @@
                     %td{class: "similar-field-#{match[:code_match]+1} #{deact_class}"}=rx[:lo_code]
                     %td{class: "similar-field-#{match[:desc_match]} #{deact_class}"}=rx[:desc]
           .row
-            - @pairs_filtered.each_with_index do |set, ix|
-              - rx = set[0]
-              - ry = set[1]
-              - match = set[2]
-              - pair_subject_id = rx[SubjectOutcomesHelper::COL_SUBJECT_ID]
-              - pair_subject_id = ry[SubjectOutcomesHelper::COL_SUBJECT_ID] if !pair_subject_id.present?
-              - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
+            - @records.each_with_index do |rec, ix|
+              - pair_subject_id = rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
+              - new_rec_id = rec[SubjectOutcomesHelper::COL_REC_ID]
               %span{data: {hidden_pair: "pair_#{pair_subject_id}_#{}_#{new_rec_id}"}}
-                %input{type: 'hidden', name: "pair[#{ix}][o][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: rx[SubjectOutcomesHelper::PARAM_ACTION]}
-                %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::PARAM_ACTION}]", value: ry[SubjectOutcomesHelper::PARAM_ACTION]}
-                - if rx.length > 0
-                  %input{type: 'hidden', name: "pair[#{ix}][o][rec_id]", value: rx[SubjectOutcomesHelper::COL_DB_ID]}
-                - if ry.length > 0
-                  %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_REC_ID}]", value: new_rec_id}
-                - # create hidden variables to generate input file (with no duplicates)
-                - if ry.length > 0 && ry[:unique] == true
-                  %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_SUBJECT_ID}]", value: ry[SubjectOutcomesHelper::COL_SUBJECT_ID]}
-                  %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_COURSE}]", value: ry[SubjectOutcomesHelper::COL_COURSE]}
-                  %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_GRADE}]", value: ry[SubjectOutcomesHelper::COL_GRADE]}
-                  %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_MP_BITMAP}]", value: ry[SubjectOutcomesHelper::COL_MP_BITMAP]}
-                  %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_CODE}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]}
-                  %input{type: 'hidden', name: "pair[#{ix}][n][#{SubjectOutcomesHelper::COL_OUTCOME_NAME}]", value: ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::PARAM_ACTION}]]", value: rec[SubjectOutcomesHelper::PARAM_ACTION]}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_REC_ID}]", value: new_rec_id}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_SUBJECT_ID}]", value: pair_subject_id}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_COURSE}]", value: rec[SubjectOutcomesHelper::COL_COURSE]}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_GRADE}]", value: rec[SubjectOutcomesHelper::COL_GRADE]}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_MP_BITMAP}]", value: rec[SubjectOutcomesHelper::COL_MP_BITMAP]}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_OUTCOME_CODE}]", value: rec[SubjectOutcomesHelper::COL_OUTCOME_CODE]}
+                %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_OUTCOME_NAME}]", value: rec[SubjectOutcomesHelper::COL_OUTCOME_NAME]}
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"

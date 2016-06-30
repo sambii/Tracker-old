@@ -146,33 +146,30 @@ class SubjectOutcomesController < ApplicationController
       # process the new LO records in lo_code order, and generate all matching pairs for the current matching level.
       lo_matching_at_level(true)
 
-      @allow_save = true
-      Rails.logger.debug("*** @do_nothing_count: #{@do_nothing_count}")
-      Rails.logger.debug("*** @add_count: #{@add_count}")
-      @allow_save = false if @records.count != @do_nothing_count + @add_count
-      @allow_save = false if @old_los_by_lo.count != @do_nothing_count
-      @allow_save = false if @deactivate_count > 0
-      @allow_save = false if @reactivate_count > 0
       # if cannot update all records without matching, then start matching process on first subject.
       if !@allow_save
         @process_by_subject = @subjects.first
+        @process_by_subject_id = @process_by_subject.id
+        Rails.logger.debug("***")
+        Rails.logger.debug("*** Running at @match_level #{@match_level}")
+        Rails.logger.debug("***")
+        lo_matching_at_level(true)
+        # tighten @match_level until no deactivates or reactivates
+        if !@allow_save && @pairs_filtered.count < (@new_recs_to_process.count * 2)
+          until @match_level <= 0
+            @match_level -= 1
+            Rails.logger.debug("***")
+            Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
+            Rails.logger.debug("***")
+            action_count = 0
+            lo_matching_at_level(true)
+            break if @allow_save || @pairs_filtered.count > (@new_recs_to_process.count * 2)
+          end
+        end
       else
         @process_by_subject = nil
       end
 
-      # # tighten @match_level until no deactivates or reactivates
-      # # if @deactivate_count > 0 || @reactivate_count > 0
-      # if @process_by_subject.present? && @pairs_filtered.count < (@new_recs_to_process.count * 2)
-      #   until @match_level <= 0
-      #     @match_level -= 1
-      #     Rails.logger.debug("***")
-      #     Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
-      #     Rails.logger.debug("***")
-      #     action_count = 0
-      #     lo_matching_at_level(false)
-      #     break if @pairs_filtered.count > (@new_recs_to_process.count * 2)
-      #   end
-      # end
 
       if @errors.count == 0 && @error_list.length == 0 && !first_display
 
@@ -246,6 +243,7 @@ class SubjectOutcomesController < ApplicationController
       end
 
       # get records and hash of new LO records from hidden variables (params)
+      Rails.logger.debug("*** lo_get_file_from_hidden")
       recs_from_hidden = lo_get_file_from_hidden(params)
       @records_clean = recs_from_hidden[:records]
       @records = @records_clean.clone
@@ -309,8 +307,9 @@ class SubjectOutcomesController < ApplicationController
 
           end
           @records.each do |rec|
+            Rails.logger.debug("*** @records rec: #{rec.inspect}")
             if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID])
-              Rails.logger.debug("*** Add new rec: #{rec.inspect}")
+              Rails.logger.debug("*** Add new rec")
               case rec[PARAM_ACTION]
               when '+'
                 so = SubjectOutcome.new
@@ -379,7 +378,7 @@ class SubjectOutcomesController < ApplicationController
 
           # tighten @match_level until no deactivates or reactivates
           # if @deactivate_count > 0 || @reactivate_count > 0
-          if @pairs_filtered.count < (@new_recs_to_process.count * 2)
+          if !@allow_save && @pairs_filtered.count < (@new_recs_to_process.count * 2)
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")
@@ -387,7 +386,7 @@ class SubjectOutcomesController < ApplicationController
               Rails.logger.debug("***")
               action_count = 0
               lo_matching_at_level(false)
-              break if @pairs_filtered.count > (@new_recs_to_process.count * 2)
+              break if @allow_save || @pairs_filtered.count > (@new_recs_to_process.count * 2)
             end
           end
           format.html

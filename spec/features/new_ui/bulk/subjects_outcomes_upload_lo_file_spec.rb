@@ -236,6 +236,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
+      sleep 20
+      save_and_open_page
 
       page.should have_content('Match Old LOs to New LOs')
       within('thead.table-title') do
