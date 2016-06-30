@@ -395,7 +395,8 @@ module SubjectOutcomesHelper
     # get the subject outcomes from the database for all subjects to process
     old_los_by_lo = Hash.new
     # optimize active record for one db call
-    SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}, active: true).each do |so|
+    # SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}, active: true).each do |so|
+    SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
       subject_name = @subject_ids[so.subject_id].name
       # only add record if all subjects or the matching selected subject
       # if @match_subject.blank? || @match_subject.name == subject_name
