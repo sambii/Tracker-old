@@ -224,6 +224,8 @@ module SubjectOutcomesHelper
     # match_h[:active_match] = old_rec[:active] == true ? 1 : 0
     match_h[:total_match] = match_h.inject(0) {|total, (k,v)| total + v} # sum of all values in match_h
     match_h[:lo_code] = code_new.present? ? code_new : code_old
+    match_h[:subject_id] = new_rec[:subject_id].present? ? new_rec[:subject_id].to_i : old_rec[:subject_id]
+    Rails.logger.debug("match_h[:subject_id]: #{match_h[:subject_id]}")
     return match_h
   end
 
@@ -529,7 +531,8 @@ module SubjectOutcomesHelper
       @old_los_by_lo[old_lo_code][:matched] = matched_old_rec[:db_id] if matched_old_rec[:db_id].present?
 
       # Initial - no user matching process, based upon weight based matching.
-      if lo_subject_to_process?(matched_old_rec[SubjectOutcomesController::COL_SUBJECT_ID])
+      Rails.logger.debug("matched_weights[:subject_id]: #{matched_weights[:subject_id]}")
+      if lo_subject_to_process?(matched_weights[SubjectOutcomesController::COL_SUBJECT_ID])
         @process_count += 1 # if lo_subject_to_process?(matched_old_rec[SubjectOutcomesController::COL_SUBJECT_ID])
         if matched_old_rec[:active] == true
           # active old record
@@ -648,8 +651,7 @@ module SubjectOutcomesHelper
   end
 
   def check_matching_counts
-    @match_count = @pairs_matched.count
-    Rails.logger.debug("*** @match_count: #{@match_count}")
+    Rails.logger.debug("*** @pairs_matched.count: #{@pairs_matched.count}")
 
     # need to turn on is_matched logic in lo_matching.html.haml
     # need to turn on radio buttons
@@ -667,7 +669,6 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** new records to process count: #{@new_recs_to_process.count}")
     Rails.logger.debug("*** records_by_id count: #{@new_los_by_rec.length}")
     Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
-    Rails.logger.debug("*** match_count : #{@match_count}")
     Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
     Rails.logger.debug("*** not_add_count : #{@not_add_count}")
     Rails.logger.debug("*** add_count : #{@add_count}")
@@ -680,6 +681,7 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @exact_match_count : #{@exact_match_count}")
     Rails.logger.debug("*** (@pairs_filtered.count - @exact_match_count) : #{(@pairs_filtered.count - @exact_match_count)}")
     Rails.logger.debug("*** (@new_recs_to_process.count - @exact_match_count) : #{(@new_recs_to_process.count - @exact_match_count)}")
+    Rails.logger.debug("*** (@add_deact_count : #{@add_deact_count}")
 
     @allow_save = true
     @allow_save = false if @process_count != @do_nothing_count + @add_count
@@ -687,10 +689,14 @@ module SubjectOutcomesHelper
     @allow_save = false if @deactivate_count > 0
     @allow_save = false if @reactivate_count > 0
     Rails.logger.debug("*** allow_save : #{@allow_save}")
+
+
+    @tighten_level = @add_deact_count > 0 || @process_count - (2*@exact_match_count) < ((@new_recs_to_process.count - @exact_match_count) * 2)
+    Rails.logger.debug("*** @tighten_level : #{@tighten_level}")
+
   end
 
   def clear_matching_counts
-    @match_count = 0
     @process_count = 0
     @mismatch_count = 0
     @add_count = 0
@@ -698,6 +704,7 @@ module SubjectOutcomesHelper
     @reactivate_count = 0
     @deactivate_count = 0
     @error_count = 0
+    @add_deact_count = 0
   end
 
   def lo_matching_at_level(first_run)
@@ -732,22 +739,65 @@ module SubjectOutcomesHelper
     step = 5
     lo_deactivate_unmatched_old
     @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
-    lo_with_exact_match = ''
+    last_exact_match = ''
+    last_lo_code = ''
+    last_matched = ''
+    last_matched_adds = 0
+    last_matched_deact = 0
     @exact_match_count = 0
     @pairs_filtered_n = Array.new
-    # remove all other options if there is an exact match
+    # if there is an exact match
+    # - remove all other options
+    # - add an unmatch option 
     @pairs_filtered.each do |p|
-      # Rails.logger.debug("*** lo_deactivate_unmatched_old pairs: #{p[0].inspect}, #{p[1].inspect}, #{p[2].inspect}")
-      Rails.logger.debug("*** rec_id: #{p[1][COL_REC_ID]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}")
-      if p[2][:total_match] == MAX_MATCH_LEVEL
-        lo_with_exact_match = p[1][COL_OUTCOME_CODE]
+      # Rails.logger.debug("*** rec_id: #{p[1][COL_REC_ID]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}")
+      this_lo_code = p[2][:lo_code]
+      this_is_exact = p[2][:total_match] == MAX_MATCH_LEVEL
+      if this_is_exact
+        last_exact_match = this_lo_code
         @exact_match_count += 1
-      elsif lo_with_exact_match != p[1][COL_OUTCOME_CODE]
-        lo_with_exact_match = ''
+      elsif last_exact_match != this_lo_code
+        last_exact_match = ''
       end
-      # Rails.logger.debug("*** lo_with_exact_match: #{lo_with_exact_match} t1: #{lo_with_exact_match != p[1][COL_OUTCOME_CODE]}, t2: #{lo_with_exact_match == p[1][COL_OUTCOME_CODE]}, t3: #{p[2][:total_match] == MAX_MATCH_LEVEL}")
+      Rails.logger.debug("*** this_lo_code: #{this_lo_code} ")
+      Rails.logger.debug("*** this_is_exact: #{this_is_exact} ")
+      Rails.logger.debug("*** last_exact_match: #{last_exact_match} ")
       # keep lo if no exact match for this lo_code, or is the exact match for this lo code
-      @pairs_filtered_n << p if lo_with_exact_match != p[1][COL_OUTCOME_CODE] || (lo_with_exact_match == p[1][COL_OUTCOME_CODE] && p[2][:total_match] == MAX_MATCH_LEVEL)
+      # @pairs_filtered_n << p if last_exact_match != this_lo_code || (last_exact_match == this_lo_code && this_is_exact)
+      if this_is_exact
+        # output the exact match
+        p[0][:matched] = p[1][:rec_id]
+        @pairs_filtered_n << p
+        # add the unmatch option
+        @pairs_filtered_n << [{action: 'x', matched: p[1][:rec_id]}, p[1], get_matching_level({}, p[1])]
+        @process_count += 1
+        Rails.logger.debug("*** lo_deactivate_unmatched_old added pair: #{[{action: 'x', matched_rec_id: p[1][:rec_id]}, p[1], get_matching_level({}, p[1])].inspect}")
+      elsif last_exact_match != this_lo_code
+        # output if not an exact match
+        p[0][:matched] = p[1][:rec_id]
+        @pairs_filtered_n << p
+      else
+        # don't output the other pairs for the exact match
+      end
+      Rails.logger.debug("*** lo_deactivate_unmatched_old pairs: #{p[0].inspect}, #{p[1].inspect}, #{p[2].inspect}")
+      # check 
+      if last_matched != p[0][:matched]
+        # new record break
+        if last_matched_adds > 0 && last_matched_deact > 0
+          # need to tighten matching, because there is an add and deactivate on the same record
+          @add_deact_count += 1
+          last_matched = p[0][:matched]
+          last_matched_adds = 0
+          last_matched_deact = 0
+        end
+        case p[0][:action]
+        when :'+'
+          last_matched_adds += 1
+        when :'-'
+          last_matched_deact += 1
+        end
+      end
+
     end
     @pairs_filtered = @pairs_filtered_n
     step = 6

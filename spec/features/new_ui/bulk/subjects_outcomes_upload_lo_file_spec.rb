@@ -236,8 +236,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      sleep 20
-      save_and_open_page
+      # sleep match_h[:subject_id]0
+      # save_and_open_page
 
       page.should have_content('Match Old LOs to New LOs')
       within('thead.table-title') do
@@ -249,25 +249,55 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("MA.1.12")
       end
 
-      #@ #{prior_old_id}_#{new_rec_id}
-
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_01.id}_0']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_0_#{@so_at_1_01.id}']") do
         page.should have_content("AT.1.01")
         page.should have_content("=")
+        page.should have_css("input#selections_0_#{@so_at_1_01.id}")
+        find("input#selections_0_#{@so_at_1_01.id}").should be_checked
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_02.id}_1']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_0_']") do
+        page.should have_content("AT.1.01")
+        page.should have_content("x")
+        page.should have_css("input#selections_0_")
+        find("input#selections_0_").should_not be_checked
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_1_#{@so_at_1_02.id}']") do
         page.should have_content("AT.1.02")
         page.should have_content("=")
+        page.should have_css("input#selections_1_#{@so_at_1_02.id}")
+        find("input#selections_1_#{@so_at_1_02.id}").should be_checked
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_03.id}_2']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_1_']") do
+        page.should have_content("AT.1.02")
+        page.should have_content("x")
+        page.should have_css("input#selections_1_")
+        find("input#selections_1_").should_not be_checked
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_2_#{@so_at_1_03.id}']") do
         page.should have_content("AT.1.03")
         page.should have_content("=")
+        page.should have_css("input#selections_2_#{@so_at_1_03.id}")
+        find("input#selections_2_#{@so_at_1_03.id}").should be_checked
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_#{@so_at_1_04.id}_3']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_2_']") do
+        page.should have_content("AT.1.03")
+        page.should have_content("x")
+        page.should have_css("input#selections_2_")
+        find("input#selections_2_").should_not be_checked
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_3_#{@so_at_1_04.id}']") do
         page.should have_content("AT.1.04")
         page.should have_content("=")
+        page.should have_css("input#selections_3_#{@so_at_1_04.id}")
+        find("input#selections_3_#{@so_at_1_04.id}").should be_checked
       end
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}__2']")
+      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_3_']") do
+        page.should have_content("AT.1.04")
+        page.should have_content("x")
+        page.should have_css("input#selections_3_")
+        find("input#selections_3_").should_not be_checked
+      end
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}_2_']")
 
       find('#save_matches').click
       sleep 20
@@ -282,27 +312,27 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("AT.1.01")
         page.should_not have_content("MA.1.12")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__4']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_']") do
         page.should have_content("AT.2.01")
         page.should have_content("+")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_02.id}_5']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_5_#{@so_at_2_02.id}']") do
         page.should have_content("AT.2.02")
         page.should have_content("=")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_03.id}_6']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_6_#{@so_at_2_03.id}']") do
         page.should have_content("AT.2.03")
         page.should have_content("=")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__7']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_']") do
         page.should have_content("AT.2.04")
         page.should have_content("+")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_01.id}_']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
         page.should have_content("AT.2.01")
         page.should have_content("-")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_#{@so_at_2_04.id}_']") do
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
         page.should have_content("AT.2.04")
         page.should have_content("-")
       end
