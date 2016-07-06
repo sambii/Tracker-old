@@ -58,14 +58,17 @@
                 %th= 'Old Description'
             %tbody.tbody-body
               - prior_new_rec_num = 0
+              - prior_lo_code = ''
               - highlight_class = ''
               - @pairs_filtered.each_with_index do |set, ix|
                 - rx = set[0]
                 - ry = set[1]
                 - match = set[2]
                 - # set up alternate old record highlighting
-                - if prior_new_rec_num != ry[:matched]
-                  - prior_new_rec_num = ry[:matched]
+                - # if prior_new_rec_num != ry[:matched]
+                - if prior_lo_code != match[:lo_code]
+                  - # prior_new_rec_num = ry[:matched]
+                  - prior_lo_code = match[:lo_code]
                   - highlight_class = (highlight_class == 'on' ? '' : 'on')
                   - break_class = 'break'
                 - else

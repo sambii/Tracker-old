@@ -138,7 +138,7 @@ class SubjectOutcomesController < ApplicationController
       @old_los_by_lo = @old_los_by_lo_clean.clone
       # @old_records_counts = @old_los_by_lo.count
       # @old_recs_to_process = Hash.new
-      @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
+      # @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
 
       # initial matching level from default value
       @match_level = DEFAULT_MATCH_LEVEL
@@ -155,7 +155,7 @@ class SubjectOutcomesController < ApplicationController
         Rails.logger.debug("***")
         lo_matching_at_level(true)
         # tighten @match_level until no deactivates or reactivates
-        if !@allow_save && @tighten_level
+        if !@allow_save && @loosen_level
           until @match_level <= 0
             @match_level -= 1
             Rails.logger.debug("***")
@@ -163,7 +163,7 @@ class SubjectOutcomesController < ApplicationController
             Rails.logger.debug("***")
             action_count = 0
             lo_matching_at_level(true)
-            break if @allow_save || !@tighten_level
+            break if @allow_save || !@loosen_level
           end
         end
       else
@@ -259,7 +259,7 @@ class SubjectOutcomesController < ApplicationController
       @old_los_by_lo = lo_get_old_los
       # @old_records_counts = @old_los_by_lo.count
       # @old_recs_to_process = Hash.new
-      @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
+      # @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
       # Rails.logger.debug("*** @old_records_counts #{@old_records_counts}")
 
       # @old_los_by_lo.each do |rk, old_rec|
@@ -378,7 +378,7 @@ class SubjectOutcomesController < ApplicationController
 
           # tighten @match_level until no deactivates or reactivates
           # if @deactivate_count > 0 || @reactivate_count > 0
-          if !@allow_save && @tighten_level
+          if !@allow_save && @loosen_level
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")
@@ -386,7 +386,7 @@ class SubjectOutcomesController < ApplicationController
               Rails.logger.debug("***")
               action_count = 0
               lo_matching_at_level(false)
-              break if @allow_save || !@tighten_level
+              break if @allow_save || !@loosen_level
             end
           end
           format.html
