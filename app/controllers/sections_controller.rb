@@ -634,6 +634,11 @@ class SectionsController < ApplicationController
                     # automatically create Section Outcomes from Subject Outcomes for this subject
                     subjos = SubjectOutcome.where(subject_id: sec.subject_id, active: true)
                     subjos.each do |subjo|
+                      # ensure subject outcome marking period is not nil - to avoid invalid marking period error
+                      if subjo.marking_period.blank?
+                        subjo.marking_period = (2 ** subjo.subject.school.marking_periods) - 1 
+                        raise("Errors updating subject outcome: #{subjo.errors.full_messages}") if !subjo.save
+                      end
                       secto = SectionOutcome.new
                       secto.section_id = sec.id
                       secto.subject_outcome_id = subjo.id
@@ -652,6 +657,7 @@ class SectionsController < ApplicationController
         msg_str = "ERROR: Exception - #{e.message}"
         @school.errors.add(:base, msg_str)
         Rails.logger.error(msg_str)
+        flash[:alert] = msg_str
         @sections = Section.where(school_year_id: @school.school_year_id, subject_id: empty_subjects)
         format.html
       end
