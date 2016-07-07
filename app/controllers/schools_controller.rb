@@ -317,8 +317,6 @@ class SchoolsController < ApplicationController
 
 
     # new UI school rollover process - copy subjects from Model school
-    # must rescue exceptions when calling this.
-    # NOTE: this is untested for rollover (only tested for new school create)
     def copy_subjects(model_school, new_school)
       matches = Array.new
 
@@ -328,21 +326,30 @@ class SchoolsController < ApplicationController
 
       subjs.each do |subj|
         match_item = Hash.new
-        s = Subject.new
-        s.name = subj.name
-        match_item[:new_subject] = subj.name
-        s.discipline_id = subj.discipline_id
-        match_item[:new_discipline] = subj.discipline.name
-        s.school_id = new_school.id
-        s.subject_manager_id = subj.subject_manager_id
-        fail("ERROR: error saving subject #{s.name} for #{new_school.name}") if !s.save
-        match_item[:new_id] = s.id
+        match_item[:discipline] = subj.discipline.name
+        match_item[:subject] = subj.name
+        ns_subjs = Subject.where(name: subj.name, school_id: new_school.id)
+        if ns_subjs.count == 0
+          s = Subject.new
+          s.name = subj.name
+          s.discipline_id = subj.discipline_id
+          s.school_id = new_school.id
+          s.subject_manager_id = subj.subject_manager_id
+          fail("ERROR: error saving subject #{s.name} for #{new_school.name}") if !s.save
+          match_item[:subj_id] = s.id
+          match_item[:error_str] = ''
+        elsif ns_subjs.count == 1
+          s = ns_subjs.first
+          match_item[:error_str] = ''
+        else
+          err = "ERROR: System Error multiple subjects with name: #{subj.name} for school: #{new_school.name}"
+          fail(err)
+          match_item[:error_str] = err
+        end
 
-        match_item[:old_id] = ''
-        match_item[:old_discipline] = ''
-        match_item[:old_subject] = ''
-        match_item[:subject_outcomes] = copy_subject_los(subj.id, s.id)
-        match_item[:error_str] = ''
+        if match_item[:error_str].blank?
+          match_item[:subject_outcomes] = copy_model_los(subj.id, s.id)
+        end
         matches << match_item
       end
 
@@ -353,39 +360,54 @@ class SchoolsController < ApplicationController
 
 
     # new UI school rollover process - copy learning outcomes from Model school
-    # must rescue exceptions when calling this.
-    # NOTE: this is untested for rollover (only tested for new school create)
-    def copy_subject_los(old_subject_id, new_subject_id)
+    def copy_model_los(model_subject_id, sch_subject_id)
+
+      # Note: should loop through existing school learning outcomes, to update from their matching model records
+
+      # Then shouls loop through model school learning outcomes, to ensure all new ones are added
+
+      # Reporting
       matches = Array.new
 
-      Rails.logger.debug("** Copy Subject #{old_subject_id} LOs to #{new_subject_id}")
-
-      subjos = SubjectOutcome.where(subject_id: old_subject_id)
-
+      Rails.logger.debug("** Copy Subject #{model_subject_id} LOs to #{sch_subject_id}")
+      subjos = SubjectOutcome.where(subject_id: sch_subject_id, )
       subjos.each do |so|
         match_item = Hash.new
-        s = SubjectOutcome.new
-        s.name = so.name
-        match_item[:new_lo_name] = so.name
-        s.position = so.position
-        match_item[:new_lo_position] = so.position
-        s.marking_period = so.marking_period
-        match_item[:new_lo_mp] = so.marking_period
-        s.essential = so.essential
-        match_item[:new_lo_essential] = so.essential
-        s.subject_id = new_subject_id
-        match_item[:new_subject_id] = new_subject_id
-        fail("ERROR: error saving Learning Outcome #{s.name} for subject id #{new_subject_id}") if !s.save
-        match_item[:old_lo_name] = ''
-        match_item[:old_position] = ''
-        match_item[:old_lo_mp] = ''
-        match_item[:old_lo_essential] = ''
-        match_item[:old_subject_id] = ''
+        ns_subjos = SubjectOutcome.where(subject_id: sch_subject_id, name: so.name)
+        if ns_subjos.count == 0
+          s = SubjectOutcome.new
+          s.name = so.name
+          match_item[:lo_name] = so.name
+          s.position = so.position
+          match_item[:lo_position] = so.position
+          s.marking_period = so.marking_period
+          match_item[:lo_mp] = so.marking_period
+          s.essential = so.essential
+          match_item[:lo_essential] = so.essential
+          s.subject_id = sch_subject_id
+          match_item[:subject_id] = sch_subject_id
+          s.model_lo_id = so.id
+          match_item[:model_lo_id] = so.id
+          fail("ERROR: error saving Learning Outcome #{s.name} for subject id #{sch_subject_id}") if !s.save
+        elsif ns_subjos.count == 1
+          s = ns_subjos.first
+          match_item[:error_str] = ''
+        else
+          err = "ERROR: System Error multiple subject outcomess with name: #{so.name} for subject id: #{sch_subject_id}"
+          fail(err)
+          match_item[:error_str] = err
+        end
+        match_item[:lo_name] = so.name
+        match_item[:lo_position] = so.position
+        match_item[:lo_mp] = so.marking_period
+        match_item[:lo_essential] = so.essential
+        match_item[:subject_id] = sch_subject_id
+        match_item[:model_lo_id] = so.id
         match_item[:error_str] = ''
         matches << match_item
       end
 
-      Rails.logger.debug("** Done copying Learning Outcomes to subject ID #{new_subject_id}")
+      Rails.logger.debug("** Done copying Learning Outcomes to subject ID #{sch_subject_id}")
 
       return matches
     end
