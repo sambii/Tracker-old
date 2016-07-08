@@ -40,6 +40,8 @@ class SchoolsController < ApplicationController
   end
 
   def index
+    @model_school = get_model_school('MOD')
+    @schools = School.accessible_by(current_ability).order('name')
     respond_to do |format|
       format.html
       format.json
@@ -170,13 +172,26 @@ class SchoolsController < ApplicationController
     respond_to do |format|
       begin
         if (params[:id])
-          new_school = School.find(params[:id])
+          @school = School.find(params[:id])
         else
           fail 'Missing school ID'
         end
         model_schools = School.where(acronym: 'MOD')
 
-        rollover_school_year(new_school)
+        # ensure school year is less than model school's year.
+        if model_schools.count == 1
+          if model_schools.first.school_year
+            if model_schools.first.school_year.ends_at.year > @school.school_year.ends_at.year || @school.id == model_schools.first.id
+              # ok to roll over
+            else
+              fail "ERROR: Cannot roll over year till Model School is rolled over."
+            end
+          else
+            fail "ERROR: Model School does not have a school year."
+          end
+        end
+
+        rollover_school_year(@school)
         # Copy subjects and learning outcomes from model school if it exists.
         if model_schools.count == 1
           copy_subjects(model_schools.first, @school)

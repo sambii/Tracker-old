@@ -27,6 +27,14 @@ describe "Rollover School Year", js:true do
     @section2_3 = FactoryGirl.create :section, subject: @subject2
     @discipline2 = @subject2.discipline
 
+    # @school2 is ready to be rolled over
+    @school2 = FactoryGirl.create :school_prior_year
+    @teacher2_1 = FactoryGirl.create :teacher, school: @school2
+    @subject2_1 = FactoryGirl.create :subject, school: @school2, subject_manager: @teacher2_1
+    @section2_1_1 = FactoryGirl.create :section, subject: @subject2_1
+    @section2_1_2 = FactoryGirl.create :section, subject: @subject2_1
+    @section2_1_3 = FactoryGirl.create :section, subject: @subject2_1
+
   end
 
   describe "as teacher" do
@@ -34,18 +42,26 @@ describe "Rollover School Year", js:true do
       sign_in(@teacher1)
     end
     it { cannot_nav_to_schools_page }
-    it { cannot_rollover_school_year(true) }
+    it { cannot_rollover_school_year(true, @school1) }
     it { cannot_rollover_model_school_year(true) }
   end
 
-  describe "as school administrator" do
+  describe "as school administrator 1" do
     before do
-      @school_administrator = FactoryGirl.create :school_administrator, school: @school1
-      sign_in(@school_administrator)
+      @school_administrator1 = FactoryGirl.create :school_administrator, school: @school1
+      sign_in(@school_administrator1)
     end
     it { cannot_nav_to_schools_page }
-    it { can_rollover_school_year }
+    it { cannot_yet_rollover_school_year(@school1) }
     it { cannot_rollover_model_school_year(true) }
+  end
+
+  describe "as school administrator 2" do
+    before do
+      @school_administrator2 = FactoryGirl.create :school_administrator, school: @school2
+      sign_in(@school_administrator2)
+    end
+    it { can_rollover_school_year(@school2) }
   end
 
   describe "as researcher" do
@@ -55,18 +71,29 @@ describe "Rollover School Year", js:true do
       set_users_school(@school1)
     end
     it { can_nav_to_schools_page }
-    it { cannot_rollover_school_year(true) }
+    it { cannot_rollover_school_year(true, @school1) }
     it { cannot_rollover_model_school_year(true) }
   end
 
-  describe "as system administrator" do
+  describe "as system administrator 1" do
     before do
       @system_administrator = FactoryGirl.create :system_administrator
       sign_in(@system_administrator)
       set_users_school(@school1)
     end
     it { can_nav_to_schools_page }
-    it { can_rollover_school_year }
+    it { cannot_yet_rollover_school_year(@school1) }
+    it { can_rollover_model_school_year }
+  end
+
+  describe "as system administrator 2" do
+    before do
+      @system_administrator = FactoryGirl.create :system_administrator
+      sign_in(@system_administrator)
+      set_users_school(@school2)
+    end
+    it { can_nav_to_schools_page }
+    it { can_rollover_school_year(@school2) }
     it { can_rollover_model_school_year }
   end
 
@@ -75,7 +102,7 @@ describe "Rollover School Year", js:true do
       sign_in(@student)
     end
     it { cannot_nav_to_schools_page }
-    it { cannot_rollover_school_year(false) }
+    it { cannot_rollover_school_year(false, @school1) }
     it { cannot_rollover_model_school_year(false) }
   end
 
@@ -84,7 +111,7 @@ describe "Rollover School Year", js:true do
       sign_in(@student.parent)
     end
     it { cannot_nav_to_schools_page }
-    it { cannot_rollover_school_year(false) }
+    it { cannot_rollover_school_year(false, @school1) }
     it { cannot_rollover_model_school_year(false) }
   end
 
@@ -99,18 +126,18 @@ describe "Rollover School Year", js:true do
     page.should_not have_css("li#side-schools")
   end # cannot_nav_to_schools_page
 
-  def cannot_rollover_school_year(is_staff)
+  def cannot_rollover_school_year(is_staff, school)
     visit schools_path()
     if is_staff
       assert_equal("/schools", current_path)
-      page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
+      page.should_not have_css("a[href='/schools/#{school.id}/new_year_rollover']")
     else
       assert_not_equal("/schools", current_path)
     end
     visit subjects_path()
     if is_staff
       assert_equal("/subjects", current_path)
-      page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
+      page.should_not have_css("a[href='/schools/#{school.id}/new_year_rollover']")
     else
       assert_not_equal("/subjects", current_path)
     end
@@ -135,20 +162,34 @@ describe "Rollover School Year", js:true do
     end
   end # cannot_rollover_model_school_year
 
-  def can_rollover_school_year
+  def cannot_yet_rollover_school_year(school)
     visit schools_path()
     assert_equal("/schools", current_path)
-    page.should have_css("a[id='rollover-#{@school1.id}']")
-    # rollover should be deactivated initially
-    page.should have_css("a.dim[id='rollover-#{@school1.id}']")
-    page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
+    page.should have_css("a[id='rollover-#{school.id}']")
+    page.should have_css("a.dim[id='rollover-#{school.id}']")
+    page.should_not have_css("a[href='/schools/#{school.id}/new_year_rollover']")
 
     visit subjects_path()
     assert_equal("/subjects", current_path)
-    page.should have_css("a[id='rollover-#{@school1.id}']")
-    # rollover should be deactivated initially
-    page.should have_css("a.deactivated[id='rollover-#{@school1.id}']")
-    page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
+    page.should have_css("a[id='rollover-#{school.id}']")
+    page.should have_css("a.deactivated[id='rollover-#{school.id}']")
+    page.should_not have_css("a[href='/schools/#{school.id}/new_year_rollover']")
+  end # def can_rollover_school_year
+
+  def can_rollover_school_year(school)
+    visit schools_path()
+    sleep 20
+    save_and_open_page
+    assert_equal("/schools", current_path)
+    page.should have_css("a[id='rollover-#{school.id}']")
+    page.should_not have_css("a.dim[id='rollover-#{school.id}']")
+    page.should have_css("a[href='/schools/#{school.id}/new_year_rollover']")
+
+    visit subjects_path()
+    assert_equal("/subjects", current_path)
+    page.should have_css("a[id='rollover-#{school.id}']")
+    page.should_not have_css("a.deactivated[id='rollover-#{school.id}']")
+    page.should have_css("a[href='/schools/#{school.id}/new_year_rollover']")
   end # def can_rollover_school_year
 
   def can_rollover_model_school_year
