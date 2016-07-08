@@ -138,18 +138,28 @@ describe "Rollover School Year", js:true do
   def can_rollover_school_year
     visit schools_path()
     assert_equal("/schools", current_path)
-    page.should have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
-    
+    page.should have_css("a[id='rollover-#{@school1.id}']")
+    # rollover should be deactivated initially
+    page.should have_css("a.dim[id='rollover-#{@school1.id}']")
+    page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
+
     visit subjects_path()
     assert_equal("/subjects", current_path)
-    page.should have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
+    page.should have_css("a[id='rollover-#{@school1.id}']")
+    # rollover should be deactivated initially
+    page.should have_css("a.deactivated[id='rollover-#{@school1.id}']")
+    page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
   end # def can_rollover_school_year
 
   def can_rollover_model_school_year
     visit schools_path()
     # only system admins can do this
     assert_equal("/schools", current_path)
-    page.should have_css("a[href='/schools/1/new_year_rollover']")
+    page.should have_css("a[id='rollover-1']")
+    # rollover should be deactivated initially
+    page.should have_css("a.dim[id='rollover-1']")
+    page.should_not have_css("a[href='/schools/1/new_year_rollover']")
+    # bulk upload should be available
     page.should have_css("a[href='/subject_outcomes/upload_lo_file']")
   end # def can_rollover_model_school_year
 

@@ -11,6 +11,7 @@ class SubjectsController < ApplicationController
     begin
       @school = get_current_school
       school_year_id = @school.school_year_id
+      @model_school = School.find(1)
       @sections = Section.where school_year_id: @school.school_year_id
     rescue
       @sections = []
