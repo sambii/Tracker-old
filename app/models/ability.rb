@@ -258,7 +258,7 @@ class Ability
           { evidence_section_outcome: { section_outcome: { section: { subject: { school_id: user.school_id } } } } }
 
         # School
-        can [:read, :edit, :update],
+        can [:read, :edit, :update, :new_year_rollover],
           School,
           { id: user.school_id }
 
