@@ -40,7 +40,9 @@ class SchoolsController < ApplicationController
   end
 
   def index
+    # Ensure School rollover always active for Model School for System Administrators
     @model_school = get_model_school('MOD')
+    # List schools user has authorization for
     @schools = School.accessible_by(current_ability).order('name')
     respond_to do |format|
       format.html
