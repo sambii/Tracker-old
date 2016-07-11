@@ -168,25 +168,25 @@ module LoadSectionHelper
   def create_model_school
     Rails.logger.debug("***** create_model_school")
     # this needs to be run before any other schools are created, so the ID is 1
-    @model_school = FactoryGirl.create :school, marking_periods:"2", name: 'Model School', acronym: 'MOD'
+    @model_school = FactoryGirl.create :school_current_year, marking_periods:"2", name: 'Model School', acronym: 'MOD'
   end
 
   def create_arabic_model_school
     Rails.logger.debug("***** create_model_school")
     # this needs to be run before any other schools are created, so the ID is 1
-    @model_school = FactoryGirl.create :school, :arabic, marking_periods:"2", name: 'Model School', acronym: 'MOD'
+    @model_school = FactoryGirl.create :school_current_year, :arabic, marking_periods:"2", name: 'Model School', acronym: 'MOD'
   end
 
   def create_training_school
     Rails.logger.debug("***** create_training_school")
     # this needs to be run after create_model_school and before any other schools are created, so the ID is 2
-    @training_school = FactoryGirl.create :school, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
+    @training_school = FactoryGirl.create :school_current_year, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
   end
 
   def create_arabic_training_school
     Rails.logger.debug("***** create_training_school")
     # this needs to be run after create_model_school and before any other schools are created, so the ID is 2
-    @training_school = FactoryGirl.create :school, :arabic, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
+    @training_school = FactoryGirl.create :school_current_year, :arabic, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
   end
 
   def create_school1
@@ -290,6 +290,16 @@ module LoadSectionHelper
     @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.10', description: 'Will have a description that is very similar to 09.', marking_period: '2'
     @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.11', description: 'Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.', marking_period: '2'
     @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.12', description: 'Will be reactivated. Apply determinants and their properties in real-world situations.', marking_period: '2', active: false
+  end
+
+  def get_std_current_school_year_name
+    # see factories.rb::current_school_year
+    return "#{Time.now.year}-#{Time.now.year+1}"
+  end
+
+  def get_std_prior_school_year_name
+    # see factories.rb::prior_school_year
+    return "#{Time.now.year-1}-#{Time.now.year}"
   end
 
 end

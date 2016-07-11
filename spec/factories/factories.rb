@@ -115,6 +115,19 @@ FactoryGirl.define do
     end
   end
 
+  factory :school_current_year, class: School do   
+    school_common_attributes
+    #automagically set the school year for this school
+    after(:create) do |school|
+      school_year = FactoryGirl.create(:current_school_year, school: school)
+      school.current_school_year=school_year
+      school.save
+    end
+    trait :arabic do
+      flags   'use_family_name,user_by_first_last,grade_in_subject_name'
+    end
+  end
+
   factory :school_prior_year, class: School do   
     school_common_attributes
     #automagically set the school year for this school
@@ -139,10 +152,17 @@ FactoryGirl.define do
     ends_at                 { 30.days.from_now }
   end
 
+  factory :current_school_year, class: SchoolYear do
+    starts_at               { Date.new(Time.now.year,9,1) }
+    ends_at                 { Date.new(Time.now.year+1,6,30) }
+    name                    {"#{starts_at.year}-#{ends_at.year}"}
+  end
+
   factory :prior_school_year, class: SchoolYear do
-    name                    "2012-2013"
-    starts_at               { 445.days.ago }
-    ends_at                 { 335.days.ago }
+    # name                    "2012-2013"
+    starts_at               { Date.new(Time.now.year-1,9,1) }
+    ends_at                 { Date.new(Time.now.year,6,30) }
+    name                    {"#{starts_at.year}-#{ends_at.year}"}
   end
 
   factory :user do

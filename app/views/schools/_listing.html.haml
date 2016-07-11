@@ -12,7 +12,7 @@
               %th{colspan: 4}= ''
           %tbody.tbody-body.alternate-highlight
             - @schools.each do |school|
-              %tr
+              %tr{id: "school-#{school.id}"}
                 %td.school-name
                   / = link_to school.name, school
                   = school.name

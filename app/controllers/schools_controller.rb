@@ -180,6 +180,9 @@ class SchoolsController < ApplicationController
         end
         model_schools = School.where(acronym: 'MOD')
 
+        Rails.logger.debug("*** School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
+        Rails.logger.debug("*** Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
+
         # ensure school year is less than model school's year.
         if model_schools.count == 1
           if model_schools.first.school_year
@@ -194,6 +197,10 @@ class SchoolsController < ApplicationController
         end
 
         rollover_school_year(@school)
+
+        Rails.logger.debug("*** Update School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
+        Rails.logger.debug("*** Update Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
+
         # Copy subjects and learning outcomes from model school if it exists.
         if model_schools.count == 1
           copy_subjects(model_schools.first, @school)
