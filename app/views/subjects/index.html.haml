@@ -99,29 +99,30 @@
                         %i.fa.fa-lg.fa-lightbulb-o
               %tbody.tbody-body{id: "subj_body_#{subj.id}"}
                 - subj.sections.each do |s|
-                  %tr{id: "sect_#{s.id}"}
-                    %td.sect-section
-                      =s.line_number
-                    %td.sect-teacher
-                      - if s.teachers.count > 0
-                        - s.teachers.each_with_index do |t,ix|
-                          - if can?(:show, s)
-                            %a{href: teacher_path(t.id), title: 'Teacher Dashboard'}
-                              - if ix > 0
-                                =', '
+                  - if s.school_year_id == @school.school_year_id
+                    %tr{id: "sect_#{s.id}"}
+                      %td.sect-section
+                        =s.line_number
+                      %td.sect-teacher
+                        - if s.teachers.count > 0
+                          - s.teachers.each_with_index do |t,ix|
+                            - if can?(:show, s)
+                              %a{href: teacher_path(t.id), title: 'Teacher Dashboard'}
+                                - if ix > 0
+                                  =', '
+                                =t.full_name
+                            - else
                               =t.full_name
-                          - else
-                            =t.full_name
-                    %td.sect-students=s.active_students.count
-                    %td.text-center
-                      - if can?(:show, s)
-                        %a{href: "#{class_dashboard_section_path(s.id)}", title: 'Section Dashboard'}
-                          %i.fa.fa-dashboard.fa-lg
-                        %a{href: "#{section_path(s.id)}", title: 'Tracker Page'}
-                          %i.fa.fa-check.fa-lg
-                      - if can? :edit, s
-                        %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_section_path(s.id, format: :js)}, title: 'Edit Section'}
-                          %i.fa.fa-lg.fa-edit
-                      - if can?(:section_outcomes, s)
-                        %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: section_outcomes_section_path(s.id, format: :js)}, title: 'View Section Outcomes popup'}
-                          %i.fa.fa-lg.fa-lightbulb-o
+                      %td.sect-students=s.active_students.count
+                      %td.text-center
+                        - if can?(:show, s)
+                          %a{href: "#{class_dashboard_section_path(s.id)}", title: 'Section Dashboard'}
+                            %i.fa.fa-dashboard.fa-lg
+                          %a{href: "#{section_path(s.id)}", title: 'Tracker Page'}
+                            %i.fa.fa-check.fa-lg
+                        - if can? :edit, s
+                          %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_section_path(s.id, format: :js)}, title: 'Edit Section'}
+                            %i.fa.fa-lg.fa-edit
+                        - if can?(:section_outcomes, s)
+                          %a.assign-los{data: {target: "#modal_popup", toggle: 'modal', url: section_outcomes_section_path(s.id, format: :js)}, title: 'View Section Outcomes popup'}
+                            %i.fa.fa-lg.fa-lightbulb-o

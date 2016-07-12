@@ -39,6 +39,20 @@
           %i.fa.fa-lg.fa-users
           %i.fa.fa-lg.fa-stack-overflow
 
+- max_grade = @school.has_flag?(School::USER_BY_FIRST_LAST) ? 3 : 12
+
+.block-section.indent-block
+  .row.height-30
+    .pull-left
+      #filter-options-chosen
+        %ul.floating-list.btn-group.btn-group-sm
+          / Listing of chosen filters
+          %li
+            %small.text-muted
+              = "Grades up through #{max_grade}"
+            %a.text-muted{href: "javascript:void(0)"}
+              %i.fa.fa-times-circle
+
 .row
   .col-sm-12
     .block.block-alt-style.full
@@ -82,55 +96,56 @@
                     %strong.pull-left.lmargin5="#{start_letter}"
             %tbody.tbody-body
               - studs.each do |s|
-                - deact_class = s.active ? 'active' : 'deactivated'
-                %tr{class: deact_class, id: "student_#{s.id}"}
-                  %td.user-xid=s.xid
-                  - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                - if s.grade_level <= max_grade
+                  - deact_class = s.active ? 'active' : 'deactivated'
+                  %tr{class: deact_class, id: "student_#{s.id}"}
+                    %td.user-xid=s.xid
+                    - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                      %td
+                        %a{href: "#{student_path(s.id)}"}
+                          .user-first-name=s.first_name
+                      %td
+                        %a{href: "#{student_path(s.id)}"}
+                          .user-last-name=s.last_name
+                    - else
+                      %td
+                        %a{href: "#{student_path(s.id)}"}
+                          .user-last-name=s.last_name
+                      %td
+                        %a{href: "#{student_path(s.id)}"}
+                          .user-first-name=s.first_name
+                    %td.user-email=s.email
+                    %td.user-grade-level=s.grade_level
+                    %td.user-gender=s.gender
+                    - if s.parent
+                      %td.user-parent-email{id: "parent_#{s.parent.id}_email"}= s.parent.try(:email)
+                      %td.user-parent-sub-status{id: "parent_#{s.parent.id}_subscription_status"}= s.parent.try(:subscription_status)
+                    - else
+                      %td.user-parent-email
+                      %td.user-parent-sub-status='sub-status'
                     %td
-                      %a{href: "#{student_path(s.id)}"}
-                        .user-first-name=s.first_name
+                      %a{href: "/students/#{s.id}", title: 'Student Dashboard'}
+                        %i.fa.fa-lg.fa-dashboard
                     %td
-                      %a{href: "#{student_path(s.id)}"}
-                        .user-last-name=s.last_name
-                  - else
+                      %a{href: "/students/#{s.id}/sections_list", title: 'Student Sections List'}
+                        %i.fa.fa-lg.fa-check
                     %td
-                      %a{href: "#{student_path(s.id)}"}
-                        .user-last-name=s.last_name
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: student_path(s.id, format: :js)}, title: 'View Student User Information'}
+                        %i.fa.fa-lg.fa-ellipsis-h
                     %td
-                      %a{href: "#{student_path(s.id)}"}
-                        .user-first-name=s.first_name
-                  %td.user-email=s.email
-                  %td.user-grade-level=s.grade_level
-                  %td.user-gender=s.gender
-                  - if s.parent
-                    %td.user-parent-email{id: "parent_#{s.parent.id}_email"}= s.parent.try(:email)
-                    %td.user-parent-sub-status{id: "parent_#{s.parent.id}_subscription_status"}= s.parent.try(:subscription_status)
-                  - else
-                    %td.user-parent-email
-                    %td.user-parent-sub-status='sub-status'
-                  %td
-                    %a{href: "/students/#{s.id}", title: 'Student Dashboard'}
-                      %i.fa.fa-lg.fa-dashboard
-                  %td
-                    %a{href: "/students/#{s.id}/sections_list", title: 'Student Sections List'}
-                      %i.fa.fa-lg.fa-check
-                  %td
-                    %a{data: {target: "#modal_popup", toggle: 'modal', url: student_path(s.id, format: :js)}, title: 'View Student User Information'}
-                      %i.fa.fa-lg.fa-ellipsis-h
-                  %td
-                    - if can? :update, s
-                      %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_student_path(s.id, format: :js)}, title: 'Edit Student User Information'}
-                        %i.fa.fa-lg.fa-edit
-                  %td
-                    - if can? :security, s
-                      %a{data: {target: "#modal_popup", toggle: 'modal', url: security_student_path(s.id, format: :js)}, title: 'Student Security'}
-                        %i.fa.fa-lg.fa-unlock
-                  %td
-                    - if can? :deactivate, s
-                      %div.show-if-active
-                        %a#remove-student{href: "/students/#{s.id}.js?#{{active: false}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Deactivate Student'}
-                          %i.fa.fa-lg.fa-times-circle
-                      %div.show-if-deactivated
-                        %a#restore-student{href: "/students/#{s.id}.js?#{{active: true}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Restore Deactivated Student'}
-                          %i.fa.fa-lg.fa-undo
+                      - if can? :update, s
+                        %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_student_path(s.id, format: :js)}, title: 'Edit Student User Information'}
+                          %i.fa.fa-lg.fa-edit
+                    %td
+                      - if can? :security, s
+                        %a{data: {target: "#modal_popup", toggle: 'modal', url: security_student_path(s.id, format: :js)}, title: 'Student Security'}
+                          %i.fa.fa-lg.fa-unlock
+                    %td
+                      - if can? :deactivate, s
+                        %div.show-if-active
+                          %a#remove-student{href: "/students/#{s.id}.js?#{{active: false}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Deactivate Student'}
+                            %i.fa.fa-lg.fa-times-circle
+                        %div.show-if-deactivated
+                          %a#restore-student{href: "/students/#{s.id}.js?#{{active: true}.to_query('student')}", data: {method: :put, remote: true, student_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Restore Deactivated Student'}
+                            %i.fa.fa-lg.fa-undo
 

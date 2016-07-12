@@ -201,6 +201,9 @@ class SchoolsController < ApplicationController
         Rails.logger.debug("*** Update School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
         Rails.logger.debug("*** Update Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
 
+        # increment student grade levels for all students in school, deactivate students > max grade (3 - egypt, 12 - others)
+        rollover_student_grade_levels(@school)
+
         # Copy subjects and learning outcomes from model school if it exists.
         if model_schools.count == 1
           copy_subjects(model_schools.first, @school)
@@ -309,22 +312,24 @@ class SchoolsController < ApplicationController
       begin_year = old_school_year_record.ends_at.year
       end_year = begin_year + 1
       year_name = "#{begin_year}-#{end_year}"
-      next_year_records = School.where(name: year_name)
-      fail("next year record already exists") if next_year_records.count > 0
-
-      # create the new school year record for rollover
-      begin
-        school_year = SchoolYear.new
-        school_year.school_id = school.id
-        school_year.name = year_name
-        # start and end dates same as last year, except year increased by 1
-        school_year.starts_at = Date.new(begin_year, old_school_year_record.starts_at.mon, 1)
-        school_year.ends_at = Date.new(end_year, old_school_year_record.ends_at.mon, old_school_year_record.ends_at.mday)
-        school_year.save
-      rescue Exception => e
-        err_str = "ERROR: creating next school year: Exception #{e.message}"
-        Rails.logger.error(err_str)
-        fail(err_str)
+      next_year_records = SchoolYear.where(school_id: school.id, name: year_name)
+      if next_year_records.count > 0
+        school_year = next_year_records.first
+      else
+        # create the new school year record for rollover
+        begin
+          school_year = SchoolYear.new
+          school_year.school_id = school.id
+          school_year.name = year_name
+          # start and end dates same as last year, except year increased by 1
+          school_year.starts_at = Date.new(begin_year, old_school_year_record.starts_at.mon, 1)
+          school_year.ends_at = Date.new(end_year, old_school_year_record.ends_at.mon, old_school_year_record.ends_at.mday)
+          school_year.save
+        rescue Exception => e
+          err_str = "ERROR: creating next school year: Exception #{e.message}"
+          Rails.logger.error(err_str)
+          fail(err_str)
+        end
       end
 
       # update current school year
@@ -436,7 +441,27 @@ class SchoolsController < ApplicationController
       return matches
     end
 
-
+    def rollover_student_grade_levels(school)
+      # should be run after school year has been updated
+      max_grade = 12
+      max_grade = 3 if school.has_flag?(School::USER_BY_FIRST_LAST)
+      Rails.logger.debug("+#}% max_grade: #{max_grade}")
+      # increment student grade levels for all students in school, deactivate students > max grade (3 - egypt, 12 - others)
+      Student.where(school_id: school.id).each do |st|
+        if st.grade_level == max_grade
+          new_grade_level = school.school_year.starts_at.year
+          st.active = false
+        else
+          new_grade_level = st.grade_level + 1
+        end
+        st.grade_level = new_grade_level
+        fail("ERROR: error incrementing grade level for student: #{st.id} - #{st.name} for #{@school.name}") if !st.save
+        Enrollment.where(student_id: st.id).each do |e|
+          e.student_grade_level = new_grade_level
+          fail("ERROR: error incrementing grade level for student enrollment: #{st.id} - #{st.name} - #{e.id} for #{@school.name}") if !e.save
+        end
+      end
+    end
 
 
     def for_subgroup_proficiencies
