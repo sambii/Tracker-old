@@ -327,7 +327,7 @@ describe "Rollover School Year", js:true do
     # confirm @subject2_1 still exists and is not duplicated
     visit subjects_path()
     page.should have_css("tbody#subj_body_#{@subject2_1.id}")
-    page.all('tbody.tbody-header strong', text: "#{@subject2_1.discipline.name} : New Subject").count.should == 1
+    page.all('tbody.tbody-header strong', text: "#{@subject2_1.discipline.name} : #{@subject2_1.name}").count.should == 1
 
     # confirm there are no sections under @subject2_1
     within("tbody#subj_body_#{@subject2_1.id}") do
@@ -336,9 +336,11 @@ describe "Rollover School Year", js:true do
       page.should_not have_content(@section2_1_3.line_number)
     end
 
-    # confirm new subject got copied over from model school
     if sys_admin
-      page.should have_content("#{@subject2_1.discipline.name} : New Subject")
+      # confirm new subject got copied over from model school
+      if sys_admin
+        page.should have_content("#{@subject2_1.discipline.name} : New Subject")
+      end
     end
 
     # confirm student grade levels are incremented properly
