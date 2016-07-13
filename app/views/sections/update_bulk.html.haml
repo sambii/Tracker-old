@@ -44,7 +44,7 @@
             %tr
               %th='Subject Name'
               %th='Section ID'
-          %tbody
+          %tbody#report
             - @sections.each do |s|
               %tr
                 %td=s.subject.name

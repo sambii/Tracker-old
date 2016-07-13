@@ -42,7 +42,7 @@
                   %td=subj.name
                   - 20.times do |col|
                     %td
-                      %input.input-section-grid{name: "section[#{row}][#{col}][value]", id: "section[#{row}][#{col}][value]"}
+                      %input.input-section-grid{name: "section[#{row}][#{col}][value]", id: "section_#{row}_#{col}_value"}
                       = hidden_field_tag "section[#{row}][#{col}][id]", ''
                       = hidden_field_tag "section[#{row}][#{col}][subject_id]", subj.id.to_s
           .row.text-center

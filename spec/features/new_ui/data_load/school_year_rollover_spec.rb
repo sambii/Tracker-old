@@ -16,10 +16,8 @@ describe "Rollover School Year", js:true do
     @teacher1 = FactoryGirl.create :teacher, school: @school1
     @subject1 = FactoryGirl.create :subject, school: @school1, subject_manager: @teacher1
     @section1_1 = FactoryGirl.create :section, subject: @subject1
-    # @section1_1 = FactoryGirl.create :section
-    # @subject1 = @section1_1.subject
-    # @school1 = @section1_1.school
-    # @teacher1 = @subject1.subject_manager
+    @section1_2 = FactoryGirl.create :section, subject: @subject1
+    @section1_3 = FactoryGirl.create :section, subject: @subject1
     @discipline = @subject1.discipline
 
     load_test_section(@section1_1, @teacher1)
