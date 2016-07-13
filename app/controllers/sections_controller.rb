@@ -582,12 +582,26 @@ class SectionsController < ApplicationController
   # New UI
   # section bulk entry page
   def enter_bulk
-    Rails.logger.debug("*** enter_bulk")
-    all_subject_ids = Subject.where(school_id: current_school_id).pluck(:id)
-    subjects_ids_with_sections = Section.where(subject_id: all_subject_ids).pluck(:subject_id).uniq
+    Rails.logger.debug("*** sections enter_bulk")
+    @school = get_current_school
+    psys = SchoolYear.all
+    Rails.logger.debug("*** psys: #{psys.inspect}")
+    psy = @school.prior_school_year
+    all_subject_ids = Subject.where(school_id: @school.id).pluck(:id)
+    subjects_ids_with_sections = Section.where(subject_id: all_subject_ids, school_year_id: @school.school_year_id).pluck(:subject_id).uniq
+    preread_prior = Section.where(subject_id: all_subject_ids, school_year_id: psy.id) if psy
     empty_subjects = all_subject_ids - subjects_ids_with_sections
     @subjects = Subject.where(id: empty_subjects).order(:name)
-    @school = get_current_school
+    @prior_sections_by_subject_id = Hash.new
+    Rails.logger.debug("*** blank @prior_sections_by_subject_id: #{@prior_sections_by_subject_id.inspect}")
+    if psy
+      @subjects.each do |s|
+        section_ids = Section.where(subject_id: s.id, school_year_id: psy.id).pluck(:id).to_s
+        Rails.logger.debug("*** section_ids: #{section_ids.inspect}")
+        @prior_sections_by_subject_id[s.id] = section_ids
+      end
+    end
+    Rails.logger.debug("*** @prior_sections_by_subject_id: #{@prior_sections_by_subject_id.inspect}")
     err_str = ''
     err_str = 'Need to assign school.' if @school.id.blank?
     err_str = 'Need to assign school year.' if @school.school_year.blank?

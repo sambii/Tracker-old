@@ -74,7 +74,7 @@
               %th= ''
           - @disciplines.each do |disc|
             - disc.subjects.each do |subj|
-              %tbody.tbody-header.show-tbody{id: "subj_header_#{subj.id}", class: (@show_subject_id.to_i == subj.id ? 'show-tbody-body' : '' )}
+              %tbody.tbody-header.show-tbody.tbody-subject{id: "subj_header_#{subj.id}", class: (@show_subject_id.to_i == subj.id ? 'show-tbody-body' : '' )}
                 %tr.height-30
                   %td{colspan: 3}
                     .clearfix

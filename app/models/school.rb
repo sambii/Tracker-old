@@ -137,6 +137,24 @@ class School < ActiveRecord::Base
     end
   end
 
+  def prior_school_year
+    csy = self.current_school_year
+    if csy
+      psy_name = "#{csy.starts_at.year}-#{csy.ends_at.year}"
+      Rails.logger.debug("*** psy_name: #{psy_name}")
+      psys = SchoolYear.where(name: psy_name, school_id: csy.school_id)
+      if psys.count == 1
+        psy = psys.first
+        Rails.logger.debug("*** matched: #{psy_name}")
+      else
+        psy = nil
+      end
+    else
+      psy = nil
+    end
+    return psy
+  end
+
   # validation helper to ensure that self.id is the same as school_year.school_id
   # when assigning a school_year
   def consistent_school_year
