@@ -232,11 +232,16 @@ class User < ActiveRecord::Base
   def set_unique_username
     school ||= School.find self.school_id
 
+    if school.has_flag?(School::USERNAME_FROM_EMAIL) && self.email.present?
+      base_username = (school.acronym + "_" + self.email.downcase.split('@', 2)[0])
+    else
+      base_username  = (school.acronym + "_" + f_last_name).downcase
+    end
     # if last name has arabic, set the username to email (prior to @)
-    self.username  = (school.acronym + "_" + f_last_name).downcase
+    self.username  = base_username
     i         = 2
     until unique_username?
-      self.username = (school.acronym + '_' + f_last_name + i.to_s).downcase
+      self.username = (base_username + i.to_s).downcase
       i += 1
     end
     Rails.logger.debug("*** regular username: #{self.username}")

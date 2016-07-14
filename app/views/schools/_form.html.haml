@@ -34,6 +34,14 @@
   %span.ui-required{title: 'Required'}='*'
   %span.ui-error="#{@errors[:marking_periods] if @errors[:marking_periods].present?}"
 
+- # attempt to loop through school flags - gets error: ajaxError error: ReferenceError: School is not defined
+- # - School::VALID_FLAGS.each_with_index do |f, ix|
+- #   %fieldset.input-group
+- #     %label.col-sm-5.control-label="#{School::VALID_FLAGS_NAMES[ix]}:"
+- #     %input{type: 'hidden', name: "school[flag_pars][#{f}]", value: 'false'}
+- #     %input.pull-left{:name => "school[flag_pars][#{f}]", :type => "checkbox", checked: @school.has_flag?(f)}
+- #     %label.checkbox-right-label.pull-left=School::VALID_FLAGS_VALUES[ix]
+- #     %span.ui-error="#{@errors[f] if @errors[f].present?}"
 %fieldset.input-group
   %label.col-sm-5.control-label='Surname:'
   %input{type: 'hidden', name: "school[flag_pars][#{School::USE_FAMILY_NAME}]", value: 'false'}
@@ -52,6 +60,12 @@
   %input.pull-left{:name => "school[flag_pars][#{School::GRADE_IN_SUBJECT_NAME}]", :type => "checkbox", checked: @school.has_flag?(School::GRADE_IN_SUBJECT_NAME)}
   %label.checkbox-right-label.pull-left="Yes"
   %span.ui-error="#{@errors[School::GRADE_IN_SUBJECT_NAME] if @errors[School::GRADE_IN_SUBJECT_NAME].present?}"
+%fieldset.input-group
+  %label.col-sm-5.control-label='Username from email:'
+  %input{type: 'hidden', name: "school[flag_pars][#{School::USERNAME_FROM_EMAIL}]", value: 'false'}
+  %input.pull-left{:name => "school[flag_pars][#{School::USERNAME_FROM_EMAIL}]", :type => "checkbox", checked: @school.has_flag?(School::USERNAME_FROM_EMAIL)}
+  %label.checkbox-right-label.pull-left="Yes"
+  %span.ui-error="#{@errors[School::USERNAME_FROM_EMAIL] if @errors[School::USERNAME_FROM_EMAIL].present?}"
 
 %div.ui-error.text-center='Use Rollover Process to go to next year'
 %fieldset.input-group

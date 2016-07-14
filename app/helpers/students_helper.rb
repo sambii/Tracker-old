@@ -76,7 +76,17 @@ module StudentsHelper
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Student First Name') if csv_hash[COL_FNAME].blank?
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Student Last/Family Name') if csv_hash[COL_LNAME].blank?
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Student Email') if csv_hash[COL_EMAIL].blank?
-        csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Grade Level') if csv_hash[COL_GRADE].blank?
+        if csv_hash[COL_GRADE].blank?
+          csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Missing Grade Level')
+        else
+          grade_level = Integer(csv_hash[COL_GRADE]) rescue 0
+          if @school.has_flag?(School::USER_BY_FIRST_LAST) # temporary flag to indicate if max grade level == 3
+            csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Grade Level > 3') if grade_level > 3
+          else
+            csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Grade Level > 12') if grade_level > 12
+          end
+        end
+
       end
     rescue
       csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], 'Error validating csv fields')
@@ -173,7 +183,11 @@ module StudentsHelper
   # build unique username from student fields and list of existing ones
   def build_unique_username(student, school, usernames)
     # student.set_unique_username, remove special characters and replace spaces with .
-    initial_username = (school.acronym + "_" + student.first_name[0] + student.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
+    if school.has_flag?(School::USERNAME_FROM_EMAIL) && student.email.present?
+      initial_username = (school.acronym + "_" + student.email.split('@', 2)[0])
+    else
+      initial_username = (school.acronym + "_" + student.first_name[0] + student.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
+    end
     work_username = initial_username
     incr = 2
     until usernames[work_username] == nil

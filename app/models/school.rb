@@ -7,6 +7,10 @@ class School < ActiveRecord::Base
   USE_FAMILY_NAME = 'use_family_name'
   USER_BY_FIRST_LAST = 'user_by_first_last'
   GRADE_IN_SUBJECT_NAME = 'grade_in_subject_name'
+  USERNAME_FROM_EMAIL = 'username_from_email'
+  VALID_FLAGS = [USE_FAMILY_NAME, USER_BY_FIRST_LAST, GRADE_IN_SUBJECT_NAME, USERNAME_FROM_EMAIL]
+  # VALID_FLAGS_NAMES = ['Surname', 'User Sort by','Grade in Subject Name','Username from email']
+  # VALID_FLAGS_VALUES = ['Use Family Name','First/Last','Yes','Yes']
   # Access Control
   # using_access_control
   # attr_accessible :flag_par
@@ -56,7 +60,7 @@ class School < ActiveRecord::Base
   # Flags
   # List of valid flags are in here!
   def valid_flag?(flag)
-    [USE_FAMILY_NAME, USER_BY_FIRST_LAST, GRADE_IN_SUBJECT_NAME].include?(flag.to_s)
+    VALID_FLAGS.include?(flag.to_s)
   end
 
   def has_flag?(flag)
