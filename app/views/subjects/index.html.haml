@@ -50,7 +50,7 @@
     - if can?(:new_year_rollover, @school)
       - if @model_school && (@model_school.school_year.starts_at.year > @school.school_year.starts_at.year || @model_school.id == @school.id)
         - # model school year is after the current school year - rollover is available
-        %a.btn.btn-sm.btn-primary{id: "rollover-#{@school.id}", href: new_year_rollover_school_path(@school.id), data: {method: :post, confirm: 'Are you sure you want to rollover subjects and LOs?'}, title: 'Rollover to New Year'}
+        %a.btn.btn-sm.btn-primary{id: "rollover-#{@school.id}", href: new_year_rollover_school_path(@school.id), data: {method: :post, confirm: "Are you sure you want to rollover to year '#{@school.school_year.starts_at.year+1}-#{@school.school_year.ends_at.year+1}'?"}, title: 'Rollover to New Year'}
           %i.fa.fa-lg.fa-forward
       - else
         - # rollover is not available now
