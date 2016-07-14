@@ -104,7 +104,7 @@ module UsersHelper
     begin
       error_list = Hash.new
       records.each_with_index do |rx, ix|
-        # check all records following it for duplicated student IDs
+        # check all records following it for duplicated staff IDs
         if error_list[ix+2] != '-1'
           records.drop(ix+1).each_with_index do |ry, iy|
             iyall = iy + ix + 1 # index of the later row being tested
@@ -139,6 +139,7 @@ module UsersHelper
     begin
       new_staff = User.new
       new_staff.school_id = @school.id
+      # new_staff.xid = csv_hash[COL_ID]
       new_staff.first_name = csv_hash[COL_FNAME]
       new_staff.last_name = csv_hash[COL_LNAME]
       new_staff.email = csv_hash[COL_EMAIL]
@@ -165,7 +166,11 @@ module UsersHelper
   # build unique username from staff fields and list of existing ones
   def build_unique_username(staff, school, usernames)
     # student.set_unique_username, remove special characters and replace spaces with .
-    initial_username = (school.acronym + "_" + staff.first_name[0] + staff.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
+    if school.has_flag?(School::USERNAME_FROM_EMAIL) && staff.email.present?
+      initial_username = (school.acronym + "_" + staff.email.split('@', 2)[0])
+    else
+      initial_username = (school.acronym + "_" + staff.first_name[0] + student.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
+    end
     work_username = initial_username
     incr = 2
     until usernames[work_username] == nil

@@ -132,7 +132,7 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** Stage: #{@stage}")
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
 
-      step = 1
+      step = 0
       # get the subject outcomes from the database for all subjects to process
       @old_los_by_lo_clean = lo_get_old_los
       @old_los_by_lo = @old_los_by_lo_clean.clone
@@ -140,6 +140,7 @@ class SubjectOutcomesController < ApplicationController
       # @old_recs_to_process = Hash.new
       # @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
 
+      step = 1
       # initial matching level from default value
       @match_level = DEFAULT_MATCH_LEVEL
 
@@ -254,7 +255,7 @@ class SubjectOutcomesController < ApplicationController
       @stage = 3
       Rails.logger.debug("*** Stage: #{@stage}")
 
-      step = 1
+      step = 0
       # get the subject outcomes from the database for all subjects to process
       @old_los_by_lo = lo_get_old_los
       # @old_records_counts = @old_los_by_lo.count
@@ -265,6 +266,7 @@ class SubjectOutcomesController < ApplicationController
       # @old_los_by_lo.each do |rk, old_rec|
       #   Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
 
+      step = 1
       # development manual adjustmenmt of matching level from input field in matching page.
       @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
 
@@ -279,7 +281,7 @@ class SubjectOutcomesController < ApplicationController
             rec = pair[0]
             matched_new_rec = pair[1].clone # only change state for this matching pair
             matched_weights = pair[2]
-            Rails.logger.debug("*** num: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].inspect}, Fixnum?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].instance_of?(Fixnum)}, to_i Integer?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i.instance_of?(Integer)}, class?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].class}")
+            # Rails.logger.debug("*** num: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].inspect}, Fixnum?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].instance_of?(Fixnum)}, to_i Integer?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i.instance_of?(Integer)}, class?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].class}")
             if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && rec[PARAM_ACTION].present?
               Rails.logger.debug("*** Update old rec: #{rec}")
               case rec[PARAM_ACTION]
@@ -297,7 +299,7 @@ class SubjectOutcomesController < ApplicationController
                 action = 'Restored'
               when :'=', nil
                 # ignore
-                Rails.logger.debug("*** 'ignore' action")
+                # Rails.logger.debug("*** 'ignore' action")
               when 'Mismatch'
                 raise("Attempt to update with Mismatch - item #{action_count+1}")
               else
@@ -307,9 +309,9 @@ class SubjectOutcomesController < ApplicationController
 
           end
           @records.each do |rec|
-            Rails.logger.debug("*** @records rec: #{rec.inspect}")
+            # Rails.logger.debug("*** @records rec: #{rec.inspect}")
             if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID])
-              Rails.logger.debug("*** Add new rec")
+              # Rails.logger.debug("*** Add new rec")
               case rec[PARAM_ACTION]
               when '+'
                 so = SubjectOutcome.new
