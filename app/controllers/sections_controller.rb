@@ -585,7 +585,6 @@ class SectionsController < ApplicationController
     Rails.logger.debug("*** sections enter_bulk")
     @school = get_current_school
     psys = SchoolYear.all
-    Rails.logger.debug("*** psys: #{psys.inspect}")
     psy = @school.prior_school_year
     all_subject_ids = Subject.where(school_id: @school.id).pluck(:id)
     subjects_ids_with_sections = Section.where(subject_id: all_subject_ids, school_year_id: @school.school_year_id).pluck(:subject_id).uniq
@@ -593,15 +592,15 @@ class SectionsController < ApplicationController
     empty_subjects = all_subject_ids - subjects_ids_with_sections
     @subjects = Subject.where(id: empty_subjects).order(:name)
     @prior_sections_by_subject_id = Hash.new
-    Rails.logger.debug("*** blank @prior_sections_by_subject_id: #{@prior_sections_by_subject_id.inspect}")
     if psy
       @subjects.each do |s|
-        section_ids = Section.where(subject_id: s.id, school_year_id: psy.id).pluck(:id).to_s
-        Rails.logger.debug("*** section_ids: #{section_ids.inspect}")
-        @prior_sections_by_subject_id[s.id] = section_ids
+        # section_ids = Section.where(subject_id: s.id, school_year_id: psy.id).pluck(:id).to_s
+        # Rails.logger.debug("*** section_ids: #{section_ids.inspect}")
+        # @prior_sections_by_subject_id[s.id] = section_ids
+        section_lines = Section.where(subject_id: s.id, school_year_id: psy.id).pluck(:line_number)
+        @prior_sections_by_subject_id[s.id] = section_lines
       end
     end
-    Rails.logger.debug("*** @prior_sections_by_subject_id: #{@prior_sections_by_subject_id.inspect}")
     err_str = ''
     err_str = 'Need to assign school.' if @school.id.blank?
     err_str = 'Need to assign school year.' if @school.school_year.blank?
@@ -620,14 +619,14 @@ class SectionsController < ApplicationController
   # section bulk entry update page
   def update_bulk
     Rails.logger.debug("*** update_bulk")
+    @school = get_current_school
     all_subject_ids = Subject.where(school_id: current_school_id).pluck(:id)
-    subjects_ids_with_sections = Section.where(subject_id: all_subject_ids).pluck(:subject_id).uniq
+    subjects_ids_with_sections = Section.where(subject_id: all_subject_ids, school_year_id: @school.school_year_id).pluck(:subject_id).uniq
     empty_subjects = all_subject_ids - subjects_ids_with_sections
     @subjects = Subject.where(id: empty_subjects).order(:name)
     sec_ps = params['section']
     respond_to do |format|
       begin
-        @school = get_current_school
         raise('Need to assign school.') if @school.id.blank?
         raise('Need to assign school year.') if @school.school_year.blank?
         school_year_id = @school.school_year_id

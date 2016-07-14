@@ -38,11 +38,12 @@
                 %th{colspan: 20}= '* enter the section IDs that exist for each subject'
             %tbody.tbody-body
               - @subjects.each_with_index do |subj, row|
+                - prior_section_lines = @prior_sections_by_subject_id[subj.id]
                 %tr{id: "subject_#{subj.id}", name: "subject[#{subj.id}]", :class => ('field_with_errors' if subj.errors.count > 0) }
                   %td=subj.name
                   - 20.times do |col|
                     %td
-                      %input.input-section-grid{name: "section[#{row}][#{col}][value]", id: "section_#{row}_#{col}_value"}
+                      %input.input-section-grid{name: "section[#{row}][#{col}][value]", id: "section_#{row}_#{col}_value", value: (prior_section_lines.present? && prior_section_lines[col].present?) ? prior_section_lines[col] : ''}
                       = hidden_field_tag "section[#{row}][#{col}][id]", ''
                       = hidden_field_tag "section[#{row}][#{col}][subject_id]", subj.id.to_s
           .row.text-center

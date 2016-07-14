@@ -140,12 +140,10 @@ class School < ActiveRecord::Base
   def prior_school_year
     csy = self.current_school_year
     if csy
-      psy_name = "#{csy.starts_at.year}-#{csy.ends_at.year}"
-      Rails.logger.debug("*** psy_name: #{psy_name}")
+      psy_name = "#{csy.starts_at.year-1}-#{csy.ends_at.year-1}"
       psys = SchoolYear.where(name: psy_name, school_id: csy.school_id)
       if psys.count == 1
         psy = psys.first
-        Rails.logger.debug("*** matched: #{psy_name}")
       else
         psy = nil
       end
