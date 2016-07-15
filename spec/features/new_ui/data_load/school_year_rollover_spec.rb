@@ -243,13 +243,10 @@ describe "Rollover School Year", js:true do
 
       find("a[href='/schools']").click
       find("a[href='/schools/1']").click
-      find("a[href='/subjects']").click
+      visit subjects_path()
       page.all("tbody.tbody-subject").count.should == 7
 
       # add new subject to model school
-      find("a[href='/schools']").click
-      find("a[href='/schools/1']").click
-      find("a[href='/subjects']").click
       find("a[data-url='/subjects/new.js']").click
       page.select(@subject2_1.discipline.name, from: "subject-discipline-id")
       page.fill_in 'subject-name', :with => 'New Subject'
@@ -259,7 +256,7 @@ describe "Rollover School Year", js:true do
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
       page.all("tbody.tbody-subject").count.should == 8
 
-      # go back to viewing @school2 
+      # go back to viewing @school2
       find("a[href='/schools']").click
       find("a[href='/schools/#{@school2.id}']").click
       find("a[href='/subjects']").click
@@ -267,8 +264,6 @@ describe "Rollover School Year", js:true do
       # confirm new subject is not in @school2
       page.should_not have_content("#{@subject2_1.discipline.name} : New Subject")
     end
-
-    save_and_open_page
 
     # confirm @subject2_1 exists and has sections
     page.should have_css("tbody#subj_header_#{@subject2_1.id}")
@@ -325,13 +320,14 @@ describe "Rollover School Year", js:true do
 
     # Post rollover checks
 
+    page.should have_content("tr#school-#{@school2.id}")
+
     # confirm on next year
     within("tr#school-#{@school2.id} td.school-year") do
       page.should have_content(get_std_current_school_year_name)
     end
 
     visit subjects_path()
-    save_and_open_page
 
     # confirm all model school subjects exist in school and are not duplicated
     page.all('tbody.tbody-header strong', text: "#{@subj_art_1.discipline.name} : #{@subj_art_1.name}").count.should == 1
@@ -380,7 +376,7 @@ describe "Rollover School Year", js:true do
     end
     # student > grade level 3 is not listed on the student listing
     page.should_not have_css("tr#student_#{@student2_3.id}")
-    
+
     page.should have_css("tr#student_#{@student2_4.id}.deactivated")
     within("tr#student_#{@student2_4.id}") do
       page.should have_content(@student2_4.last_name)
