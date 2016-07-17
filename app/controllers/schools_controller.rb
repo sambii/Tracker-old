@@ -402,7 +402,7 @@ class SchoolsController < ApplicationController
       subjos = SubjectOutcome.where(subject_id: sch_subject_id, )
       subjos.each do |so|
         match_item = Hash.new
-        ns_subjos = SubjectOutcome.where(subject_id: sch_subject_id, name: so.name)
+        ns_subjos = SubjectOutcome.where(subject_id: sch_subject_id, lo_code: so.lo_code)
         if ns_subjos.count == 0
           s = SubjectOutcome.new
           s.name = so.name

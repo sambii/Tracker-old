@@ -251,6 +251,7 @@ describe "Rollover School Year", js:true do
       page.select(@subject2_1.discipline.name, from: "subject-discipline-id")
       page.fill_in 'subject-name', :with => 'New Subject'
       page.click_button('Save')
+      assert_equal("/subjects", current_path)
 
       # confirm new subject is in model school
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
@@ -320,7 +321,8 @@ describe "Rollover School Year", js:true do
 
     # Post rollover checks
 
-    page.should have_content("tr#school-#{@school2.id}")
+    assert_equal("/schools", current_path)
+    page.should have_css("tr#school-#{@school2.id}")
 
     # confirm on next year
     within("tr#school-#{@school2.id} td.school-year") do

@@ -137,6 +137,8 @@ describe "Bulk Enter Sections", js:true do
     page.driver.browser.switch_to.alert.accept
 
     # Post rollover checks
+    assert_equal("/schools", current_path)
+    page.should have_css("tr#school-#{@school1.id}")
 
     # confirm on next year
     within("tr#school-#{@school1.id} td.school-year") do
