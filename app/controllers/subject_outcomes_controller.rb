@@ -104,8 +104,13 @@ class SubjectOutcomesController < ApplicationController
       end
 
       # create hash of new LO records from uploaded csv file
-      @new_los_by_rec_clean = lo_get_file_from_upload(params)
-      # @new_los_by_rec = @new_los_by_rec_clean.clone
+      recs_from_upload = lo_get_file_from_upload(params)
+      @records = recs_from_upload[:records]
+      Rails.logger.debug("*** @records: #{@records.inspect}")
+      @new_los_by_rec_clean = recs_from_upload[:new_los_by_rec]
+      Rails.logger.debug("*** @new_los_by_rec_clean: #{@new_los_by_rec_clean.inspect}")
+      @new_los_by_lo_code_clean = recs_from_upload[:new_los_by_lo_code]
+      Rails.logger.debug("*** @new_los_by_lo_code_clean: #{@new_los_by_lo_code_clean.inspect}")
 
       # Check for duplicate LO codes in uploaded file
       @error_list = Hash.new
@@ -250,6 +255,7 @@ class SubjectOutcomesController < ApplicationController
       @records = @records_clean.clone
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
       @new_los_by_rec_clean = recs_from_hidden[:los_by_rec]
+      @new_los_by_lo_code_clean = recs_from_hidden[:new_los_by_lo_code]
       # @new_los_by_rec = @new_los_by_rec_clean.clone
 
       @stage = 3

@@ -87,19 +87,19 @@
                   %tr{ class: "#{highlight_class} #{break_class}", data: {displayed_pair: "pair_#{pair_subject_id}_#{new_rec_id}_#{prior_old_rec_num}"}}
                     - deact_class = (rx[:active] == false ? 'deactivated ' : '')
                     - error_class = (![''].include?(rx[SubjectOutcomesHelper::PARAM_ACTION]) || !['', 'Add'].include?(ry[SubjectOutcomesHelper::PARAM_ACTION])) ? 'ui-error' : ''
-                    %td=ry[SubjectOutcomesHelper::COL_COURSE]
-                    %td=ry[SubjectOutcomesHelper::COL_GRADE]
-                    %td=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
-                    %td=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
-                    %td=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
+                    %td.new_course=ry[SubjectOutcomesHelper::COL_COURSE]
+                    %td.new_grade=ry[SubjectOutcomesHelper::COL_GRADE]
+                    %td.new_mp=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
+                    %td.new_lo_code=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
+                    %td.new_lo_desc=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
                     %td.text-center{class: "#{error_class}"}
                       - is_exact = rx[:exact]
-                      %label{for: "selections_#{new_rec_id}_#{prior_old_rec_num}"}=action 
+                      %label{for: "selections_#{new_rec_id}_#{prior_old_rec_num}"}=action
                       = radio_button_tag "selections[#{new_rec_id}]", "#{prior_old_rec_num}", is_exact, id: "selections_#{new_rec_id}_#{prior_old_rec_num}"
-                    %td{class: "#{deact_class}"}=rx[:subject_name]
-                    %td{class: "match-field-#{match[:mp_match]} #{deact_class}"}=rx[:mp]
-                    %td{class: "similar-field-#{match[:code_match]}-2 #{deact_class}"}=rx[:lo_code]
-                    %td{class: "similar-field-#{match[:desc_match]}-4 #{deact_class}"}=rx[:desc]
+                    %td{class: "old_subject #{deact_class}"}=rx[:subject_name]
+                    %td{class: "old_mp match-field-#{match[:mp_match]} #{deact_class}"}=rx[:mp]
+                    %td{class: "old_lo_code similar-field-#{match[:code_match]}-2 #{deact_class}"}=rx[:lo_code]
+                    %td{class: "old_lo_desc similar-field-#{match[:desc_match]}-4 #{deact_class}"}=rx[:desc]
           .row
             - @records.each_with_index do |rec, ix|
               - pair_subject_id = rec[SubjectOutcomesHelper::COL_SUBJECT_ID]

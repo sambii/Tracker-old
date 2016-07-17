@@ -330,6 +330,7 @@ module SubjectOutcomesHelper
   def lo_get_file_from_hidden(params)
     # recreate uploaded records to process
     new_los_by_rec = Hash.new
+    new_los_by_lo_code = Hash.new
     records = Array.new
     params['r'].each do |p|
       seq = p[0]
@@ -350,13 +351,17 @@ module SubjectOutcomesHelper
         records << rec
         # Rails.logger.debug("*** Recreated record: #{rec.inspect}")
         new_los_by_rec[pnew[COL_REC_ID]] = rec
+        new_los_by_lo_code[pnew[COL_OUTCOME_CODE]] = rec
       end
     end
-    return {records: records, los_by_rec: new_los_by_rec}
+    return {records: records, los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code}
   end
 
   def lo_get_file_from_upload(params)
     # no initial errors, process file
+    new_los_by_rec = Hash.new
+    new_los_by_lo_code = Hash.new
+    records = Array.new
     @filename = params['file'].original_filename
     # @errors[:filename] = 'Choose file again to rerun'
     # note: 'headers: true' uses column header as the key for the name (and hash key)
@@ -384,12 +389,13 @@ module SubjectOutcomesHelper
           ix += 1
           # Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
           # Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-          @records << rhash if !rhash[COL_EMPTY]
-          new_los_by_rec[rhash[COL_REC_ID]] = rhash
+          records << rhash if !rhash[COL_EMPTY]
+          new_los_by_rec[rhash[COL_REC_ID]] = rhash if !rhash[COL_EMPTY]
+          new_los_by_lo_code[rhash[COL_OUTCOME_CODE]] = rhash if !rhash[COL_EMPTY]
         end
       end
     end  # end CSV.foreach
-    return new_los_by_rec
+    return {records: records, new_los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code}
   end
 
   def lo_get_old_los
@@ -429,7 +435,7 @@ module SubjectOutcomesHelper
 
     selection_params = params['selections'].present? ? params['selections'] : {}
     Rails.logger.debug("*** selection_params: #{selection_params.inspect}")
-    
+
     selection_params.each do |new_rec_id, old_lo_code|
       # val_new_new_rec_id = Integer(new_rec_id) rescue -1
       # Rails.logger.debug("*** lo_set_selections_as_matched new_rec_id: #{new_rec_id}, old_db_id: #{old_lo_code}")
@@ -490,7 +496,7 @@ module SubjectOutcomesHelper
   def lo_process_pairs
     # Rails.logger.debug("*** @records.length: #{@records.length}")
     last_matched_new_rec_id = -999
-    
+
     @pairs_matched.each_with_index do |pair, ix|
       matched_old_rec = pair[0].clone   # cloned to safely set action
       new_rec_to_match = pair[1].clone  # cloned to safely set unique flag
@@ -542,7 +548,7 @@ module SubjectOutcomesHelper
           else
             @error_count += 1 # if lo_subject_to_process?(matched_old_rec[SubjectOutcomesController::COL_SUBJECT_ID])
           end
-        elsif matched_old_rec[:action] == :'+' 
+        elsif matched_old_rec[:action] == :'+'
           # no matching old record, set new LO to add
           new_rec_to_match[:action] = :'+'
           matched_old_rec[:action] = :'+'
@@ -703,6 +709,7 @@ module SubjectOutcomesHelper
   end
 
   def lo_matching_at_level(first_run)
+    step = 1
     clear_matching_counts
     @errors = Hash.new
     @records = @records_clean.clone
@@ -710,28 +717,38 @@ module SubjectOutcomesHelper
     # @records.each do |p|
     #   Rails.logger.debug("*** record: #{p.inspect}")
     # end
+    Rails.logger.debug("*** Step 1b")
     @new_recs_to_process = lo_get_new_recs_to_process(@records)
     # Rails.logger.debug("*** new_recs_to_process ***")
     # @new_recs_to_process.each do |p|
     #   Rails.logger.debug("*** new_recs_to_process: #{p.inspect}")
     # end
+    Rails.logger.debug("*** Step 1c")
     @new_los_by_rec = @new_los_by_rec_clean.clone
+    Rails.logger.debug("*** Step 1d")
+    @new_los_by_lo_code = @new_los_by_lo_code_clean.clone
     # @new_los_by_rec.each do |rec|
     #   Rails.logger.debug("*** @new_los_by_rec: #{rec.inspect}")
     # end
     @pairs_filtered = Array.new
+    Rails.logger.debug("*** Step 1e")
     @old_los_by_lo = lo_get_old_los
+    Rails.logger.debug("*** Step 1f")
     @old_records_counts = @old_los_by_lo.count
     step = 2
+    Rails.logger.debug("*** Step #{step}")
     @pairs_matched = first_run ? [] : lo_set_selections_as_matched
     step = 3
+    Rails.logger.debug("*** Step #{step}")
     lo_get_matches_for_new
     step = 4
+    Rails.logger.debug("*** Step #{step}")
     lo_process_pairs
     # @pairs_filtered.each do |p|
     #   Rails.logger.debug("*** lo_process_pairs pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
     # end
     step = 5
+    Rails.logger.debug("*** Step #{step}")
     lo_deactivate_unmatched_old
     @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
     last_exact_match = ''
@@ -743,6 +760,7 @@ module SubjectOutcomesHelper
     @pairs_filtered_n = Array.new
     # if there is an exact match
     # - remove all other options
+    Rails.logger.debug("*** Step #{step}")
     @pairs_filtered.each do |p|
       # Rails.logger.debug("*** rec_id: #{p[1][COL_REC_ID]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}")
       this_lo_code = p[2][:lo_code]
@@ -779,7 +797,7 @@ module SubjectOutcomesHelper
         # Rails.logger.debug("*** lo_deactivate_unmatched_old - DROP OTHERS ON EXACT MATCH")
       end
       # Rails.logger.debug("*** lo_deactivate_unmatched_old pairs: #{p[0].inspect}, #{p[1].inspect}, #{p[2].inspect}")
-      # check 
+      # check
       if last_matched != p[0][:matched]
         # new record break
         if last_matched_recs > 1 && last_matched_deact > 0
