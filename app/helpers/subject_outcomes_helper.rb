@@ -483,11 +483,12 @@ module SubjectOutcomesHelper
     @new_recs_to_process.each do |rk, new_rec|
       # only match pairs for pairs not selected by user yet (in the @pairs_matched array) and no errors
       if new_rec[:matched].blank? || new_rec[:error].blank?
-        # Rails.logger.debug("*** Matching: rk: #{rk}, new_rec: #{new_rec}")
+        Rails.logger.debug("*** Matching: rk: #{rk}, new_rec: #{new_rec.inspect}")
         matching_pairs = lo_match_new(new_rec, @old_los_by_lo, @match_level)
         @pairs_matched.concat(matching_pairs)
+        # Rails.logger.debug("*** Matching: matching_pairs: #{matching_pairs}")
       else
-        # Rails.logger.debug("*** Already Matched: rk: #{rk}, old_rec: #{old_rec}")
+        # Rails.logger.debug("*** Already Matched: rk: #{rk}, new_rec: #{new_rec.inspect}")
         # # pair has already been selected, pass it forward
         # new_rec = @new_los_by_rec[old_rec[:matched]]
         # @pairs_matched << [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
@@ -504,6 +505,9 @@ module SubjectOutcomesHelper
       new_rec_to_match = pair[1].clone  # cloned to safely set unique flag
       matched_weights = pair[2]
 
+    @pairs_filtered.each do |p|
+      Rails.logger.debug("*** lo_process_pairs @pairs_filtered: #{pair[0][:lo_code]}, #{pair[1][COL_OUTCOME_CODE]}, #{pair[2][:lo_code]}, #{pair[2][:total_match]}")
+    end
       # Rails.logger.debug("*** pair: #{[matched_old_rec, new_rec_to_match, matched_weights].inspect}")
 
       matched_db_id = matched_old_rec[:db_id]
@@ -738,10 +742,17 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** Step 1b")
     @pairs_filtered = Array.new
     @old_los_by_lo = lo_get_old_los
+    @old_los_by_lo.each do |rec|
+      Rails.logger.debug("*** @old_los_by_lo: #{rec.inspect}")
+    end
     @old_records_counts = @old_los_by_lo.count
     step = 2
     Rails.logger.debug("*** Step #{step}")
-    @pairs_matched = first_run ? [] : lo_set_selections_as_matched
+    # @pairs_matched = first_run ? [] : lo_set_selections_as_matched
+    # @pairs_matched.each do |rec|
+    #   Rails.logger.debug("*** @pairs_matched: #{rec.inspect}")
+    # end
+    @pairs_matched = Array.new
     step = 3
     Rails.logger.debug("*** Step #{step}")
     lo_get_matches_for_new

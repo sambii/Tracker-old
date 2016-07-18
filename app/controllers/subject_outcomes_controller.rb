@@ -364,7 +364,7 @@ class SubjectOutcomesController < ApplicationController
       if @stage == 9 && @process_by_subject.blank?
         format.html { render :action => "lo_matching_update" }
       else
-        # process_by_subject increment to next subject after update
+        # get current subject
         current_subject_ix = 0
         @subjects.each_with_index do |subj, ix|
           if subj.id == @process_by_subject_id
@@ -372,21 +372,26 @@ class SubjectOutcomesController < ApplicationController
             break
           end
         end
-        if current_subject_ix == @subjects.length
+        # process_by_subject increment to next subject after update
+        if @process_by_subject.present? && current_subject_ix == @subjects.length
           # at end of subjects, go to reporting page
           format.html { render :action => "lo_matching_update" }
         else
-          # process next subject
-          @process_by_subject = @subjects[current_subject_ix+1]
-          @process_by_subject_id = @process_by_subject.id
-          Rails.logger.debug("***")
-          Rails.logger.debug("*** Running at @match_level #{@match_level}")
-          Rails.logger.debug("***")
+          if @stage == 9
+            # process next subject
+            @process_by_subject = @subjects[current_subject_ix+1]
+            @process_by_subject_id = @process_by_subject.id
+            Rails.logger.debug("***")
+            Rails.logger.debug("*** Running at @match_level #{@match_level}")
+            Rails.logger.debug("***")
+          end
+
+          # generate pairs for subject
           lo_matching_at_level(false)
 
           # tighten @match_level until no deactivates or reactivates
           # if @deactivate_count > 0 || @reactivate_count > 0
-          if !@allow_save && @loosen_level
+          if @stage < 10 && @loosen_level
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")
@@ -396,7 +401,7 @@ class SubjectOutcomesController < ApplicationController
               lo_matching_at_level(false)
               break if @allow_save || !@loosen_level
             end
-          end
+          end # loosen level (and not done yet)
           format.html
         end
       end

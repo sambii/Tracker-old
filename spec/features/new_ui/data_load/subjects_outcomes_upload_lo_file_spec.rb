@@ -234,9 +234,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      sleep 20
-      save_and_open_page
+      # sleep 20
+      # save_and_open_page
 
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
       within('thead.table-title') do
         page.should have_content("Processing #{@subj_art_1.name} of All Subjects")
@@ -344,6 +345,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_css("input[name='selections[7]']")
         page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
       end
+
+      find('#save_matches').click
+      sleep 20
+      save_and_open_page
 
     end # within #page-content
   end # def bulk_upload_all_matching
