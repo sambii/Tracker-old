@@ -286,29 +286,63 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("AT.1.01")
         page.should_not have_content("MA.1.12")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_']") do
-        page.should have_content("AT.2.01")
-        page.should have_content("+")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_5_#{@so_at_2_02.id}']") do
-        page.should have_content("AT.2.02")
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_#{@so_at_2_01.id}']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.01 Changed")
         page.should have_content("=")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_6_#{@so_at_2_03.id}']") do
-        page.should have_content("AT.2.03")
-        page.should have_content("=")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_']") do
-        page.should have_content("AT.2.04")
-        page.should have_content("+")
+        page.should have_css("input[name='selections[4]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
       end
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
-        page.should have_content("AT.2.01")
+        page.should have_css("td.new_lo_desc", text: "")
         page.should have_content("-")
+        page.should have_css("input[name='selections[4]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_5_#{@so_at_2_02.id}']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.02 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[5]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.02 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_6_#{@so_at_2_03.id}']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.03 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[6]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.03 Original")
       end
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
-        page.should have_content("AT.2.04")
+        page.should have_css("td.new_lo_desc", text: "")
         page.should have_content("-")
+        page.should have_css("input[name='selections[]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_03.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.03 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_02.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.02 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_01.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
       end
 
     end # within #page-content

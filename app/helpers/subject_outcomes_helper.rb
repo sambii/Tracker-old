@@ -6,27 +6,27 @@ module SubjectOutcomesHelper
   include ApplicationHelper
 
   # staff file column labels
-  COL_REC_ID = :'rec_id'
+  COL_REC_ID = :rec_id
   COL_COURSE = :'Course'
   COL_GRADE = :'Grade'
   COL_SUBJECT = :'Subject'
   COL_SEMESTER = :'Semester'
   COL_MARK_PER = :'Marking Period'
-  COL_MP_BITMAP = :'mp_bitmap'
+  COL_MP_BITMAP = :mp_bitmap
   COL_OUTCOME_CODE = :'LO Code:'
-  DB_OUTCOME_CODE = :'lo_code'
+  DB_OUTCOME_CODE = :lo_code
   COL_OUTCOME_NAME = :'Learning Outcome'
   COL_SHORTENED_NAME = :'Short Description'
-  COL_ERROR = :'error'
-  COL_SUCCESS = :'success'
-  COL_EMPTY = :'empty'
-  COL_COURSE_ID = :'subject_id'
-  COL_SUBJECT_ID = :'subject_id'
-  COL_DB_ID = :'db_id'
-  COL_ACTIVE = :'active'
-  COL_STATE = :'state'
-  PARAM_ID = :'id'
-  PARAM_ACTION = :'action'
+  COL_ERROR = :error
+  COL_SUCCESS = :success
+  COL_EMPTY = :empty
+  COL_COURSE_ID = :subject_id
+  COL_SUBJECT_ID = :subject_id
+  COL_DB_ID = :db_id
+  COL_ACTIVE = :active
+  COL_STATE = :state
+  PARAM_ID = :id
+  PARAM_ACTION = :action
 
   # matching levels
   MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['loose', 3], ['tight', 4], ['tighter', 5], ['tightest', 6]]
@@ -381,13 +381,15 @@ module SubjectOutcomesHelper
         # processing all subjects in file
         # Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
         # Rails.logger.debug("*** match (any) subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
-        @records << rhash if !rhash[COL_EMPTY]
+        records << rhash if !rhash[COL_EMPTY]
         new_los_by_rec[rhash[COL_REC_ID]] = rhash
+        new_los_by_lo_code[rhash[COL_OUTCOME_CODE]] = rhash if !rhash[COL_EMPTY]
       else
         matched_subject = (@match_subject.name == check_subject)
         if matched_subject
           ix += 1
           # Rails.logger.debug("*** Add @records item: #{rhash.inspect}")
+          # Rails.logger.debug("*** rhash[COL_EMPTY]: #{rhash[COL_EMPTY]}")
           # Rails.logger.debug("*** match subject: #{matched_subject} for #{check_subject} = #{check_subject.unpack('U' * check_subject.length)}")
           records << rhash if !rhash[COL_EMPTY]
           new_los_by_rec[rhash[COL_REC_ID]] = rhash if !rhash[COL_EMPTY]
@@ -510,6 +512,7 @@ module SubjectOutcomesHelper
       # Rails.logger.debug("*** matched_rec_num: #{matched_rec_num}")
 
       old_lo_code = matched_old_rec[:lo_code]
+      new_rec_to_match[:'matching_rec_id'] = new_rec_to_match[:rec_id]
       # Always set exact matches as :matched (for initial implementation & probably also for final implentation)
       if matched_weights[:total_match] == MAX_MATCH_LEVEL
         # Rails.logger.debug("*** matched")
@@ -602,9 +605,13 @@ module SubjectOutcomesHelper
         old_rec_clone[:matched] = '-1'
         new_rec = {subject_id: old_rec_clone[:subject_id], action: :'-'}
         match_h = get_matching_level(old_rec_clone, new_rec)
+        matching_new_rec = @new_los_by_lo_code[match_h[:lo_code]]
+        new_rec[:'matching_rec_id'] = matching_new_rec[:rec_id] if matching_new_rec.present?
+        # old_rec_clone[:'rec_id'] = @new_los_by_lo_code[match_h[:lo_code]]
+        # old_rec_clone[:lo_code] = match_h[:lo_code]
         add_pair << [old_rec_clone, new_rec, match_h]
         @pairs_filtered.concat(add_pair)
-        # Rails.logger.debug("*** Added pair: #{add_pair.inspect}")
+        Rails.logger.debug("*** Added pair: #{add_pair.inspect}")
       else
         # Rails.logger.debug("*** Skipped Adding pair for old_rec: #{old_rec.inspect}")
       end
@@ -717,23 +724,20 @@ module SubjectOutcomesHelper
     # @records.each do |p|
     #   Rails.logger.debug("*** record: #{p.inspect}")
     # end
-    Rails.logger.debug("*** Step 1b")
+    Rails.logger.debug("*** Step 1a")
     @new_recs_to_process = lo_get_new_recs_to_process(@records)
     # Rails.logger.debug("*** new_recs_to_process ***")
     # @new_recs_to_process.each do |p|
     #   Rails.logger.debug("*** new_recs_to_process: #{p.inspect}")
     # end
-    Rails.logger.debug("*** Step 1c")
     @new_los_by_rec = @new_los_by_rec_clean.clone
-    Rails.logger.debug("*** Step 1d")
     @new_los_by_lo_code = @new_los_by_lo_code_clean.clone
     # @new_los_by_rec.each do |rec|
     #   Rails.logger.debug("*** @new_los_by_rec: #{rec.inspect}")
     # end
+    Rails.logger.debug("*** Step 1b")
     @pairs_filtered = Array.new
-    Rails.logger.debug("*** Step 1e")
     @old_los_by_lo = lo_get_old_los
-    Rails.logger.debug("*** Step 1f")
     @old_records_counts = @old_los_by_lo.count
     step = 2
     Rails.logger.debug("*** Step #{step}")
@@ -744,13 +748,16 @@ module SubjectOutcomesHelper
     step = 4
     Rails.logger.debug("*** Step #{step}")
     lo_process_pairs
-    # @pairs_filtered.each do |p|
-    #   Rails.logger.debug("*** lo_process_pairs pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
-    # end
+    @pairs_filtered.each do |p|
+      Rails.logger.debug("*** lo_process_pairs pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
+    end
     step = 5
     Rails.logger.debug("*** Step #{step}")
     lo_deactivate_unmatched_old
     @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
+    @pairs_filtered.each do |p|
+      Rails.logger.debug("*** sorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
+    end
     last_exact_match = ''
     last_matched = ''
     last_matched_recs = 0
@@ -760,9 +767,9 @@ module SubjectOutcomesHelper
     @pairs_filtered_n = Array.new
     # if there is an exact match
     # - remove all other options
-    Rails.logger.debug("*** Step #{step}")
+    # Rails.logger.debug("*** Step #{step}")
     @pairs_filtered.each do |p|
-      # Rails.logger.debug("*** rec_id: #{p[1][COL_REC_ID]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}")
+      Rails.logger.debug("*** rec_id: #{p[1][COL_REC_ID]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}")
       this_lo_code = p[2][:lo_code]
       this_is_exact = p[2][:total_match] == MAX_MATCH_LEVEL
       if this_is_exact
@@ -779,6 +786,10 @@ module SubjectOutcomesHelper
       if this_is_exact
         # output the exact match
         p[0][:matched] = p[1][:rec_id]
+        Rails.logger.debug("*** exact match rec_id: #{p[0][:matched]} - #{p[1][:rec_id]} - #{p[1][:matching_rec_id]}")
+        Rails.logger.debug("*** Pair: p[2] #{p[2].inspect}")
+        Rails.logger.debug("*** Pair: code #{p[0][:lo_code]} <=> #{p[1][:'LO Code:']}")
+        Rails.logger.debug("*** Pair: desc #{p[0][:desc]} <=> #{p[1][:'Learning Outcome']}")
         @pairs_filtered_n << p
         # don't # add the unmatch option
         # @pairs_filtered_n << [{action: 'x', matched: p[1][:rec_id]}, p[1], get_matching_level({}, p[1])]
@@ -787,12 +798,14 @@ module SubjectOutcomesHelper
       elsif last_exact_match != this_lo_code
         # output if not an exact match
         p[0][:matched] = p[1][:rec_id]
+        Rails.logger.debug("*** not exact match rec_id: #{p[0][:matched]} - #{p[1][:rec_id]} - #{p[1][:matching_rec_id]}")
         Rails.logger.debug("*** Pair: p[2] #{p[2].inspect}")
         Rails.logger.debug("*** Pair: code #{p[0][:lo_code]} <=> #{p[1][:'LO Code:']}")
         Rails.logger.debug("*** Pair: desc #{p[0][:desc]} <=> #{p[1][:'Learning Outcome']}")
         @pairs_filtered_n << p
         # Rails.logger.debug("*** lo_deactivate_unmatched_old - NOT AN EXACT MATCH")
       else
+        Rails.logger.debug("*** dropped after exact match rec_id: #{p[0][:matched]} - #{p[1][:rec_id]} - #{p[1][:matching_rec_id]}")
         # don't output the other pairs for the exact match
         # Rails.logger.debug("*** lo_deactivate_unmatched_old - DROP OTHERS ON EXACT MATCH")
       end

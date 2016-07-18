@@ -58,17 +58,18 @@
                 %th= 'Old Description'
             %tbody.tbody-body
               - prior_new_rec_num = 0
-              - prior_lo_code = ''
+              - # prior_lo_code = ''
+              - prior_matched_rec_id = -1
               - highlight_class = ''
               - @pairs_filtered.each_with_index do |set, ix|
                 - rx = set[0]
                 - ry = set[1]
                 - match = set[2]
                 - # set up alternate old record highlighting
-                - # if prior_new_rec_num != ry[:matched]
-                - if prior_lo_code != match[:lo_code]
-                  - # prior_new_rec_num = ry[:matched]
-                  - prior_lo_code = match[:lo_code]
+                - # if prior_lo_code != match[:lo_code]
+                - if prior_matched_rec_id != ry[:matching_rec_id]
+                  - # prior_lo_code = match[:lo_code]
+                  - prior_matched_rec_id = ry[:matching_rec_id]
                   - highlight_class = (highlight_class == 'on' ? '' : 'on')
                   - break_class = 'break'
                 - else
@@ -95,7 +96,7 @@
                     %td.text-center{class: "#{error_class}"}
                       - is_exact = rx[:exact]
                       %label{for: "selections_#{new_rec_id}_#{prior_old_rec_num}"}=action
-                      = radio_button_tag "selections[#{new_rec_id}]", "#{prior_old_rec_num}", is_exact, id: "selections_#{new_rec_id}_#{prior_old_rec_num}"
+                      = radio_button_tag "selections[#{prior_matched_rec_id}]", "#{prior_old_rec_num}", is_exact, id: "selections_#{new_rec_id}_#{prior_old_rec_num}"
                     %td{class: "old_subject #{deact_class}"}=rx[:subject_name]
                     %td{class: "old_mp match-field-#{match[:mp_match]} #{deact_class}"}=rx[:mp]
                     %td{class: "old_lo_code similar-field-#{match[:code_match]}-2 #{deact_class}"}=rx[:lo_code]
