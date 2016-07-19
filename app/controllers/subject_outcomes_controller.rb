@@ -67,6 +67,9 @@ class SubjectOutcomesController < ApplicationController
       @stage = 1
       @records = Array.new
       @errors = Hash.new
+      @selections = Hash.new
+      @selected_pairs = Hash.new
+      @selected_new_rec_ids = Array.new
 
       action_count = 0
 
@@ -224,7 +227,9 @@ class SubjectOutcomesController < ApplicationController
       @stage = 1
       @records = Array.new
       @errors = Hash.new
-
+      @selections = params['selections'].present? ? params['selections'].clone : Hash.new
+      @selected_pairs = Hash.new
+      @selected_new_rec_ids = Array.new
       action_count = 0
 
       # get the model school
@@ -384,6 +389,9 @@ class SubjectOutcomesController < ApplicationController
             Rails.logger.debug("***")
             Rails.logger.debug("*** Running at @match_level #{@match_level}")
             Rails.logger.debug("***")
+
+            # clear out selections from prior subject submit
+            @selections = Hash.new
           end
 
           # generate pairs for subject

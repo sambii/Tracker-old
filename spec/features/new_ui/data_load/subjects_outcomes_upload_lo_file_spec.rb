@@ -278,6 +278,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       sleep 20
       save_and_open_page
 
+      # Art 2 with two preselected identical pairs
       page.should have_content('Match Old LOs to New LOs')
       within('thead.table-title') do
         page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
@@ -314,7 +315,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
         page.should have_css("td.new_lo_desc", text: "")
         page.should have_content("-")
-        page.should have_css("input[name='selections[]']")
+        page.should have_css("input[name='selections[-1]']")
         page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
       end
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
@@ -349,6 +350,77 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
       sleep 20
       save_and_open_page
+
+      # page should  be identical since there were no changes
+      # Art 2 with two preselected identical pairs
+      page.should have_content('Match Old LOs to New LOs')
+      within('thead.table-title') do
+        page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
+      end
+      # confirm current subject los are displayed and others are not
+      within('form table') do
+        page.should_not have_content("AT.1.01")
+        page.should_not have_content("MA.1.12")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_#{@so_at_2_01.id}']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.01 Changed")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[4]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[4]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_5_#{@so_at_2_02.id}']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.02 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[5]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.02 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_6_#{@so_at_2_03.id}']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.03 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[6]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.03 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-1]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_03.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.03 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_02.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.02 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_01.id}']") do
+        page.should have_css("td.new_lo_code", text: "AT 2.04")
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("=")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
+      end
+
 
     end # within #page-content
   end # def bulk_upload_all_matching
