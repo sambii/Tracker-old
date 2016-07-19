@@ -69,6 +69,7 @@
                 - # if prior_lo_code != match[:lo_code]
                 - if prior_matched_rec_id != ry[:matching_rec_id]
                   - # prior_lo_code = match[:lo_code]
+                  - puts("+++ break: #{prior_matched_rec_id.inspect} = #{ry[:matching_rec_id].inspect}")
                   - prior_matched_rec_id = ry[:matching_rec_id]
                   - highlight_class = (highlight_class == 'on' ? '' : 'on')
                   - break_class = 'break'

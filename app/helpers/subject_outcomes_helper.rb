@@ -583,9 +583,6 @@ module SubjectOutcomesHelper
       if old_rec[:active] == true && (old_rec[:matched].blank? || old_rec[:exact].blank?) && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         @process_count += 1 # if lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         @deactivate_count += 1 # if lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
-        # Rails.logger.debug("*** subject: #{old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i}, process: #{ lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)}")
-        # Rails.logger.debug("*** Loop through old records: #{old_rec.inspect}")
-        # Rails.logger.debug("*** Deactivate old_rec!!!!!!!") if lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         add_pair = []
         old_rec_clone = old_rec.clone
         old_rec_clone[:action] = :'-'
@@ -596,17 +593,8 @@ module SubjectOutcomesHelper
         matching_rec_id = -1
         if matching_new_rec.present?
           matching_rec_id =  Integer(matching_new_rec[:rec_id]) rescue -1
-          Rails.logger.debug("*** @selections present? : #{@selections[matching_new_rec["rec_id"]].present?}")
-          Rails.logger.debug("*** matching_new_rec[:rec_id] : #{matching_new_rec[:rec_id].inspect}")
-          Rails.logger.debug("*** test : #{@selected_new_rec_ids.include?(matching_new_rec[:rec_id])}")
         end
-
-        Rails.logger.debug("*** matching_new_rec: #{matching_new_rec.inspect}")
-        Rails.logger.debug("*** matching_new_rec.present?: #{matching_new_rec.present?}")
-        Rails.logger.debug("*** new_rec.inspect: #{new_rec.inspect}")
-        Rails.logger.debug("*** @selected_new_rec_ids : #{@selected_new_rec_ids.inspect}")
-
-        new_rec[:'matching_rec_id'] = matching_rec_id
+        new_rec[:'matching_rec_id'] = matching_rec_id.to_s
 
         # if @selections.present? && matching_new_rec.present? && @selections[matching_new_rec[:rec_id]].present?
         if @selected_new_rec_ids.include?(matching_rec_id)
