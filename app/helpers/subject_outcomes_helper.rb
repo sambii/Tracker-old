@@ -496,8 +496,8 @@ module SubjectOutcomesHelper
 
       if @selections.count > 0
         # mark selected pair
-        Rails.logger.debug("*** Have Selections - matched_rec_num: #{matched_rec_num}")
-        if @selections[matched_rec_num] == matched_db_id_num
+        Rails.logger.debug("*** Have Selections - matched_rec_num: #{matched_rec_num} #{@selections[matched_rec_num.to_s].inspect} #{matched_db_id_num.inspect}")
+        if @selections[matched_rec_num.to_s] == matched_db_id_num.to_s
           Rails.logger.debug("*** matched selection for - ix: #{ix}")
           matched_weights[:selected] = true
           @selected_count += 1
