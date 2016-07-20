@@ -234,7 +234,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      # sleep 20
+      # sleep 10
       # save_and_open_page
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -275,8 +275,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}_2_']")
 
       find('#save_matches').click
-      sleep 20
-      save_and_open_page
 
       # Art 2 with two preselected identical pairs
       page.should have_content('Match Old LOs to New LOs')
@@ -347,8 +345,14 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
       end
 
+      find('input#selections__5').click
+      find('input#selections__8').click
+      find('input#selections_7_8').click
+
+      save_and_open_page
+
       find('#save_matches').click
-      sleep 20
+      sleep 10
       save_and_open_page
 
       # page should  be identical since there were no changes

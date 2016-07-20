@@ -230,6 +230,11 @@ class SubjectOutcomesController < ApplicationController
       @selections = params['selections'].present? ? params['selections'].clone : Hash.new
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
+      @selections.each do |k,v|
+        @selected_new_rec_ids << k.to_s if k != '-1'
+      end
+
+
       action_count = 0
 
       # get the model school
@@ -288,43 +293,72 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}")
       if @allow_save
         ActiveRecord::Base.transaction do
+          Rails.logger.debug("***")
+          Rails.logger.debug("*** Update Subject Learning Outcomes")
+          Rails.logger.debug("***")
           @pairs_matched.each_with_index do |pair, ix|
             rec = pair[0]
             matched_new_rec = pair[1].clone # only change state for this matching pair
             matched_weights = pair[2]
-            # Rails.logger.debug("*** num: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].inspect}, Fixnum?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].instance_of?(Fixnum)}, to_i Integer?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i.instance_of?(Integer)}, class?: #{rec[SubjectOutcomesController::COL_SUBJECT_ID].class}")
-            if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && rec[PARAM_ACTION].present?
+
+            Rails.logger.debug("*** Pair: #{matched_weights.inspect}")
+            Rails.logger.debug("*** process? #{lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?}")
+
+            if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?
               Rails.logger.debug("*** Update old rec: #{rec}")
-              case rec[PARAM_ACTION]
+              case matched_weights[PARAM_ACTION]
+              when :'=', :'~=', nil
+                so = SubjectOutcome.find(rec[COL_DB_ID])
+                so.active = true
+                so.lo_code = matched_new_rec[:'LO Code:']
+                so.description = matched_new_rec[:'Learning Outcome']
+                so.marking_period = matched_new_rec[:mp_bitmap]
+                so.save!
+                action_count += 1
+                action = 'Updated'
+                Rails.logger.debug("*** Updated to : #{so.inspect}")
               when :'-'
-                so = SubjectOutcome.find(rec[COL_REC_ID])
+                so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = false
                 so.save!
                 action_count += 1
                 action = 'Removed'
-              when :'+'
-                so = SubjectOutcome.find(rec[COL_REC_ID])
+                Rails.logger.debug("*** Pair Removed: #{so.inspect}")
+              when :'^'
+                so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = true
                 so.save!
                 action_count += 1
                 action = 'Restored'
-              when :'=', nil
-                # ignore
-                # Rails.logger.debug("*** 'ignore' action")
+                Rails.logger.debug("*** Pair Restored: #{so.inspect}")
+              when :'+'
+                so = SubjectOutcome.new
+                so.lo_code = rec[COL_OUTCOME_CODE]
+                so.description = rec[COL_OUTCOME_NAME]
+                so.subject_id = rec[COL_SUBJECT_ID].to_i
+                so.marking_period = rec[COL_MP_BITMAP]
+                so.save!
+                action_count += 1
+                action = 'Added'
+                Rails.logger.debug("*** Pair Added: #{so.inspect}")
               when 'Mismatch'
+                Rails.logger.debug("*** Pair Mismatch")
                 raise("Attempt to update with Mismatch - item #{action_count+1}")
               else
+                Rails.logger.debug("*** Pair Invalid LO")
                 raise("Invalid subject outcome action: #{rec[PARAM_ACTION].inspect} - item #{action_count+1}")
               end
             end
 
           end
+          Rails.logger.debug("***")
+          Rails.logger.debug("*** Add unmatched Learning Outcomes ????? ")
+          Rails.logger.debug("***")
           @records.each do |rec|
-            # Rails.logger.debug("*** @records rec: #{rec.inspect}")
             if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID])
-              # Rails.logger.debug("*** Add new rec")
+              Rails.logger.debug("*** @records rec: #{rec.inspect}")
               case rec[PARAM_ACTION]
-              when '+'
+              when :'+'
                 so = SubjectOutcome.new
                 so.lo_code = rec[COL_OUTCOME_CODE]
                 so.description = rec[COL_OUTCOME_NAME]
