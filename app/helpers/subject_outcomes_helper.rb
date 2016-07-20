@@ -530,7 +530,7 @@ module SubjectOutcomesHelper
 
       # save matching new record in old record (as well in pair)
       old_lo_code = matched_old_rec[:lo_code]
-      new_rec_to_match[:'matching_rec_id'] = new_rec_to_match[:rec_id]
+      new_rec_to_match[:matching_rec_id] = new_rec_to_match[:rec_id]
       if matched_weights[:selected] == true
         @old_los_by_lo[old_lo_code][:matched] = new_rec_to_match[:rec_id] if matched_old_rec[:db_id].present?
       else
@@ -591,11 +591,13 @@ module SubjectOutcomesHelper
         new_rec = {subject_id: old_rec_clone[:subject_id], action: :'-'}
         match_h = get_matching_level(old_rec_clone, new_rec)
         matching_new_rec = @new_los_by_lo_code[match_h[:lo_code]]
-        matching_rec_id = -1
+        invalid_new_rec = (Integer(old_rec_clone[:db_id]) rescue 9999) * -1
+        matching_rec_id = invalid_new_rec
         if matching_new_rec.present?
-          matching_rec_id =  Integer(matching_new_rec[:rec_id]) rescue -1
+          matching_rec_id =  Integer(matching_new_rec[:rec_id]) rescue invalid_new_rec
         end
-        new_rec[:'matching_rec_id'] = matching_rec_id.to_s
+        # # join deactivated record to corresponding radio button grouping for this lo_code
+        # new_rec[:matching_rec_id] = matching_rec_id.to_s
 
         if @selected_new_rec_ids.include?(matching_rec_id)
           # has a selection for this new record ID, do not add deactivate

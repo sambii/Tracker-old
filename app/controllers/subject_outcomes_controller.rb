@@ -231,7 +231,8 @@ class SubjectOutcomesController < ApplicationController
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
       @selections.each do |k,v|
-        @selected_new_rec_ids << k.to_s if k != '-1'
+        ik = Integer(k) rescue -99999
+        @selected_new_rec_ids << k.to_s
       end
 
 
