@@ -308,16 +308,21 @@ class SubjectOutcomesController < ApplicationController
             if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?
               Rails.logger.debug("*** Update old rec: #{rec}")
               case matched_weights[PARAM_ACTION]
-              when :'=', :'~=', nil
-                so = SubjectOutcome.find(rec[COL_DB_ID])
-                so.active = true
-                so.lo_code = matched_new_rec[:'LO Code:']
-                so.description = matched_new_rec[:'Learning Outcome']
-                so.marking_period = matched_new_rec[:mp_bitmap]
-                so.save!
-                action_count += 1
-                action = 'Updated'
-                Rails.logger.debug("*** Updated to : #{so.inspect}")
+              when :'='
+                if matched_weights[:total_match] == 6
+                  # identical - no update needed
+                  Rails.logger.debug("*** No Update - Identical")
+                else
+                  so = SubjectOutcome.find(rec[COL_DB_ID])
+                  so.active = true
+                  so.lo_code = matched_new_rec[:'LO Code:']
+                  so.description = matched_new_rec[:'Learning Outcome']
+                  so.marking_period = matched_new_rec[:mp_bitmap]
+                  so.save!
+                  action_count += 1
+                  action = 'Updated'
+                  Rails.logger.debug("*** Updated to : #{so.inspect}")
+                end
               when :'-'
                 so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = false
