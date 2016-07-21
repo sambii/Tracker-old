@@ -150,9 +150,9 @@ class SubjectOutcomesController < ApplicationController
 
       step = 1
       # initial matching level from default value
-      @match_level = DEFAULT_MATCH_LEVEL
+      @match_level = MAX_MATCH_LEVEL
 
-      # process the new LO records in lo_code order, and generate all matching pairs for the current matching level.
+      # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
       lo_matching_at_level(true)
 
       # if cannot update all records without matching, then start matching process on first subject.
@@ -287,7 +287,7 @@ class SubjectOutcomesController < ApplicationController
       # development manual adjustmenmt of matching level from input field in matching page.
       @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
 
-      # process the new LO records in lo_code order, and generate all matching pairs for the current matching level.
+      # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
       lo_matching_at_level(false)
 
       step = 7

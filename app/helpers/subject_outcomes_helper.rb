@@ -31,8 +31,10 @@ module SubjectOutcomesHelper
   # matching levels
   MATCH_LEVEL_OPTIONS = [['loosest', 1], ['looser', 2], ['loose', 3], ['tight', 4], ['tighter', 5], ['tightest', 6]]
 
-  DEFAULT_MATCH_LEVEL = 6
+  DEFAULT_MATCH_LEVEL = 5
   MAX_MATCH_LEVEL = 6
+  MAX_CODE_LEVEL = 2
+  MAX_DESC_LEVEL = 4
 
   # curriculum / LOs bulk upload file stage 2 processing - field validation
   def validate_csv_fields(csv_hash_in, subject_names)
@@ -228,29 +230,34 @@ module SubjectOutcomesHelper
     return match_h
   end
 
-  def lo_match_old(old_rec, new_recs, match_level)
-    return_array = []
-    # check matching against all new records, returning all that match at or above match_level
-    new_recs.each do |k, new_rec|
-      match_h = get_matching_level(old_rec, new_rec)
-      return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
-    end
-    # if no matches add a pair with a blank new record (for deactivation)
-    if return_array.length == 0
-      match_h = get_matching_level(old_rec, {})
-      return_array << [old_rec, {action: :'-'}, match_h]
-    end
-    # return matches in descending match_level order
-    sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
-    return sorted_array
-  end
+  # def lo_match_old(old_rec, new_recs, match_level)
+  #   return_array = []
+  #   # check matching against all new records, returning all that match at or above match_level
+  #   new_recs.each do |k, new_rec|
+  #     match_h = get_matching_level(old_rec, new_rec)
+  #     return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
+  #   end
+  #   # if no matches add a pair with a blank new record (for deactivation)
+  #   if return_array.length == 0
+  #     match_h = get_matching_level(old_rec, {})
+  #     return_array << [old_rec, {action: :'-'}, match_h]
+  #   end
+  #   # return matches in descending match_level order
+  #   sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
+  #   return sorted_array
+  # end
 
   def lo_match_new(new_rec, old_recs, match_level)
     return_array = []
     # check matching against all new records, returning all that match at or above match_level
     old_recs.each do |k, old_rec|
       match_h = get_matching_level(old_rec, new_rec)
-      return_array << [old_rec, new_rec, match_h] if ( match_level <= match_h[:total_match] )
+      if ( match_level <= match_h[:total_match] ||
+        match_h[:code_match] == MAX_CODE_LEVEL ||
+        match_h[:desc_match] == MAX_DESC_LEVEL)
+          return_array << [old_rec, new_rec, match_h]
+          Rails.logger.debug("*** get_matching_level matched: #{match_h[:total_match]} on #{old_rec[:lo_code]} <=> #{new_rec[:'LO Code:']}")
+      end
     end
     # if no matches add a pair with a blank old record (for adding new)
     if return_array.length == 0
@@ -259,7 +266,7 @@ module SubjectOutcomesHelper
     end
     # return matches in descending match_level order
     sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
-    # Rails.logger.debug("*** Pair for new_rec #{new_rec[:rec_id]}, sorted_array: #{sorted_array.inspect}")
+    Rails.logger.debug("*** Pair for new_rec #{new_rec[:rec_id]}, sorted_array: #{sorted_array.inspect}")
     return sorted_array
   end
 
@@ -429,6 +436,15 @@ module SubjectOutcomesHelper
     return old_los_by_lo
   end
 
+  def lo_get_old_los_by_id(old_los)
+    old_los_by_id = Hash.new
+    old_los.each do |k,rec|
+      old_los_by_id[rec[:db_id]] = rec
+    end
+    return old_los_by_id
+  end
+
+
   # def lo_set_selections_as_matched
   #   # get the selections from params
   #   # set :matched to corresponding old/new IDs for selected pairs from radio button selection (or possibly exact matches)
@@ -462,6 +478,7 @@ module SubjectOutcomesHelper
     # find any matching database records for each new record (at @match_level)
     Rails.logger.debug("*** @selected_new_rec_ids: #{@selected_new_rec_ids.inspect}")
     Rails.logger.debug("*** @selections: #{@selections.inspect}")
+    Rails.logger.debug("*** @old_los_by_id: #{@old_los_by_id.inspect}")
     Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
     @new_recs_to_process.each do |rk, new_rec|
       Rails.logger.debug("*** new rec to process: #{new_rec.inspect}")
@@ -469,15 +486,16 @@ module SubjectOutcomesHelper
       new_lo_code = new_rec[:"LO Code:"]
       # only match pairs for pairs not selected by user yet (in the @pairs_matched array) and no errors
       if @selections[new_rec_num.to_s].present?
+        db_id = Integer(@selections[new_rec_num.to_s]) rescue -1
         # selection exists, generate a pair for it
         Rails.logger.debug("*** Pre-selected: rk: #{rk}, new_rec: #{new_rec.inspect}")
-        old_rec = @old_los_by_lo[new_lo_code].present? ? @old_los_by_lo[new_lo_code] : {}
+        old_rec = @old_los_by_id[db_id].present? ? @old_los_by_id[db_id] : {}
         Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
         new_pair = [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
         Rails.logger.debug("*** new_pair: #{new_pair}")
         @pairs_matched << new_pair
       elsif new_rec[:matched].blank? || new_rec[:error].blank?
-        Rails.logger.debug("*** Matching: rk: #{rk}, new_rec: #{new_rec.inspect}")
+        Rails.logger.debug("*** Matching: rk: #{rk}, new_rec: #{new_rec.inspect} at level: #{@match_level}")
         matching_pairs = lo_match_new(new_rec, @old_los_by_lo, @match_level)
         @pairs_matched.concat(matching_pairs)
         Rails.logger.debug("*** Matching: matching_pairs: #{matching_pairs}")
@@ -501,6 +519,9 @@ module SubjectOutcomesHelper
       matched_weights[:pair_id] = ix
 
       this_is_exact = matched_weights[:total_match] == MAX_MATCH_LEVEL
+      this_is_exacting = matched_weights[:total_match] == MAX_MATCH_LEVEL ||
+        matched_weights[:code_match] == MAX_CODE_LEVEL ||
+        matched_weights[:desc_match] == MAX_DESC_LEVEL
 
       matched_db_id = matched_old_rec[:db_id]
       matched_db_id_num = Integer(matched_old_rec[:db_id]) rescue -1
@@ -525,6 +546,8 @@ module SubjectOutcomesHelper
           @selected_pairs[matched_rec_num] = ix
           @selected_new_rec_ids << matched_rec_num
           Rails.logger.debug("*** exact selection for - ix: #{ix} #{matched_weights.inspect}")
+        elsif this_is_exacting
+          Rails.logger.debug("*** exacting selection for - ix: #{ix} #{matched_weights.inspect}")
         end
       end
 
@@ -533,7 +556,7 @@ module SubjectOutcomesHelper
       new_rec_to_match[:matching_rec_id] = new_rec_to_match[:rec_id]
       if matched_weights[:selected] == true
         Rails.logger.debug("*** set selected on old rec. matched_old_rec: #{matched_old_rec.inspect}")
-        @old_los_by_lo[old_lo_code][:selected] = new_rec_to_match[:rec_id] if matched_old_rec[:db_id].present?
+        @old_los_by_lo[old_lo_code][:selected] = new_rec_to_match[:rec_id] if old_lo_code.present?
       # else
       #   @old_los_by_lo[old_lo_code][:matched] = nil if matched_old_rec[:db_id].present?
       end
@@ -572,6 +595,7 @@ module SubjectOutcomesHelper
           @error_count += 1
         end
         @pairs_filtered << [matched_old_rec, new_rec_to_match, matched_weights]
+        Rails.logger.debug("*** output pair: #{[matched_old_rec, new_rec_to_match, matched_weights]}")
 
       end # if subject to process
 
@@ -676,7 +700,6 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @exact_match_count : #{@exact_match_count}")
     Rails.logger.debug("*** (@pairs_filtered.count - @exact_match_count) : #{(@pairs_filtered.count - @exact_match_count)}")
     Rails.logger.debug("*** (@new_recs_to_process.count - @exact_match_count) : #{(@new_recs_to_process.count - @exact_match_count)}")
-    Rails.logger.debug("*** (@add_deact_count : #{@add_deact_count}")
 
     @allow_save = true
     if @selections.count == 0
@@ -690,11 +713,12 @@ module SubjectOutcomesHelper
       counts_h = Hash.new(0)
       sel_counts = @selections.map{ |k,v| counts_h[(Integer(k) rescue -99999).abs] += 1}
       @allow_save = false if sel_counts.max > 1
+      @allow_save = false if @new_recs_to_process.count != @pairs_filtered.count
     end
     Rails.logger.debug("*** allow_save : #{@allow_save}")
 
     @loosen_level = (@pairs_filtered.count - @exact_match_count) <= ((@new_recs_to_process.count - @exact_match_count) * 2)
-    Rails.logger.debug("*** @loosen_level : #{@loosen_level}")
+    Rails.logger.debug("*** @loosen_level (#{@match_level}): #{@loosen_level}")
 
   end
 
@@ -706,7 +730,6 @@ module SubjectOutcomesHelper
     @reactivate_count = 0
     @deactivate_count = 0
     @error_count = 0
-    @add_deact_count = 0
     @selected_count = 0
   end
 
@@ -736,6 +759,7 @@ module SubjectOutcomesHelper
     @old_los_by_lo.each do |rec|
       Rails.logger.debug("*** @old_los_by_lo: #{rec.inspect}")
     end
+    @old_los_by_id = lo_get_old_los_by_id(@old_los_by_lo)
     @old_records_counts = @old_los_by_lo.count
     step = 2
     Rails.logger.debug("*** Step #{step}")
