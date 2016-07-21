@@ -580,8 +580,12 @@ module SubjectOutcomesHelper
 
   def lo_deactivate_unmatched_old
     # Any unmatched old records are output as an 'deactivate' pair
+    Rails.logger.debug("*** @selected_pairs: #{@selected_pairs.inspect}")
+    Rails.logger.debug("*** @selected_new_rec_ids: #{@selected_new_rec_ids.inspect}")
+
     @old_los_by_lo.each do |rk, old_rec|
-      Rails.logger.debug("*** deactivate old record: old_rec[:active]: #{old_rec[:active]}, old_rec[:matched]: #{old_rec[:matched]}, old_rec[:selected]: #{old_rec[:selected]}, process? #{lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)}")
+      Rails.logger.debug("*** deactivate old record: old_rec: #{old_rec.inspect}")
+      Rails.logger.debug("*** #{old_rec[:active]}, old_rec[:matched]: #{old_rec[:selected]}, old_rec[:selected]: #{old_rec[:selected]}, process? #{lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)}")
       if old_rec[:active] == true && (old_rec[:matched].blank? || old_rec[:selected].blank?) && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         @process_count += 1
         add_pair = []
@@ -590,23 +594,27 @@ module SubjectOutcomesHelper
         old_rec_clone[:matched] = '-1'
         new_rec = {subject_id: old_rec_clone[:subject_id], action: :'-'}
         match_h = get_matching_level(old_rec_clone, new_rec)
+        Rails.logger.debug("*** match_h: #{match_h.inspect}")
         matching_new_rec = @new_los_by_lo_code[match_h[:lo_code]]
-        invalid_new_rec = (Integer(old_rec_clone[:db_id]) rescue 9999) * -1
-        matching_rec_id = invalid_new_rec
-        if matching_new_rec.present?
-          matching_rec_id =  Integer(matching_new_rec[:rec_id]) rescue invalid_new_rec
-        end
-        # # join deactivated record to corresponding radio button grouping for this lo_code
-        # new_rec[:matching_rec_id] = matching_rec_id.to_s
+        Rails.logger.debug("*** matching_new_rec: #{matching_new_rec.inspect}")
+        # matching_rec_id = matching_new_rec[:rec_id]
 
-        if @selected_new_rec_ids.include?(matching_rec_id)
+        if matching_new_rec.present?
+          # return the negative value of the old record db_id for easy deactivation upon update
+          matching_rec_id = (Integer(old_rec_clone[:db_id]) rescue 99999) * -1
+        else
+          matching_rec_id = -99999
+        end
+        new_rec[:matching_rec_id] = matching_rec_id.to_s
+
+        if @selected_new_rec_ids.include?(matching_rec_id.abs)
           # has a selection for this new record ID, do not add deactivate
-          Rails.logger.debug("*** skipped deactivate pair: #{add_pair.inspect}")
+          Rails.logger.debug("*** skipped deactivate pair: #{add_pair.inspect}, matching_rec_id: #{matching_rec_id}")
         else
           @deactivate_count += 1
           add_pair << [old_rec_clone, new_rec, match_h]
           @pairs_filtered.concat(add_pair)
-          Rails.logger.debug("*** Added deactivate pair: #{add_pair.inspect}")
+          Rails.logger.debug("*** Added deactivate pair: #{add_pair.inspect}, matching_rec_id: #{matching_rec_id}")
         end
       else
         # Rails.logger.debug("*** Skipped Adding pair for old_rec: #{old_rec.inspect}")
@@ -688,12 +696,15 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** (@add_deact_count : #{@add_deact_count}")
 
     @allow_save = true
-    @allow_save = false if @pairs_filtered.count != @do_nothing_count + @add_count
-    @allow_save = false if @old_los_by_lo.count != @do_nothing_count
-    @allow_save = false if @deactivate_count > 0
-    @allow_save = false if @reactivate_count > 0
+    if @selections.count == 0
+      @allow_save = false if @records.count != @do_nothing_count + @add_count
+      @allow_save = false if @old_los_by_lo.count != @do_nothing_count
+      @allow_save = false if @deactivate_count > 0
+      @allow_save = false if @reactivate_count > 0
+    else
+      @allow_save = false if @selections.count != @old_los_by_lo.count + @add_count
+    end
     Rails.logger.debug("*** allow_save : #{@allow_save}")
-
 
     @loosen_level = (@pairs_filtered.count - @exact_match_count) <= ((@new_recs_to_process.count - @exact_match_count) * 2)
     Rails.logger.debug("*** @loosen_level : #{@loosen_level}")
@@ -756,6 +767,9 @@ module SubjectOutcomesHelper
     step = 5
     Rails.logger.debug("*** Step #{step}")
     lo_deactivate_unmatched_old
+    @pairs_filtered.each do |p|
+      Rails.logger.debug("*** unsorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
+    end
     @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
     @pairs_filtered.each do |p|
       Rails.logger.debug("*** sorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
@@ -799,6 +813,9 @@ module SubjectOutcomesHelper
     @pairs_filtered = @pairs_filtered_n
     step = 6
     check_matching_counts
+    @selected_pairs = Hash.new
+    @selected_new_rec_ids = Array.new
+
   end
 
 end

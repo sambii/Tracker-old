@@ -234,8 +234,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      # sleep 10
-      # save_and_open_page
+      sleep 10
+      save_and_open_page
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
@@ -368,7 +368,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
       find('input#selections__5').click
       find('input#selections__8').click
-      # find('input#selections_7_8').click
+      find('input#selections_7_8').click
 
       find('#save_matches').click
       sleep 10
