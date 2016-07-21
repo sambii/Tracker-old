@@ -234,8 +234,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      sleep 10
-      save_and_open_page
+      # sleep 10
+      # save_and_open_page
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
@@ -276,7 +276,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
       find('#save_matches').click
 
-      sleep 20
+      # sleep 20
       save_and_open_page
 
       # Art 2 with two preselected identical pairs
@@ -297,14 +297,14 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         find("input#selections_4_#{@so_at_2_01.id}").should_not be_checked
         page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
       end
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[4]']")
-      #   page.should have_css("input#selections__#{@so_at_2_01.id}")
-      #   find("input#selections__#{@so_at_2_01.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
-      # end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@so_at_2_01.id}]']")
+        page.should have_css("input#selections__#{@so_at_2_01.id}")
+        find("input#selections__#{@so_at_2_01.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
+      end
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_5_#{@so_at_2_02.id}']") do
         page.should have_css("td.new_lo_desc", text: "AT.2.02 Original")
         page.should have_content("=")
@@ -321,14 +321,14 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         find("input#selections_6_#{@so_at_2_03.id}").should be_checked
         page.should have_css("td.old_lo_desc", text: "AT.2.03 Original")
       end
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@so_at_2_04.id}]']")
-      #   page.should have_css("input#selections__#{@so_at_2_04.id}")
-      #   find("input#selections__#{@so_at_2_04.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
-      # end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@so_at_2_04.id}]']")
+        page.should have_css("input#selections__#{@so_at_2_04.id}")
+        find("input#selections__#{@so_at_2_04.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
+      end
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
         page.should have_css("td.new_lo_code", text: "AT 2.04")
         page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
@@ -370,11 +370,13 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('input#selections__8').click
       find('input#selections_7_8').click
 
+      sleep 10
+      # save_and_open_page
+
       find('#save_matches').click
       sleep 10
       save_and_open_page
 
-      # # page should  be identical since there were no changes
       # # Art 2 with two preselected identical pairs
       # page.should have_content('Match Old LOs to New LOs')
       # within('thead.table-title') do

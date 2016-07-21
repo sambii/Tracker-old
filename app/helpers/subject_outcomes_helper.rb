@@ -532,9 +532,10 @@ module SubjectOutcomesHelper
       old_lo_code = matched_old_rec[:lo_code]
       new_rec_to_match[:matching_rec_id] = new_rec_to_match[:rec_id]
       if matched_weights[:selected] == true
-        @old_los_by_lo[old_lo_code][:matched] = new_rec_to_match[:rec_id] if matched_old_rec[:db_id].present?
-      else
-        @old_los_by_lo[old_lo_code][:matched] = nil if matched_old_rec[:db_id].present?
+        Rails.logger.debug("*** set selected on old rec. matched_old_rec: #{matched_old_rec.inspect}")
+        @old_los_by_lo[old_lo_code][:selected] = new_rec_to_match[:rec_id] if matched_old_rec[:db_id].present?
+      # else
+      #   @old_los_by_lo[old_lo_code][:matched] = nil if matched_old_rec[:db_id].present?
       end
       new_rec_to_match[:matched] = matched_old_rec[:db_id]
       matched_old_rec[:matched] = new_rec_to_match[:rec_id]
@@ -586,7 +587,7 @@ module SubjectOutcomesHelper
     @old_los_by_lo.each do |rk, old_rec|
       Rails.logger.debug("*** deactivate old record: old_rec: #{old_rec.inspect}")
       Rails.logger.debug("*** #{old_rec[:active]}, old_rec[:matched]: #{old_rec[:selected]}, old_rec[:selected]: #{old_rec[:selected]}, process? #{lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)}")
-      if old_rec[:active] == true && (old_rec[:matched].blank? || old_rec[:selected].blank?) && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
+      if old_rec[:active] == true && old_rec[:selected].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         @process_count += 1
         add_pair = []
         old_rec_clone = old_rec.clone
@@ -595,29 +596,16 @@ module SubjectOutcomesHelper
         new_rec = {subject_id: old_rec_clone[:subject_id], action: :'-'}
         match_h = get_matching_level(old_rec_clone, new_rec)
         Rails.logger.debug("*** match_h: #{match_h.inspect}")
-        matching_new_rec = @new_los_by_lo_code[match_h[:lo_code]]
-        Rails.logger.debug("*** matching_new_rec: #{matching_new_rec.inspect}")
-        # matching_rec_id = matching_new_rec[:rec_id]
 
-        if matching_new_rec.present?
-          # return the negative value of the old record db_id for easy deactivation upon update
-          matching_rec_id = (Integer(old_rec_clone[:db_id]) rescue 99999) * -1
-        else
-          matching_rec_id = -99999
-        end
-        new_rec[:matching_rec_id] = matching_rec_id.to_s
+        # set for radio button naming and for display groupings
+        # using negative of db id here for easy identification of the database record to deactivate (no matching new record)
+        matching_db_id = (Integer(old_rec_clone[:db_id]) rescue 999999) * -1
+        new_rec[:matching_rec_id] = matching_db_id.to_s
 
-        if @selected_new_rec_ids.include?(matching_rec_id.abs)
-          # has a selection for this new record ID, do not add deactivate
-          Rails.logger.debug("*** skipped deactivate pair: #{add_pair.inspect}, matching_rec_id: #{matching_rec_id}")
-        else
-          @deactivate_count += 1
-          add_pair << [old_rec_clone, new_rec, match_h]
-          @pairs_filtered.concat(add_pair)
-          Rails.logger.debug("*** Added deactivate pair: #{add_pair.inspect}, matching_rec_id: #{matching_rec_id}")
-        end
-      else
-        # Rails.logger.debug("*** Skipped Adding pair for old_rec: #{old_rec.inspect}")
+        @deactivate_count += 1
+        add_pair << [old_rec_clone, new_rec, match_h]
+        @pairs_filtered.concat(add_pair)
+        Rails.logger.debug("*** Added deactivate pair: #{add_pair.inspect}")
       end
     end
   end
@@ -638,15 +626,10 @@ module SubjectOutcomesHelper
   end
 
   def lo_get_new_recs_to_process(recs)
-    # Rails.logger.debug("@match_subject: #{@match_subject.inspect}")
-    # Rails.logger.debug("@process_by_subject: #{@process_by_subject.inspect}")
-    # Rails.logger.debug("@process_by_subject_id: #{@process_by_subject_id.inspect}")
     return_recs = Hash.new
     recs.each do |r|
-      # Rails.logger.debug("r[COL_SUBJECT_ID]: #{r[COL_SUBJECT_ID]} - include rec: #{lo_subject_to_process?((Integer(r[COL_SUBJECT_ID]) rescue -1))}")
       return_recs[r[COL_REC_ID]] = r if lo_subject_to_process?((Integer(r[COL_SUBJECT_ID]) rescue -1))
     end
-    # Rails.logger.debug("new return_recs: #{return_recs.inspect}")
     return return_recs
   end
 
@@ -703,6 +686,10 @@ module SubjectOutcomesHelper
       @allow_save = false if @reactivate_count > 0
     else
       @allow_save = false if @selections.count != @old_los_by_lo.count + @add_count
+      # make sure new records are not selected and deactivated at the same time
+      counts_h = Hash.new(0)
+      sel_counts = @selections.map{ |k,v| counts_h[(Integer(k) rescue -99999).abs] += 1}
+      @allow_save = false if sel_counts.max > 1
     end
     Rails.logger.debug("*** allow_save : #{@allow_save}")
 
