@@ -538,19 +538,33 @@ module SubjectOutcomesHelper
         if matched_old_rec[:active] == true
           # active old record
           if new_rec_to_match[:matched].present?
-            new_rec_to_match[:action] = :'='
-            matched_old_rec[:action] = :'='
-            matched_weights[:action] = :'='
-            @do_nothing_count += 1
+            if matched_weights[:total_match] == MAX_MATCH_LEVEL
+              new_rec_to_match[:action] = :'=='
+              matched_old_rec[:action] = :'=='
+              matched_weights[:action] = :'=='
+              @do_nothing_count += 1
+            else
+              new_rec_to_match[:action] = :'~='
+              matched_old_rec[:action] = :'~='
+              matched_weights[:action] = :'~='
+              @do_nothing_count += 1
+            end
           else
             @error_count += 1
           end
         elsif matched_old_rec[:db_id].present?
           if new_rec_to_match[:matched].present?
-            new_rec_to_match[:action] = :'^'
-            matched_old_rec[:action] = :'^'
-            matched_weights[:action] = :'^'
-            @reactivate_count += 1
+            if matched_weights[:total_match] == MAX_MATCH_LEVEL
+              new_rec_to_match[:action] = :'==^'
+              matched_old_rec[:action] = :'==^'
+              matched_weights[:action] = :'==^'
+              @reactivate_count += 1
+            else
+              new_rec_to_match[:action] = :'~=^'
+              matched_old_rec[:action] = :'~=^'
+              matched_weights[:action] = :'~=^'
+              @reactivate_count += 1
+            end
           else
             @error_count += 1
           end

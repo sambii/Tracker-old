@@ -308,21 +308,32 @@ class SubjectOutcomesController < ApplicationController
             if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?
               Rails.logger.debug("*** Update old rec: #{rec}")
               case matched_weights[PARAM_ACTION]
-              when :'='
-                if matched_weights[:total_match] == 6
-                  # identical - no update needed
-                  Rails.logger.debug("*** No Update - Identical")
-                else
-                  so = SubjectOutcome.find(rec[COL_DB_ID])
-                  so.active = true
-                  so.lo_code = matched_new_rec[:'LO Code:']
-                  so.description = matched_new_rec[:'Learning Outcome']
-                  so.marking_period = matched_new_rec[:mp_bitmap]
-                  so.save!
-                  action_count += 1
-                  action = 'Updated'
-                  Rails.logger.debug("*** Updated to : #{so.inspect}")
-                end
+              when :'=='
+                # identical - no update needed
+                Rails.logger.debug("*** No Update - Identical")
+                matched_weights[:action_desc] = 'Exact Match'
+              when :'~='
+                so = SubjectOutcome.find(rec[COL_DB_ID])
+                so.active = true
+                so.lo_code = matched_new_rec[:'LO Code:']
+                so.description = matched_new_rec[:'Learning Outcome']
+                so.marking_period = matched_new_rec[:mp_bitmap]
+                so.save!
+                action_count += 1
+                action = 'Updated'
+                Rails.logger.debug("*** Updated to : #{so.inspect}")
+                matched_weights[:action_desc] = 'Close Match'
+              when :'==^', :'~=^'
+                so = SubjectOutcome.find(rec[COL_DB_ID])
+                so.active = true
+                so.lo_code = matched_new_rec[:'LO Code:']
+                so.description = matched_new_rec[:'Learning Outcome']
+                so.marking_period = matched_new_rec[:mp_bitmap]
+                so.save!
+                action_count += 1
+                action = 'Restored'
+                Rails.logger.debug("*** Pair Restored: #{so.inspect}")
+                matched_weights[:action_desc] = 'Reactivate'
               when :'-'
                 so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = false
@@ -330,60 +341,58 @@ class SubjectOutcomesController < ApplicationController
                 action_count += 1
                 action = 'Removed'
                 Rails.logger.debug("*** Pair Removed: #{so.inspect}")
-              when :'^'
-                so = SubjectOutcome.find(rec[COL_DB_ID])
-                so.active = true
-                so.save!
-                action_count += 1
-                action = 'Restored'
-                Rails.logger.debug("*** Pair Restored: #{so.inspect}")
+                matched_weights[:action_desc] = 'Deactivate'
               when :'+'
                 so = SubjectOutcome.new
-                so.lo_code = rec[COL_OUTCOME_CODE]
-                so.description = rec[COL_OUTCOME_NAME]
-                so.subject_id = rec[COL_SUBJECT_ID].to_i
-                so.marking_period = rec[COL_MP_BITMAP]
+                so.lo_code = matched_new_rec[:'LO Code:']
+                so.description = matched_new_rec[:'Learning Outcome']
+                so.marking_period = matched_new_rec[:mp_bitmap]
+                so.subject_id = rec[:subject_id].to_i
                 so.save!
                 action_count += 1
                 action = 'Added'
                 Rails.logger.debug("*** Pair Added: #{so.inspect}")
+                matched_weights[:action_desc] = 'Add New'
               when 'Mismatch'
                 Rails.logger.debug("*** Pair Mismatch")
+                matched_weights[:error] = 'Mismatch'
                 raise("Attempt to update with Mismatch - item #{action_count+1}")
               else
                 Rails.logger.debug("*** Pair Invalid LO")
+                matched_weights[:error] = 'Invalid Action'
                 raise("Invalid subject outcome action: #{rec[PARAM_ACTION].inspect} - item #{action_count+1}")
               end
             end
 
           end
-          Rails.logger.debug("***")
-          Rails.logger.debug("*** Add unmatched Learning Outcomes ????? ")
-          Rails.logger.debug("***")
-          @records.each do |rec|
-            if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID])
-              Rails.logger.debug("*** @records rec: #{rec.inspect}")
-              case rec[PARAM_ACTION]
-              when :'+'
-                so = SubjectOutcome.new
-                so.lo_code = rec[COL_OUTCOME_CODE]
-                so.description = rec[COL_OUTCOME_NAME]
-                so.subject_id = rec[COL_SUBJECT_ID].to_i
-                so.marking_period = rec[COL_MP_BITMAP]
-                so.save!
-                action_count += 1
-                action = 'Added'
-              when '='
-                # ignore
-                # Rails.logger.debug("*** 'ignore' action")
-              when 'Mismatch'
-                raise("Attempt to update with Mismatch - item #{action_count+1}")
-              else
-                raise("Invalid subject outcome action - item #{action_count+1}")
-              end
-            end
+          # Rails.logger.debug("***")
+          # Rails.logger.debug("*** Add unmatched Learning Outcomes ????? ")
+          # Rails.logger.debug("***")
+          # @records.each do |rec|
+          #   if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID])
+          #     Rails.logger.debug("*** @records rec: #{rec.inspect}")
+          #     case rec[PARAM_ACTION]
+          #     when :'+'
+          #       so = SubjectOutcome.new
+          #       so.lo_code = rec[COL_OUTCOME_CODE]
+          #       so.description = rec[COL_OUTCOME_NAME]
+          #       so.subject_id = rec[COL_SUBJECT_ID].to_i
+          #       so.marking_period = rec[COL_MP_BITMAP]
+          #       so.save!
+          #       action_count += 1
+          #       action = 'Added'
+          #     when '='
+          #       # ignore
+          #       # Rails.logger.debug("*** 'ignore' action")
+          #     when 'Mismatch'
+          #       raise("Attempt to update with Mismatch - item #{action_count+1}")
+          #     else
+          #       raise("Invalid subject outcome action - item #{action_count+1}")
+          #     end
+          #   end
 
-          end
+          # end
+
           # raise "Successful Test cancelled" if action_count > 0
         end # transaction
         @stage = 9
