@@ -490,10 +490,12 @@ module SubjectOutcomesHelper
       matched_weights[:pair_id] = ix
 
       this_is_exact = matched_weights[:total_match] == MAX_MATCH_LEVEL
+      @exact_match_count += 1 if this_is_exact
 
       matched_db_id = matched_old_rec[:db_id]
       matched_db_id_num = Integer(matched_old_rec[:db_id]) rescue -1
       matched_rec_num = Integer(new_rec_to_match[:rec_id]) rescue -1
+
 
       if @selections.count > 0
         # mark selected pair
@@ -508,7 +510,6 @@ module SubjectOutcomesHelper
       else
         Rails.logger.debug("*** Have No Selections - matched_rec_num: #{matched_rec_num}")
         if this_is_exact
-          @exact_match_count += 1
           matched_weights[:selected] = true
           @selected_count += 1
           @selected_pairs[matched_rec_num] = ix
