@@ -68,6 +68,7 @@ class SubjectOutcomesController < ApplicationController
       @records = Array.new
       @errors = Hash.new
       @selections = Hash.new
+      @deactivations = Array.new
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
 
@@ -227,14 +228,26 @@ class SubjectOutcomesController < ApplicationController
       @stage = 1
       @records = Array.new
       @errors = Hash.new
-      @selections = params['selections'].present? ? params['selections'].clone : Hash.new
+      @selections = Hash.new
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
+      @selected_db_ids = Array.new
       @selections.each do |k,v|
-        ik = Integer(k) rescue -99999
         @selected_new_rec_ids << k.to_s
       end
-
+      @deactivations = Array.new
+      if params['selections'].present?
+        params['selections'].each do |k,v|
+          if (Integer(k) rescue -99999) < 0
+            # deactivate old record selected
+            @deactivations << v
+          else
+            @selections[k] = v
+            @selected_new_rec_ids << v.to_s
+            @selected_db_ids << v.to_s
+          end
+        end
+      end
 
       action_count = 0
 
@@ -361,38 +374,9 @@ class SubjectOutcomesController < ApplicationController
                 Rails.logger.debug("*** Pair Invalid LO")
                 matched_weights[:error] = 'Invalid Action'
                 raise("Invalid subject outcome action: #{rec[PARAM_ACTION].inspect} - item #{action_count+1}")
-              end
-            end
-
-          end
-          # Rails.logger.debug("***")
-          # Rails.logger.debug("*** Add unmatched Learning Outcomes ????? ")
-          # Rails.logger.debug("***")
-          # @records.each do |rec|
-          #   if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID])
-          #     Rails.logger.debug("*** @records rec: #{rec.inspect}")
-          #     case rec[PARAM_ACTION]
-          #     when :'+'
-          #       so = SubjectOutcome.new
-          #       so.lo_code = rec[COL_OUTCOME_CODE]
-          #       so.description = rec[COL_OUTCOME_NAME]
-          #       so.subject_id = rec[COL_SUBJECT_ID].to_i
-          #       so.marking_period = rec[COL_MP_BITMAP]
-          #       so.save!
-          #       action_count += 1
-          #       action = 'Added'
-          #     when '='
-          #       # ignore
-          #       # Rails.logger.debug("*** 'ignore' action")
-          #     when 'Mismatch'
-          #       raise("Attempt to update with Mismatch - item #{action_count+1}")
-          #     else
-          #       raise("Invalid subject outcome action - item #{action_count+1}")
-          #     end
-          #   end
-
-          # end
-
+              end # case matched_weights[PARAM_ACTION]
+            end # if lo_subject_to_process?
+          end # @pairs_matched.each_with_index
           # raise "Successful Test cancelled" if action_count > 0
         end # transaction
         @stage = 9

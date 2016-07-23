@@ -277,7 +277,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
 
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
       # Art 2 with two preselected identical pairs
       page.should have_content('Match Old LOs to New LOs')
@@ -366,14 +366,49 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
       end
 
-      find('input#selections_4_5').click
-      # find('input#selections__8').click
-      find('input#selections_7_8').click
-
-      # sleep 10
-      # save_and_open_page
+      # select matches plus deactivate one of the matches - for error
+      find("input#selections_4_#{@so_at_2_01.id}").click
+      find("input#selections__#{@so_at_2_04.id}").click
+      find("input#selections_7_#{@so_at_2_04.id}").click
 
       find('#save_matches').click
+
+      sleep 10
+      save_and_open_page
+
+      page.should have_content('Match Old LOs to New LOs')
+      within('thead.table-title') do
+        page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
+      end
+      # confirm current subject los are displayed and others are not
+      within('form table') do
+        page.should_not have_content("AT.1.01")
+        page.should_not have_content("MA.1.12")
+      end
+      find("input#selections_4_#{@so_at_2_01.id}").should be_checked
+      page.should_not have_css("input#selections__#{@so_at_2_01.id}")
+      find("input#selections_5_#{@so_at_2_02.id}").should be_checked
+      find("input#selections_6_#{@so_at_2_03.id}").should be_checked
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
+        find("input#selections__#{@so_at_2_04.id}").should_not be_checked
+        page.should have_css('span.ui-error')
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
+        find("input#selections_7_#{@so_at_2_04.id}").should_not be_checked
+        page.should have_css('span.ui-error')
+      end
+      page.should have_css("input#selections_7_#{@so_at_2_03.id}")
+      page.should have_css("input#selections_7_#{@so_at_2_02.id}")
+      page.should have_css("input#selections_7_#{@so_at_2_01.id}")
+
+      # re-enter selection without deactivation to correct error to go to next subject
+
+      find("input#selections_7_#{@so_at_2_04.id}").click
+
+      find('#save_matches').click
+
+      save_and_open_page
+
       # sleep 10
       # save_and_open_page
 
@@ -422,7 +457,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
       find('#save_matches').click
       # sleep 30
-      save_and_open_page
+      # save_and_open_page
 
       # Math 1 with all preselected identical pairs
       page.should have_content('Match Old LOs to New LOs')
@@ -605,9 +640,52 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_css("td.old_lo_desc", text: "Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
       end
 
+      # select old record three times (two assigns and one deactivate)
+      find("input#selections_18_#{@ma_1_08.id}").click
+      find("input#selections_14_#{@ma_1_08.id}").click
+      find("input#selections__#{@ma_1_08.id}").click
+
       find('#save_matches').click
       # sleep 30
-      # save_and_open_page
+      save_and_open_page
+
+      find("input#selections_12_#{@ma_1_01.id}").should_not be_checked
+      find("input#selections__#{@ma_1_01.id}").should_not be_checked
+      find("input#selections__#{@ma_1_02.id}").should_not be_checked
+      find("input#selections__#{@ma_1_03.id}").should_not be_checked
+      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_#{@ma_1_08.id}']") do
+        find("input#selections_18_#{@ma_1_08.id}").should_not be_checked
+        page.should have_css('span.ui-error')
+      end
+      find("input#selections_18_#{@ma_1_04.id}").should_not be_checked
+      find("input#selections__#{@ma_1_04.id}").should_not be_checked
+      find("input#selections_15_#{@ma_1_05.id}").should be_checked
+      find("input#selections_16_#{@ma_1_06.id}").should be_checked
+      find("input#selections_17_#{@ma_1_07.id}").should be_checked
+      find("input#selections_14_#{@ma_1_04.id}").should_not be_checked
+      find("input#selections_14_#{@ma_1_08.id}").should_not be_checked
+      find("input#selections__#{@ma_1_08.id}").should_not be_checked
+      find("input#selections_19_#{@ma_1_09.id}").should be_checked
+      find("input#selections_20_#{@ma_1_10.id}").should be_checked
+      find("input#selections_21_#{@ma_1_11.id}").should_not be_checked
+      find("input#selections__#{@ma_1_11.id}").should_not be_checked
+      find("input#selections_22_#{@ma_1_12.id}").should be_checked
+      find("input#selections_13_#{@ma_1_03.id}").should_not be_checked
+
+      # click all unchecked radio buttons.  should reject on multiple actions to db records
+      # find("input#selections_12_#{@ma_1_01.id}").click
+      # find("input#selections__#{@ma_1_01.id}").click
+      # find("input#selections__#{@ma_1_02.id}").click
+      # find("input#selections__#{@ma_1_03.id}").click
+      # find("input#selections_18_#{@ma_1_08.id}").click
+      # find("input#selections_18_#{@ma_1_04.id}").click
+      # find("input#selections__#{@ma_1_04.id}").click
+      # find("input#selections_14_#{@ma_1_04.id}").click
+      # find("input#selections_14_#{@ma_1_08.id}").click
+      # find("input#selections__#{@ma_1_08.id}").click
+      # find("input#selections_21_#{@ma_1_11.id}").click
+      # find("input#selections__#{@ma_1_11.id}").click
+      # find("input#selections_13_#{@ma_1_03.id}").click
 
     end # within #page-content
   end # def bulk_upload_all_matching
