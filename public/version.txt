@@ -1,4 +1,6 @@
-PARLO Tracker version v2.01.021 Jun 14, 2016
+PARLO Tracker version v2.01.023 July 24, 2016
+- New Year Rollover and Bulk LO Upload (need lo update to schools on school rollover)
+PARLO Tracker version v2.01.022 Jun 14, 2016
 - Bulk LO Upload matching by subject in progress, Fix to Bulk Enter Section nil Marking Period problem
 PARLO Tracker version v2.01.021 Jun 14, 2016
 - refactored Bulk LO Upload
