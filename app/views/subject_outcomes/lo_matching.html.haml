@@ -76,7 +76,7 @@
                 - pair_subject_id_i = Integer(pair_subject_id) rescue -1
 
                 - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != pair_subject_id_i ? 'display-none' : '') : ''
-                - prior_old_rec_num = rx[SubjectOutcomesHelper::COL_DB_ID]
+                - prior_old_rec_num = match[SubjectOutcomesHelper::COL_DB_ID]
                 - prior_old_code = rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]
                 - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
                 - lo_name = rx[:lo_code].present? ? rx[:lo_code] : (ry[:lo_code].present? ? ry[:lo_code] : ry[SubjectOutcomesHelper::COL_REC_ID])

@@ -232,9 +232,6 @@ class SubjectOutcomesController < ApplicationController
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
       @selected_db_ids = Array.new
-      @selections.each do |k,v|
-        @selected_new_rec_ids << k.to_s
-      end
       @deactivations = Array.new
       if params['selections'].present?
         params['selections'].each do |k,v|
@@ -243,7 +240,7 @@ class SubjectOutcomesController < ApplicationController
             @deactivations << v
           else
             @selections[k] = v
-            @selected_new_rec_ids << v.to_s
+            @selected_new_rec_ids << k.to_s
             @selected_db_ids << v.to_s
           end
         end
@@ -366,6 +363,9 @@ class SubjectOutcomesController < ApplicationController
                 action = 'Added'
                 Rails.logger.debug("*** Pair Added: #{so.inspect}")
                 matched_weights[:action_desc] = 'Add New'
+              when :'x='
+                Rails.logger.debug("*** Error: no x= possible")
+                matched_weights[:error] = 'no x= possible'
               when 'Mismatch'
                 Rails.logger.debug("*** Pair Mismatch")
                 matched_weights[:error] = 'Mismatch'
