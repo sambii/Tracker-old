@@ -413,6 +413,7 @@ module SubjectOutcomesHelper
           mp: SubjectOutcome.get_bitmask_string(so.marking_period),
           active: so.active
         }
+        @inactive_old_count += 1 if !so.active
       end
     end
     return old_los_by_lo
@@ -550,11 +551,13 @@ module SubjectOutcomesHelper
               new_rec_to_match[:action] = :'=='
               matched_old_rec[:action] = :'=='
               matched_weights[:action] = :'=='
+              matched_weights[:action_desc] = 'Exact Match'
               @do_nothing_count += 1
             else
               new_rec_to_match[:action] = :'~='
               matched_old_rec[:action] = :'~='
               matched_weights[:action] = :'~='
+              matched_weights[:action_desc] = 'Close Match'
               @do_nothing_count += 1
             end
           else
@@ -566,11 +569,13 @@ module SubjectOutcomesHelper
               new_rec_to_match[:action] = :'==^'
               matched_old_rec[:action] = :'==^'
               matched_weights[:action] = :'==^'
+              matched_weights[:action_desc] = 'Exact Match Reactivate'
               @reactivate_count += 1
             else
               new_rec_to_match[:action] = :'~=^'
               matched_old_rec[:action] = :'~=^'
               matched_weights[:action] = :'~=^'
+              matched_weights[:action_desc] = 'Close Match Reactivate'
               @reactivate_count += 1
             end
           else
@@ -581,6 +586,7 @@ module SubjectOutcomesHelper
           new_rec_to_match[:action] = :'+'
           matched_old_rec[:action] = :'+'
           matched_weights[:action] = :'+'
+          matched_weights[:action_desc] = 'Add New'
           @add_count += 1
         else
           @error_count += 1
@@ -621,9 +627,12 @@ module SubjectOutcomesHelper
         add_pair = []
         old_rec_clone = old_rec.clone
         old_rec_clone[:action] = :'-'
+        old_rec_clone[:action_desc] = 'Remove (Inactivate)'
         old_rec_clone[:matched] = '-1'
         new_rec = {subject_id: old_rec_clone[:subject_id], action: :'-'}
         match_h = get_matching_level(old_rec_clone, new_rec)
+        match_h[:action] = :'-'
+        match_h[:action_desc] = 'Remove (Inactivate)'
         # Rails.logger.debug("*** match_h: #{match_h.inspect}")
 
         # set for radio button naming and for display groupings
@@ -706,6 +715,8 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @deactivations.count : #{@deactivations.count}")
     Rails.logger.debug("*** @selections.count : #{@selections.count}")
     Rails.logger.debug("*** @error_count : #{@error_count}")
+    Rails.logger.debug("*** @unselect_count : #{@unselect_count}")
+    Rails.logger.debug("*** @inactive_old_count : #{@inactive_old_count}")
 
     @allow_save = true
     if !params['selections'].present?
@@ -715,20 +726,29 @@ module SubjectOutcomesHelper
       @allow_save = false if @reactivate_count > 0
       @allow_save = false if @error_count > 0
     else
-      @allow_save = false if @selections.count != @old_los_by_lo.count + @add_count
-      @allow_save = false if @new_recs_to_process.count != @pairs_filtered.count - @unselect_count
-      @allow_save = false if @error_count > 0
+      net_active = @deactivate_count + @inactive_old_count - @reactivate_count
+      Rails.logger.debug("*** net_active = #{net_active} = #{@inactive_old_count} + #{@deactivate_count} - #{@reactivate_count}}")
+      Rails.logger.debug("*** Test1 #{@selections.count != @new_recs_to_process.count || @error_count > 0} = #{@selections.count} != #{@new_recs_to_process.count} || #{@error_count > 0}")
+      @allow_save = false if @selections.count != @new_recs_to_process.count || @error_count > 0
+      Rails.logger.debug("*** Test2 #{@selections.count != @old_los_by_lo.count + @add_count - net_active} != #{@old_los_by_lo.count} + #{@add_count} - #{net_active}")
+      @allow_save = false if @selections.count != @old_los_by_lo.count + @add_count - net_active
+      Rails.logger.debug("*** Test3 #{@new_recs_to_process.count != @pairs_filtered.count - @unselect_count - @deactivate_count} = #{@new_recs_to_process.count} != #{@pairs_filtered.count} - #{@deactivate_count} - #{@unselect_count}")
+      @allow_save = false if @new_recs_to_process.count != @pairs_filtered.count - @unselect_count - @deactivate_count
+      Rails.logger.debug("*** Test4 #{@pairs_filtered.count != @selections.count + @unselect_count + @deactivate_count} = #{@pairs_filtered.count} != #{@selections.count} + #{@unselect_count} + #{@deactivate_count}")
+      @allow_save = false if @pairs_filtered.count != @selections.count + @unselect_count + @deactivate_count
 
       # make sure new records are not selected and deactivated at the same time
       counts_h = Hash.new(0)
       sel_counts = @selections.map{ |k,v| counts_h[(Integer(k) rescue -99999).abs] += 1}
       Rails.logger.debug("*** new records sel_counts: #{sel_counts.inspect}")
+      Rails.logger.debug("*** Test5 #{sel_counts.length > 0 && sel_counts.max > 1}")
       @allow_save = false if sel_counts.length > 0 && sel_counts.max > 1
 
       # make sure old records are not selected and deactivated at the same time
       counts_h = Hash.new(0)
       sel_counts = params['selections'].present? ? params['selections'].map{ |k,v| counts_h[(Integer(v) rescue -99999).abs] += 1} : []
       Rails.logger.debug("*** db records sel_counts: #{sel_counts.inspect}")
+      Rails.logger.debug("*** Test6 #{sel_counts.length > 0 && sel_counts.max > 1}")
       @allow_save = false if sel_counts.length > 0 && sel_counts.max > 1
 
     end
@@ -749,6 +769,7 @@ module SubjectOutcomesHelper
     @error_count = 0
     @selected_count = 0
     @unselect_count = 0
+    @inactive_old_count = 0
   end
 
   def lo_matching_at_level(first_run)
@@ -838,7 +859,7 @@ module SubjectOutcomesHelper
 
           # add an unselect pair if the matching is not exact
           if p[2][:total_match] != 6
-            new_pair = [p[0].merge({action: :'x='}), p[1], get_matching_level({}, p[1]).merge({db_id: db_id*-1})]
+            new_pair = [p[0].merge({action: :'x='}), p[1], get_matching_level({}, p[1]).merge({db_id: db_id*-1, action: :'x=', action_desc: 'unselect'})]
             @pairs_filtered_n << new_pair
             @unselect_count += 1
             Rails.logger.debug("*** This creates the unselect for the matching pair id: #{new_pair.inspect}")

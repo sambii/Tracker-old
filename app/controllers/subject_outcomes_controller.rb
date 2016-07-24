@@ -72,6 +72,7 @@ class SubjectOutcomesController < ApplicationController
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
 
+      @inactive_old_count = 0
       action_count = 0
 
       # get the model school
@@ -245,6 +246,7 @@ class SubjectOutcomesController < ApplicationController
           end
         end
       end
+      @inactive_old_count = 0
 
       action_count = 0
 
@@ -332,7 +334,7 @@ class SubjectOutcomesController < ApplicationController
                 action_count += 1
                 action = 'Updated'
                 Rails.logger.debug("*** Updated to : #{so.inspect}")
-                matched_weights[:action_desc] = 'Close Match'
+                # matched_weights[:action_desc] = 'Close Match'
               when :'==^', :'~=^'
                 so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = true
@@ -343,7 +345,7 @@ class SubjectOutcomesController < ApplicationController
                 action_count += 1
                 action = 'Restored'
                 Rails.logger.debug("*** Pair Restored: #{so.inspect}")
-                matched_weights[:action_desc] = 'Reactivate'
+                # matched_weights[:action_desc] = 'Reactivate'
               when :'-'
                 so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = false
@@ -351,7 +353,7 @@ class SubjectOutcomesController < ApplicationController
                 action_count += 1
                 action = 'Removed'
                 Rails.logger.debug("*** Pair Removed: #{so.inspect}")
-                matched_weights[:action_desc] = 'Deactivate'
+                # matched_weights[:action_desc] = 'Deactivate'
               when :'+'
                 so = SubjectOutcome.new
                 so.lo_code = matched_new_rec[:'LO Code:']
@@ -362,7 +364,7 @@ class SubjectOutcomesController < ApplicationController
                 action_count += 1
                 action = 'Added'
                 Rails.logger.debug("*** Pair Added: #{so.inspect}")
-                matched_weights[:action_desc] = 'Add New'
+                # matched_weights[:action_desc] = 'Add New'
               when :'x='
                 Rails.logger.debug("*** Error: no x= possible")
                 matched_weights[:error] = 'no x= possible'
@@ -410,24 +412,28 @@ class SubjectOutcomesController < ApplicationController
             break
           end
         end
-        # process_by_subject increment to next subject after update
-        if @process_by_subject.present? && current_subject_ix == @subjects.length
-          # at end of subjects, go to reporting page
+        if @stage == 9
+          # process_by_subject increment to next subject after update
+          @process_by_subject = @subjects[current_subject_ix+1]
+        end
+        if @stage == 9 && !@process_by_subject.present?
+          # No more subjects, generate report for all subjects
+          @process_by_subject = nil
+          lo_matching_at_level(true)
           format.html { render :action => "lo_matching_update" }
         else
-          if @stage == 9
-            # process next subject
-            @process_by_subject = @subjects[current_subject_ix+1]
+          # Continue on in this action
+          if @stage == 9 && @process_by_subject.present?
+            # we have another subject, process it
             @process_by_subject_id = @process_by_subject.id
             Rails.logger.debug("***")
             Rails.logger.debug("*** Running at @match_level #{@match_level}")
             Rails.logger.debug("***")
-
             # clear out selections from prior subject submit
             @selections = Hash.new
           end
 
-          # generate pairs for subject
+          # continue generate pairs for subject
           lo_matching_at_level(false)
 
           # tighten @match_level until no deactivates or reactivates
