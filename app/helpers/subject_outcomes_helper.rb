@@ -719,14 +719,19 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @inactive_old_count : #{@inactive_old_count}")
 
     @allow_save = true
+    net_active = @deactivate_count + @inactive_old_count - @reactivate_count
     if !params['selections'].present?
+      Rails.logger.debug("*** Test1 #{@records.count != @do_nothing_count + @add_count} = #{@records.count} != #{@do_nothing_count} + #{@add_count}")
       @allow_save = false if @records.count != @do_nothing_count + @add_count
-      @allow_save = false if @old_los_by_lo.count != @do_nothing_count
+      Rails.logger.debug("*** Test2 #{@old_los_by_lo.count != @do_nothing_count + net_active} = #{@old_los_by_lo.count} != #{@do_nothing_count} + #{net_active}")
+      @allow_save = false if @old_los_by_lo.count != @do_nothing_count + net_active
+      Rails.logger.debug("*** Test3 #{@deactivate_count > 0} = #{@deactivate_count} > 0")
       @allow_save = false if @deactivate_count > 0
+      Rails.logger.debug("*** Test4 #{@reactivate_count > 0} = #{@reactivate_count} > 0")
       @allow_save = false if @reactivate_count > 0
+      Rails.logger.debug("*** Test5 #{@error_count > 0} = #{@error_count} > 0")
       @allow_save = false if @error_count > 0
     else
-      net_active = @deactivate_count + @inactive_old_count - @reactivate_count
       Rails.logger.debug("*** net_active = #{net_active} = #{@inactive_old_count} + #{@deactivate_count} - #{@reactivate_count}}")
       Rails.logger.debug("*** Test1 #{@selections.count != @new_recs_to_process.count || @error_count > 0} = #{@selections.count} != #{@new_recs_to_process.count} || #{@error_count > 0}")
       @allow_save = false if @selections.count != @new_recs_to_process.count || @error_count > 0

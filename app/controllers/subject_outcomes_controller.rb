@@ -179,6 +179,7 @@ class SubjectOutcomesController < ApplicationController
         end
       else
         @process_by_subject = nil
+        @allow_save_all = true
       end
 
 
