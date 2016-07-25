@@ -237,8 +237,6 @@ describe "Rollover School Year", js:true do
     # Pre rollover checks
     # note this is for @school2 (whose school year is prior to the model school's school year)
 
-    visit subjects_path()
-
     if sys_admin
 
       find("a[href='/schools']").click
@@ -263,17 +261,16 @@ describe "Rollover School Year", js:true do
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
       page.all("tbody.tbody-subject").count.should == 5
 
-      # go back to viewing @school2
+      # go to @school2
       find("a[href='/schools']").click
       find("a[href='/schools/#{@school2.id}']").click
       find("a[href='/subjects']").click
 
       # confirm new subject is not in @school2
       page.should_not have_content("#{@subject2_1.discipline.name} : New Subject")
-
-      # update math LOs in model school
-      bulk_upload_all_los
     end
+
+    visit subjects_path()
 
     # confirm @subject2_1 exists and has sections
     page.should have_css("tbody#subj_header_#{@subject2_1.id}")
@@ -323,7 +320,20 @@ describe "Rollover School Year", js:true do
       page.should have_content(get_std_prior_school_year_name)
     end
 
+    if sys_admin
+      # LO Updates in Model School
+      # Note: only math LOs changed in model school
+      bulk_upload_all_los
+
+      # go to @school2
+      find("a[href='/schools']").click
+      find("a[href='/schools/#{@school2.id}']").click
+      find("a[href='/subjects']").click
+
+    end
+
     # Rollover school year
+    visit schools_path()
     find("a[id='rollover-#{@school2.id}']").click
     # click OK in javascript confirmation popup
     page.driver.browser.switch_to.alert.accept
@@ -343,9 +353,9 @@ describe "Rollover School Year", js:true do
     # confirm all model school subjects exist in school and are not duplicated
     page.all('tbody.tbody-header strong', text: "#{@subj_art_1.discipline.name} : #{@subj_art_1.name}").count.should == 1
     page.all('tbody.tbody-header strong', text: "#{@subj_art_2.discipline.name} : #{@subj_art_2.name}").count.should == 1
-    page.all('tbody.tbody-header strong', text: "#{@subj_art_3.discipline.name} : #{@subj_art_3.name}").count.should == 1
-    page.all('tbody.tbody-header strong', text: "#{@subj_capstone_1s1.discipline.name} : #{@subj_capstone_1s1.name}").count.should == 1
-    page.all('tbody.tbody-header strong', text: "#{@subj_capstone_1s2.discipline.name} : #{@subj_capstone_1s2.name}").count.should == 1
+    # page.all('tbody.tbody-header strong', text: "#{@subj_art_3.discipline.name} : #{@subj_art_3.name}").count.should == 1
+    # page.all('tbody.tbody-header strong', text: "#{@subj_capstone_1s1.discipline.name} : #{@subj_capstone_1s1.name}").count.should == 1
+    # page.all('tbody.tbody-header strong', text: "#{@subj_capstone_1s2.discipline.name} : #{@subj_capstone_1s2.name}").count.should == 1
     page.all('tbody.tbody-header strong', text: "#{@subj_capstone_3s1.discipline.name} : #{@subj_capstone_3s1.name}").count.should == 1
     page.all('tbody.tbody-header strong', text: "#{@subj_math_1.discipline.name} : #{@subj_math_1.name}").count.should == 1
 
@@ -366,9 +376,8 @@ describe "Rollover School Year", js:true do
     if sys_admin
       # confirm new subject got copied over from model school
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
-      # page.all("tbody.tbody-subject").count.should == 8
       # do programming to deactivate subjects that are no longer in model school
-      page.all("tbody.tbody-subject").count.should == 9
+      page.all("tbody.tbody-subject").count.should == 6
     end
 
     # confirm student grade levels are incremented properly
@@ -464,8 +473,14 @@ describe "Rollover School Year", js:true do
       find("input#selections_13_#{@ma_1_03.id}").click
 
       find('#save_matches').click
-      sleep 30
-      save_and_open_page
+      # sleep 30
+      # save_and_open_page
+
+      page.should have_content("Processing New Subject of All Subjects")
+
+      find('#save_matches').click
+      # sleep 30
+      # save_and_open_page
 
       # Confirm Report is properly generated
       page.should have_content("Processing All Subjects")

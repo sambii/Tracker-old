@@ -720,7 +720,7 @@ module SubjectOutcomesHelper
 
     @allow_save = true
     net_active = @deactivate_count + @inactive_old_count - @reactivate_count
-    if !params['selections'].present?
+    if !params['selections'].present? && @pairs_filtered.count > 0
       Rails.logger.debug("*** Test1 #{@records.count != @do_nothing_count + @add_count} = #{@records.count} != #{@do_nothing_count} + #{@add_count}")
       @allow_save = false if @records.count != @do_nothing_count + @add_count
       Rails.logger.debug("*** Test2 #{@old_los_by_lo.count != @do_nothing_count + net_active} = #{@old_los_by_lo.count} != #{@do_nothing_count} + #{net_active}")
