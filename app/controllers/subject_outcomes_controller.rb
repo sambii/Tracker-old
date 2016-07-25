@@ -429,6 +429,7 @@ class SubjectOutcomesController < ApplicationController
             @process_by_subject_id = @process_by_subject.id
             Rails.logger.debug("***")
             Rails.logger.debug("*** Running at @match_level #{@match_level}")
+            Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
             Rails.logger.debug("***")
             # clear out selections from prior subject submit
             @selections = Hash.new
@@ -437,19 +438,22 @@ class SubjectOutcomesController < ApplicationController
           # continue generate pairs for subject
           lo_matching_at_level(false)
 
-          # tighten @match_level until no deactivates or reactivates
+          # tighten @match_level until allow save or dont loosen level
           # if @deactivate_count > 0 || @reactivate_count > 0
-          if @stage < 10 && @loosen_level
+          if @stage < 10 && @loosen_level && !@allow_save
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")
               Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
+              Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
               Rails.logger.debug("***")
               action_count = 0
               lo_matching_at_level(false)
               break if @allow_save || !@loosen_level
             end
           end # loosen level (and not done yet)
+          Rails.logger.debug("*** format.html")
+          Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
           format.html
         end
       end

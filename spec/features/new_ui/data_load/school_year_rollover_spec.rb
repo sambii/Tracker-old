@@ -242,9 +242,15 @@ describe "Rollover School Year", js:true do
     if sys_admin
 
       find("a[href='/schools']").click
+      assert_equal("/schools", current_path)
+      page.should have_css("tr#school-#{@school1.id}")
       find("a[href='/schools/1']").click
+      assert_equal("/schools/1", current_path)
+      page.should have_content("School: Model School")
       visit subjects_path()
-      page.all("tbody.tbody-subject").count.should == 7
+      assert_equal("/subjects", current_path)
+      page.should have_content("Subjects / Sections Listing")
+      page.all("tbody.tbody-subject").count.should == 4
 
       # add new subject to model school
       find("a[data-url='/subjects/new.js']").click
@@ -255,7 +261,7 @@ describe "Rollover School Year", js:true do
 
       # confirm new subject is in model school
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
-      page.all("tbody.tbody-subject").count.should == 8
+      page.all("tbody.tbody-subject").count.should == 5
 
       # go back to viewing @school2
       find("a[href='/schools']").click
@@ -264,6 +270,9 @@ describe "Rollover School Year", js:true do
 
       # confirm new subject is not in @school2
       page.should_not have_content("#{@subject2_1.discipline.name} : New Subject")
+
+      # update math LOs in model school
+      bulk_upload_all_los
     end
 
     # confirm @subject2_1 exists and has sections
@@ -389,5 +398,80 @@ describe "Rollover School Year", js:true do
 
 
   end
+
+
+  def bulk_upload_all_los
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_only_math_chg.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+      end
+      find('#upload').click
+
+      page.should have_content("Processing #{@subj_art_1.name} of All Subjects")
+      find("input#selections_0_#{@so_at_1_01.id}").should be_checked
+      find("input#selections_1_#{@so_at_1_02.id}").should be_checked
+      find("input#selections_2_#{@so_at_1_03.id}").should be_checked
+      find("input#selections_3_#{@so_at_1_04.id}").should be_checked
+      find('#save_matches').click
+
+      # Art 2 with all preselected identical pairs
+      page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
+      find("input#selections_4_#{@so_at_2_01.id}").should be_checked
+      find("input#selections_5_#{@so_at_2_02.id}").should be_checked
+      find("input#selections_6_#{@so_at_2_03.id}").should be_checked
+      find("input#selections_7_#{@so_at_2_04.id}").should be_checked
+      find('#save_matches').click
+
+      # Capstone 3s1 with all preselected identical pairs
+      page.should have_content("Processing #{@subj_capstone_3s1.name} of All Subjects")
+      find("input#selections_8_#{@cp_3_01.id}").should be_checked
+      find("input#selections_9_#{@cp_3_02.id}").should be_checked
+      find("input#selections_10_#{@cp_3_03.id}").should be_checked
+      find("input#selections_11_#{@cp_3_04.id}").should be_checked
+      find('#save_matches').click
+
+      # Math 1 with all preselected identical pairs
+      page.should have_content("Processing #{@subj_math_1.name} of All Subjects")
+      find("input#selections_12_#{@ma_1_01.id}").should_not be_checked
+      find("input#selections__#{@ma_1_01.id}").should_not be_checked
+      find("input#selections__#{@ma_1_02.id}").should_not be_checked
+      find("input#selections__#{@ma_1_03.id}").should_not be_checked
+      find("input#selections_18_#{@ma_1_08.id}").should_not be_checked
+      find("input#selections_18_#{@ma_1_04.id}").should_not be_checked
+      find("input#selections__#{@ma_1_04.id}").should_not be_checked
+      find("input#selections_15_#{@ma_1_05.id}").should be_checked
+      find("input#selections_16_#{@ma_1_06.id}").should be_checked
+      find("input#selections_17_#{@ma_1_07.id}").should be_checked
+      find("input#selections_14_#{@ma_1_04.id}").should_not be_checked
+      find("input#selections_14_#{@ma_1_08.id}").should_not be_checked
+      find("input#selections__#{@ma_1_08.id}").should_not be_checked
+      find("input#selections_19_#{@ma_1_09.id}").should be_checked
+      find("input#selections_20_#{@ma_1_10.id}").should be_checked
+      find("input#selections_21_#{@ma_1_11.id}").should_not be_checked
+      find("input#selections__#{@ma_1_11.id}").should_not be_checked
+      find("input#selections_13_#{@ma_1_03.id}").should_not be_checked
+
+      # select records for good update
+      find("input#selections_12_#{@ma_1_01.id}").click
+      find("input#selections__#{@ma_1_02.id}").click
+      find("input#selections_18_#{@ma_1_04.id}").click
+      find("input#selections_14_#{@ma_1_08.id}").click
+      find("input#selections_21_#{@ma_1_11.id}").click
+      find("input#selections_13_#{@ma_1_03.id}").click
+
+      find('#save_matches').click
+      sleep 30
+      save_and_open_page
+
+      # Confirm Report is properly generated
+      page.should have_content("Processing All Subjects")
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_02.id}']")
+
+    end # within #page-content
+  end # def bulk_upload_all_los
 
 end
