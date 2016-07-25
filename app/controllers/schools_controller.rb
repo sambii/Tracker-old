@@ -207,6 +207,77 @@ class SchoolsController < ApplicationController
         # Copy subjects and learning outcomes from model school if it exists.
         if model_schools.count == 1
           copy_subjects(model_schools.first, @school)
+          if @school.acronym == 'MOD'
+            # make sure the model_lo_id field is preset before rolling over
+            if SubjectOutcome.where('model_lo_id IS NOT NULL').count == 0
+              # ensure model_lo_id fields in subject outcomes for all schools are preset to model school subject outcomes.
+              School.all.each do |s|
+                if s.id != @school.id
+                  # only do this for schools not the model school
+                  s.preset_model_lo_id
+                end
+              end
+            end
+          else
+            # this is not the model school, if possible update subject LOs from Model School
+            if model_schools.count > 0
+              # use the model_lo_id field to update school subject outcome from model school learning outcome
+              mod_sch = model_schools.first
+              # loop through subject outcomes for this school for updates, reactivates and deactivates
+              subj_ids = Subject.where(school_id: @school.id).pluck(:id)
+              SubjectOutcome.where(subject_id: subj_ids).each do |so|
+                if so.model_lo_id.present?
+                  mod_so = SubjectOutcome.find(so.model_lo_id)
+                  so.description = mod_so.description
+                  so.lo_code = mod_so.lo_code
+                  so.marking_period = mod_so.marking_period
+                  so.active = mod_so.active
+                  so.save!
+                  Rails.logger.debug("CCCCC Rollover LO created: #{so.inspect}")
+                end
+              end
+              # Update school with any added LOs added to the model school
+              mod_subj_ids = Subject.where(school_id: mod_sch.id).pluck(:id)
+              # get subjects in this school by name
+              sch_subjs_by_name = Hash.new
+              Subject.where(school_id: @school.id).each do |subj|
+                sch_subjs_by_name[subj.name] = subj
+              end
+              # loop through model school LOs for added LOs
+              SubjectOutcome.where(subject_id: mod_subj_ids).each do |mod_lo|
+                # see if lo exists in school already
+                sch_los = SubjectOutcome.where(subject_id: sch_subjs_by_name[mod_lo.subject.name].id, description: mod_lo.description)
+                if sch_los.count > 0
+                  sch_lo = sch_los.first
+                  if sch_lo.model_lo_id.blank?
+                    # found matching record without a model_lo_id - error
+                    Rails.logger.error("ERROR: school new_year_rollover for #{mod_lo.id} found matching lo #{sch_lo.id} with no model_lo_id")
+                  elsif sch_lo.model_lo_id != mod_lo.id
+                    # found matching record with a different model_lo_id
+                    Rails.logger.error("ERROR: school new_year_rollover for #{mod_lo.id} found matching lo #{sch_lo.id} with different model_lo_id #{sch_lo.model_lo_id}")
+                  elsif(sch_lo.description != mod_lo.description ||
+                    sch_lo.lo_code != mod_lo.lo_code ||
+                    sch_lo.marking_period != mod_lo.marking_period ||
+                    sch_lo.active != mod_lo.active)
+                    Rails.logger.error("ERROR: school new_year_rollover for #{mod_lo.id} found matching lo #{sch_lo.id} with different data values")
+                  else
+                    # Matches OK
+                  end
+                else
+                  # add new subject outcome to school
+                  so = SubjectOutcome.new
+                  so.subject_id = sch_subjs_by_name[mod_lo.subject.name].id
+                  so.description = mod_lo.description
+                  so.lo_code = mod_lo.lo_code
+                  so.marking_period = mod_lo.marking_period
+                  so.active = mod_lo.active
+                  so.model_lo_id = mod_lo.id
+                  so.save!
+                  Rails.logger.debug("CCCCC Rollover LO created: #{so.inspect}")
+                end
+              end # model los loop
+            end # if model school found
+          end
           format.html { redirect_to( schools_path, notice: "School year was successfully rolled over.") }
         else
           format.html { redirect_to( schools_path, notice: 'School year was successfully rolled over (without Model School LOs).') }

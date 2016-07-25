@@ -185,5 +185,38 @@ class School < ActiveRecord::Base
     return_value
   end
 
+  # one time setting of model_lo_id in subject outcomes for school year rollover.
+  # used so school subject outcome points to the corresponding model school lo for updating at new year
+  def preset_model_lo_id
+    ms = School.find(1)
+    if (ms.present? && ms.acronym == 'MOD')
+      # we have a model school, do the preset
+
+      # get subject id in model school
+      mod_subjs = Subject.where(school_id: ms.id)
+      mod_subj_ids = mod_subjs.pluck(:id)
+
+      # get subjects in this school by name
+      sch_subjs_by_name = Hash.new
+      Subject.where(school_id: self.id).each do |subj|
+        sch_subjs_by_name[subj.name] = subj
+      end
+
+      # loop through model school subject outcomes and update corresponding school subject outcome if exists and not set yet
+      SubjectOutcome.where(subject_id: mod_subj_ids).each do |mod_lo|
+        sch_los = SubjectOutcome.where(subject_id: sch_subjs_by_name[mod_lo.subject.name], description: mod_lo.description)
+        # if dup descriptions, update all
+        sch_los.each do |sch_lo|
+          if sch_lo.model_lo_id.blank?
+            sch_lo.model_lo_id = mod_lo.id
+            sch_lo.save
+          end
+        end
+      end # loop through model school LOs
+    end # if model school exists
+
+
+  end
+
 
 end

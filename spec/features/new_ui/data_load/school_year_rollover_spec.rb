@@ -53,6 +53,36 @@ describe "Rollover School Year", js:true do
     @student2_5   = FactoryGirl.create :student, school: @school2, first_name: 'Student5', last_name: 'Grade1', grade_level: 1
     @enrollment2_5 = FactoryGirl.create :enrollment, section: @section2_1_1, student: @student2_5, student_grade_level: 1, active: false
 
+    # Put learning outcomes new year rollover
+    # original subject (not in model school) should be removed
+    @s2_so2_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subject2_1, lo_code: 'SO.1.01', description: 'Original LO 01', marking_period: '1&2'
+    @s2_so2_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subject2_1, lo_code: 'SO.1.02', description: 'Original LO 02', marking_period: '1&2'
+    @s2_so2_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subject2_1, lo_code: 'SO.1.03', description: 'Original LO 03', marking_period: '1&2'
+    @s2_so2_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subject2_1, lo_code: 'SO.1.04', description: 'Original LO 04', marking_period: '1&2'
+
+    # different from model school before rollover, same afterwards (see model_school_subjects_outcomes in load_section_helper.rb)
+    @s2_subj_art_2 = FactoryGirl.create :subject, name: 'Art 2', school: @school2, subject_manager: @teacher2_1
+    @s2_so_at_2_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_art_2, lo_code: 'AT.2.01', description: 'Old School Info 01', marking_period: '1'
+    @s2_so_at_2_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_art_2, lo_code: 'AT.2.02', description: 'Old School Info 02', marking_period: '1'
+    @s2_so_at_2_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_art_2, lo_code: 'AT.2.03', description: 'Old School Info 03', marking_period: '2'
+    @s2_so_at_2_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_art_2, lo_code: 'AT.2.04', description: 'Old School Info 04', marking_period: '2'
+
+    # same as model school before rollover, changed only for sys admin afterwards (see model_school_subjects_outcomes in load_section_helper.rb)
+    @s2_subj_math_1 = FactoryGirl.create :subject, name: 'Math 1', school: @school2, subject_manager: @teacher2_1
+    @s2_ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.01', description: 'Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.', marking_period: '1'
+    @s2_ma_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.02', description: 'Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.', marking_period: '1'
+    @s2_ma_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.03', description: 'Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.', marking_period: '1'
+    @s2_ma_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.04', description: 'will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).', marking_period: '1'
+    @s2_ma_1_05 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.05', description: 'Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.', marking_period: '1'
+    @s2_ma_1_06 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.06', description: 'Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.', marking_period: '1&2'
+    @s2_ma_1_07 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.07', description: 'Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.', marking_period: '1&2'
+    @s2_ma_1_08 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.08', description: 'Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.', marking_period: '2'
+    @s2_ma_1_09 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.09', description: 'Will have a description that is very similar to 10.', marking_period: '2'
+    @s2_ma_1_10 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.10', description: 'Will have a description that is very similar to 09.', marking_period: '2'
+    @s2_ma_1_11 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.11', description: 'Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.', marking_period: '2'
+    @s2_ma_1_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.12', description: 'Will be reactivated. Apply determinants and their properties in real-world situations.', marking_period: '2', active: false
+
+
   end
 
   describe "as teacher" do
@@ -185,6 +215,7 @@ describe "Rollover School Year", js:true do
   end # def no_rollover_school_year_yet
 
   def rollover_school_year(school)
+    # school admin rollover tests
     visit subjects_path()
     assert_equal("/subjects", current_path)
     page.should have_css("a[id='rollover-#{school.id}']")
@@ -206,6 +237,7 @@ describe "Rollover School Year", js:true do
   end # def rollover_school_year
 
   def valid_sys_admin_school_listing(school_no_rollover, school_rollover)
+    # sys admin school year rollover tests
     visit schools_path()
     assert_equal("/schools", current_path)
 
@@ -234,8 +266,10 @@ describe "Rollover School Year", js:true do
 
   def valid_school_year_rollover(sys_admin)
 
+    #########################################################
     # Pre rollover checks
     # note this is for @school2 (whose school year is prior to the model school's school year)
+    #########################################################
 
     if sys_admin
 
@@ -282,6 +316,80 @@ describe "Rollover School Year", js:true do
       page.should have_content(@section2_1_1.line_number)
       page.should have_content(@section2_1_2.line_number)
       page.should have_content(@section2_1_3.line_number)
+    end
+
+    # confirm @subject2_1 exists and has learning outcomes
+    visit subjects_path()
+    page.should have_css("tbody#subj_header_#{@subject2_1.id}")
+    within("tbody#subj_header_#{@subject2_1.id}") do
+      page.should have_content(@subject2_1.name)
+    end
+
+    within("tbody#subj_header_#{@subject2_1.id}") do
+      find("a[href='/subjects/#{@subject2_1.id}/edit_subject_outcomes']").click
+    end
+    assert_equal("/subjects/#{@subject2_1.id}/edit_subject_outcomes", current_path)
+    within('h1') do
+      page.should have_content("View Learning Outcomes for:")
+      page.should have_css("a[href='/subjects/#{@subject2_1.id}']")
+    end
+    within('table#current_los') do
+      page.should have_content("Original LO 01")
+      page.should have_content("Original LO 02")
+      page.should have_content("Original LO 03")
+      page.should have_content("Original LO 04")
+    end
+
+    # confirm @s2_subj_art_2 exists and has sections
+    visit subjects_path()
+    page.should have_css("tbody#subj_header_#{@s2_subj_art_2.id}")
+    within("tbody#subj_header_#{@s2_subj_art_2.id}") do
+      page.should have_content(@s2_subj_art_2.name)
+    end
+
+    within("tbody#subj_header_#{@s2_subj_art_2.id}") do
+      find("a[href='/subjects/#{@s2_subj_art_2.id}/edit_subject_outcomes']").click
+    end
+    assert_equal("/subjects/#{@s2_subj_art_2.id}/edit_subject_outcomes", current_path)
+    within('h1') do
+      page.should have_content("View Learning Outcomes for:")
+      page.should have_css("a[href='/subjects/#{@s2_subj_art_2.id}']")
+    end
+    within('table#current_los') do
+      page.should have_content("Old School Info 01")
+      page.should have_content("Old School Info 02")
+      page.should have_content("Old School Info 03")
+      page.should have_content("Old School Info 04")
+    end
+
+    # confirm @s2_subj_math_1 exists and has sections
+    visit subjects_path()
+    page.should have_css("tbody#subj_header_#{@s2_subj_math_1.id}")
+    within("tbody#subj_header_#{@s2_subj_math_1.id}") do
+      page.should have_content(@s2_subj_math_1.name)
+    end
+
+    within("tbody#subj_header_#{@s2_subj_math_1.id}") do
+      find("a[href='/subjects/#{@s2_subj_math_1.id}/edit_subject_outcomes']").click
+    end
+    assert_equal("/subjects/#{@s2_subj_math_1.id}/edit_subject_outcomes", current_path)
+    within('h1') do
+      page.should have_content("View Learning Outcomes for:")
+      page.should have_css("a[href='/subjects/#{@s2_subj_math_1.id}']")
+    end
+    within('table#current_los') do
+      page.should have_content('Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
+      page.should have_content('Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
+      page.should have_content('Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
+      page.should have_content('will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+      page.should have_content('Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
+      page.should have_content('Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
+      page.should have_content('Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
+      page.should have_content('Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+      page.should have_content('Will have a description that is very similar to 10.')
+      page.should have_content('Will have a description that is very similar to 09.')
+      page.should have_content('Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
+      page.should_not have_content('Will be reactivated. Apply determinants and their properties in real-world situations.')
     end
 
     # confirm students are in original grade level
@@ -332,13 +440,19 @@ describe "Rollover School Year", js:true do
 
     end
 
+    #########################################################
     # Rollover school year
+    #########################################################
     visit schools_path()
     find("a[id='rollover-#{@school2.id}']").click
     # click OK in javascript confirmation popup
     page.driver.browser.switch_to.alert.accept
 
+    sleep 20
+
+    #########################################################
     # Post rollover checks
+    #########################################################
 
     assert_equal("/schools", current_path)
     page.should have_css("tr#school-#{@school2.id}")
@@ -352,12 +466,16 @@ describe "Rollover School Year", js:true do
 
     # confirm all model school subjects exist in school and are not duplicated
     page.all('tbody.tbody-header strong', text: "#{@subj_art_1.discipline.name} : #{@subj_art_1.name}").count.should == 1
-    page.all('tbody.tbody-header strong', text: "#{@subj_art_2.discipline.name} : #{@subj_art_2.name}").count.should == 1
+    # should not have copied the Art 2 subject from the model school
+    page.all('tbody.tbody-header strong', text: "#{@subj_art_2.discipline.name} : #{@subj_art_2.name}").count.should == 0
+    page.all('tbody.tbody-header strong', text: "#{@s2_subj_art_2.discipline.name} : #{@s2_subj_art_2.name}").count.should == 1
     # page.all('tbody.tbody-header strong', text: "#{@subj_art_3.discipline.name} : #{@subj_art_3.name}").count.should == 1
     # page.all('tbody.tbody-header strong', text: "#{@subj_capstone_1s1.discipline.name} : #{@subj_capstone_1s1.name}").count.should == 1
     # page.all('tbody.tbody-header strong', text: "#{@subj_capstone_1s2.discipline.name} : #{@subj_capstone_1s2.name}").count.should == 1
     page.all('tbody.tbody-header strong', text: "#{@subj_capstone_3s1.discipline.name} : #{@subj_capstone_3s1.name}").count.should == 1
-    page.all('tbody.tbody-header strong', text: "#{@subj_math_1.discipline.name} : #{@subj_math_1.name}").count.should == 1
+    # should not have copied the Math 1 subject from the model school
+    page.all('tbody.tbody-header strong', text: "#{@subj_math_1.discipline.name} : #{@subj_math_1.name}").count.should == 0
+    page.all('tbody.tbody-header strong', text: "#{@s2_subj_math_1.discipline.name} : #{@s2_subj_math_1.name}").count.should == 1
 
 
     ##### todo #####
@@ -378,6 +496,105 @@ describe "Rollover School Year", js:true do
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
       # do programming to deactivate subjects that are no longer in model school
       page.all("tbody.tbody-subject").count.should == 6
+    end
+
+    # confirm @subject2_1 exists and has learning outcomes
+    # Note: this should eventually be deactivated
+    visit subjects_path()
+    page.should have_css("tbody#subj_header_#{@subject2_1.id}")
+    within("tbody#subj_header_#{@subject2_1.id}") do
+      page.should have_content(@subject2_1.name)
+    end
+
+    # confirm that lo update has taken place
+    within("tbody#subj_header_#{@subject2_1.id}") do
+      find("a[href='/subjects/#{@subject2_1.id}/edit_subject_outcomes']").click
+    end
+    assert_equal("/subjects/#{@subject2_1.id}/edit_subject_outcomes", current_path)
+    within('h1') do
+      page.should have_content("View Learning Outcomes for:")
+      page.should have_css("a[href='/subjects/#{@subject2_1.id}']")
+    end
+    within('table#current_los') do
+      page.should_not have_content("Original LO 01")
+      page.should_not have_content("Original LO 02")
+      page.should_not have_content("Original LO 03")
+      page.should_not have_content("Original LO 04")
+    end
+
+    # confirm @s2_subj_art_2 exists and has sections
+    visit subjects_path()
+    page.should have_css("tbody#subj_header_#{@s2_subj_art_2.id}")
+    within("tbody#subj_header_#{@s2_subj_art_2.id}") do
+      page.should have_content(@s2_subj_art_2.name)
+    end
+
+    within("tbody#subj_header_#{@s2_subj_art_2.id}") do
+      find("a[href='/subjects/#{@s2_subj_art_2.id}/edit_subject_outcomes']").click
+    end
+    assert_equal("/subjects/#{@s2_subj_art_2.id}/edit_subject_outcomes", current_path)
+    within('h1') do
+      page.should have_content("View Learning Outcomes for:")
+      page.should have_css("a[href='/subjects/#{@s2_subj_art_2.id}']")
+    end
+    within('table#current_los') do
+      page.should_not have_content("Old School Info 01")
+      page.should_not have_content("Old School Info 02")
+      page.should_not have_content("Old School Info 03")
+      page.should_not have_content("Old School Info 04")
+      page.should have_content('AT.2.01 Original')
+      page.should have_content('AT.2.02 Original')
+      page.should have_content('AT.2.03 Original')
+      page.should have_content('AT.2.04 Original')
+    end
+
+    # confirm @s2_subj_math_1 exists and has sections
+    visit subjects_path()
+    page.should have_css("tbody#subj_header_#{@s2_subj_math_1.id}")
+    within("tbody#subj_header_#{@s2_subj_math_1.id}") do
+      page.should have_content(@s2_subj_math_1.name)
+    end
+
+    within("tbody#subj_header_#{@s2_subj_math_1.id}") do
+      find("a[href='/subjects/#{@s2_subj_math_1.id}/edit_subject_outcomes']").click
+    end
+    assert_equal("/subjects/#{@s2_subj_math_1.id}/edit_subject_outcomes", current_path)
+    within('h1') do
+      page.should have_content("View Learning Outcomes for:")
+      page.should have_css("a[href='/subjects/#{@s2_subj_math_1.id}']")
+    end
+    if sys_admin
+      # confirm the LOs from the Sys Admin's Bulk Upload are displayed
+      within('table#current_los') do
+        page.should have_content('Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
+        page.should have_content('Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
+        page.should have_content('Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
+        page.should have_content('will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+        page.should have_content('Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
+        page.should have_content('Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
+        page.should have_content('Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
+        page.should have_content('Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+        page.should have_content('Will have a description that is very similar to 10.')
+        page.should have_content('Will have a description that is very similar to 09.')
+        page.should have_content('Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
+        page.should_not have_content('Will be reactivated. Apply determinants and their properties in real-world situations.')
+      end
+    else
+      # confirm are the same for school admins
+      within('table#current_los') do
+        page.should have_content('Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
+        page.should have_content('Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
+        page.should have_content('Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
+        page.should have_content('will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+        page.should have_content('Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
+        page.should have_content('Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
+        page.should have_content('Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
+        page.should have_content('Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+        page.should have_content('Will have a description that is very similar to 10.')
+        page.should have_content('Will have a description that is very similar to 09.')
+        page.should have_content('Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
+        page.should_not have_content('Will be reactivated. Apply determinants and their properties in real-world situations.')
+      end
     end
 
     # confirm student grade levels are incremented properly

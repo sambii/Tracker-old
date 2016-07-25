@@ -87,6 +87,22 @@ class SubjectOutcomesController < ApplicationController
       # errors are added to @errors and raised
       @match_subject = lo_get_match_subject(params)
 
+      # ensure that model_lo_id is preset
+      so_count = SubjectOutcome.where('model_lo_id IS NOT NULL').count
+      Rails.logger.debug("*** so_count: #{so_count}")
+      if so_count == 0
+        # ensure model_lo_id fields in subject outcomes for all schools are preset to model school subject outcomes.
+        School.all.each do |s|
+          if s.id != @school.id
+            Rails.logger.debug("*** process School: #{s.id} - #{s.name}")
+            # only do this for schools not the model school
+            s.preset_model_lo_id
+            Rails.logger.debug("*** process School done")
+          end
+        end
+      end
+
+
       if params['file'].blank? && !first_display
         @errors[:filename] = "Error: Missing Curriculum (LOs) Upload File."
         raise @errors[:filename]
