@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.025 July 26, 2016
+- fix school rollover error
 PARLO Tracker version v2.01.024 July 26, 2016
 - New Year Rollover testing
 PARLO Tracker version v2.01.023 July 24, 2016
