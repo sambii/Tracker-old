@@ -514,7 +514,6 @@ class SchoolsController < ApplicationController
       Student.where(school_id: school.id).each do |st|
         if st.grade_level == max_grade
           new_grade_level = school.school_year.starts_at.year
-          st.active = false
         else
           new_grade_level = st.grade_level + 1
         end

@@ -448,8 +448,6 @@ describe "Rollover School Year", js:true do
     # click OK in javascript confirmation popup
     page.driver.browser.switch_to.alert.accept
 
-    sleep 20
-
     #########################################################
     # Post rollover checks
     #########################################################
