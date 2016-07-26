@@ -193,8 +193,7 @@ class School < ActiveRecord::Base
       # we have a model school, do the preset
 
       # get subject id in model school
-      mod_subjs = Subject.where(school_id: ms.id)
-      mod_subj_ids = mod_subjs.pluck(:id)
+      mod_subj_ids = Subject.where(school_id: ms.id).pluck(:id)
 
       # get subjects in this school by name
       sch_subjs_by_name = Hash.new
@@ -202,11 +201,14 @@ class School < ActiveRecord::Base
         sch_subjs_by_name[subj.name] = subj
       end
 
+      Rails.logger.debug("*** mod_subj_ids: #{mod_subj_ids.inspect}")
       # loop through model school subject outcomes and update corresponding school subject outcome if exists and not set yet
       SubjectOutcome.where(subject_id: mod_subj_ids).each do |mod_lo|
+        Rails.logger.debug("*** Subject: #{mod_lo.subject.name}, SubjectOutcome: #{mod_lo.inspect}")
         sch_los = SubjectOutcome.where(subject_id: sch_subjs_by_name[mod_lo.subject.name], description: mod_lo.description)
         # if dup descriptions, update all
         sch_los.each do |sch_lo|
+          Rails.logger.debug("*** sch_lo: #{sch_los.inspect}")
           if sch_lo.model_lo_id.blank?
             sch_lo.model_lo_id = mod_lo.id
             sch_lo.save

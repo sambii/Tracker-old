@@ -206,7 +206,6 @@ class SchoolsController < ApplicationController
 
         # Copy subjects and learning outcomes from model school if it exists.
         if model_schools.count == 1
-          copy_subjects(model_schools.first, @school)
           if @school.acronym == 'MOD'
             # make sure the model_lo_id field is preset before rolling over
             if SubjectOutcome.where('model_lo_id IS NOT NULL').count == 0
@@ -218,66 +217,8 @@ class SchoolsController < ApplicationController
                 end
               end
             end
-          else
-            # this is not the model school, if possible update subject LOs from Model School
-            if model_schools.count > 0
-              # use the model_lo_id field to update school subject outcome from model school learning outcome
-              mod_sch = model_schools.first
-              # loop through subject outcomes for this school for updates, reactivates and deactivates
-              subj_ids = Subject.where(school_id: @school.id).pluck(:id)
-              SubjectOutcome.where(subject_id: subj_ids).each do |so|
-                if so.model_lo_id.present?
-                  mod_so = SubjectOutcome.find(so.model_lo_id)
-                  so.description = mod_so.description
-                  so.lo_code = mod_so.lo_code
-                  so.marking_period = mod_so.marking_period
-                  so.active = mod_so.active
-                  so.save!
-                  Rails.logger.debug("CCCCC Rollover LO created: #{so.inspect}")
-                end
-              end
-              # Update school with any added LOs added to the model school
-              mod_subj_ids = Subject.where(school_id: mod_sch.id).pluck(:id)
-              # get subjects in this school by name
-              sch_subjs_by_name = Hash.new
-              Subject.where(school_id: @school.id).each do |subj|
-                sch_subjs_by_name[subj.name] = subj
-              end
-              # loop through model school LOs for added LOs
-              SubjectOutcome.where(subject_id: mod_subj_ids).each do |mod_lo|
-                # see if lo exists in school already
-                sch_los = SubjectOutcome.where(subject_id: sch_subjs_by_name[mod_lo.subject.name].id, description: mod_lo.description)
-                if sch_los.count > 0
-                  sch_lo = sch_los.first
-                  if sch_lo.model_lo_id.blank?
-                    # found matching record without a model_lo_id - error
-                    Rails.logger.error("ERROR: school new_year_rollover for #{mod_lo.id} found matching lo #{sch_lo.id} with no model_lo_id")
-                  elsif sch_lo.model_lo_id != mod_lo.id
-                    # found matching record with a different model_lo_id
-                    Rails.logger.error("ERROR: school new_year_rollover for #{mod_lo.id} found matching lo #{sch_lo.id} with different model_lo_id #{sch_lo.model_lo_id}")
-                  elsif(sch_lo.description != mod_lo.description ||
-                    sch_lo.lo_code != mod_lo.lo_code ||
-                    sch_lo.marking_period != mod_lo.marking_period ||
-                    sch_lo.active != mod_lo.active)
-                    Rails.logger.error("ERROR: school new_year_rollover for #{mod_lo.id} found matching lo #{sch_lo.id} with different data values")
-                  else
-                    # Matches OK
-                  end
-                else
-                  # add new subject outcome to school
-                  so = SubjectOutcome.new
-                  so.subject_id = sch_subjs_by_name[mod_lo.subject.name].id
-                  so.description = mod_lo.description
-                  so.lo_code = mod_lo.lo_code
-                  so.marking_period = mod_lo.marking_period
-                  so.active = mod_lo.active
-                  so.model_lo_id = mod_lo.id
-                  so.save!
-                  Rails.logger.debug("CCCCC Rollover LO created: #{so.inspect}")
-                end
-              end # model los loop
-            end # if model school found
           end
+          copy_subjects(model_schools.first, @school)
           format.html { redirect_to( schools_path, notice: "School year was successfully rolled over.") }
         else
           format.html { redirect_to( schools_path, notice: 'School year was successfully rolled over (without Model School LOs).') }
@@ -416,7 +357,7 @@ class SchoolsController < ApplicationController
     end
 
 
-    # new UI school rollover process - copy subjects from Model school
+    # new UI school create or rollover process - copy subjects from Model school
     def copy_subjects(model_school, new_school)
       matches = Array.new
 
@@ -459,7 +400,7 @@ class SchoolsController < ApplicationController
     end
 
 
-    # new UI school rollover process - copy learning outcomes from Model school
+    # new UI school create or rollover process - copy learning outcomes from Model school
     def copy_model_los(model_subject_id, sch_subject_id)
 
       # Note: should loop through existing school learning outcomes, to update from their matching model records
@@ -470,41 +411,89 @@ class SchoolsController < ApplicationController
       matches = Array.new
 
       Rails.logger.debug("** Copy Subject #{model_subject_id} LOs to #{sch_subject_id}")
-      subjos = SubjectOutcome.where(subject_id: sch_subject_id, )
-      subjos.each do |so|
-        match_item = Hash.new
-        ns_subjos = SubjectOutcome.where(subject_id: sch_subject_id, lo_code: so.lo_code)
-        if ns_subjos.count == 0
-          s = SubjectOutcome.new
-          s.name = so.name
-          match_item[:lo_name] = so.name
-          s.position = so.position
-          match_item[:lo_position] = so.position
-          s.marking_period = so.marking_period
-          match_item[:lo_mp] = so.marking_period
-          s.essential = so.essential
-          match_item[:lo_essential] = so.essential
-          s.subject_id = sch_subject_id
-          match_item[:subject_id] = sch_subject_id
-          s.model_lo_id = so.id
-          match_item[:model_lo_id] = so.id
-          fail("ERROR: error saving Learning Outcome #{s.name} for subject id #{sch_subject_id}") if !s.save
-        elsif ns_subjos.count == 1
-          s = ns_subjos.first
+
+      Rails.logger.debug("** Copy Subject update from model_lo_id")
+
+      # update subject outcomes from model school using model_lo_id if it exists
+      sch_subjos = SubjectOutcome.where(subject_id: sch_subject_id, )
+      sch_subjos.each do |so|
+        Rails.logger.debug("*** so: #{so.inspect}")
+        if so.model_lo_id.present?
+          Rails.logger.debug("*** id Present")
+          mod_so = SubjectOutcome.find(so.model_lo_id)
+          match_item = Hash.new
           match_item[:error_str] = ''
-        else
-          err = "ERROR: System Error multiple subject outcomess with name: #{so.name} for subject id: #{sch_subject_id}"
-          fail(err)
-          match_item[:error_str] = err
+          if mod_so.present?
+            Rails.logger.debug("*** model rec Present")
+            so.lo_code = mod_so.lo_code
+            so.description = mod_so.description
+            so.marking_period = mod_so.marking_period
+            so.active = mod_so.active
+            match_item[:error_str] = "ERROR: error saving Learning Outcome #{s.name} for subject id #{sch_subject_id}" if !so.save
+            fail(match_item[:error_str]) if match_item[:error_str]
+            Rails.logger.error(match_item[:error_str])
+            match_item[:lo_name] = so.name
+            match_item[:lo_position] = so.position
+            match_item[:lo_mp] = so.marking_period
+            match_item[:lo_essential] = so.essential
+            match_item[:subject_id] = sch_subject_id
+            match_item[:model_lo_id] = so.id
+            matches << match_item
+          else
+            Rails.logger.debug("*** error")
+            match_item[:error_str] = "ERROR: Missing Model LO pointed to by model_lo_id: #{model_lo_id} in record: #{so.id}"
+            fail(match_item[:error_str])
+            Rails.logger.error(match_item[:error_str])
+            matches << match_item
+          end
         end
-        match_item[:lo_name] = so.name
-        match_item[:lo_position] = so.position
-        match_item[:lo_mp] = so.marking_period
-        match_item[:lo_essential] = so.essential
-        match_item[:subject_id] = sch_subject_id
-        match_item[:model_lo_id] = so.id
+      end
+
+      Rails.logger.debug("** Update Rest")
+      # Update rest of subject outcomes (without model_lo_id)
+      mod_subjos = SubjectOutcome.where(subject_id: model_subject_id, )
+      mod_subjos.each do |mod_so|
+        Rails.logger.debug("*** mod_so: #{mod_so.inspect}")
+        so = nil
+        match_item = Hash.new
         match_item[:error_str] = ''
-        matches << match_item
+        ns_subjos = SubjectOutcome.where(subject_id: sch_subject_id, description: mod_so.description)
+        if ns_subjos.count == 0
+          Rails.logger.debug("*** Does not exist - add it")
+          # does not exist, add it
+          so = SubjectOutcome.new
+        else
+          Rails.logger.debug("*** Exists")
+          if ns_subjos.first.model_lo_id.blank?
+            Rails.logger.debug("*** Exists and blank ID")
+            so = ns_subjos.first
+          else
+            Rails.logger.debug("*** ID present - ignore it")
+            # ignore this record - should have already been updated above from model_lo_id update
+            so = nil
+          end
+        end
+        if so.present?
+          Rails.logger.debug("*** ID present - save it")
+          match_item[:lo_name] = mod_so.name
+          match_item[:lo_position] = mod_so.position
+          match_item[:lo_mp] = mod_so.marking_period
+          match_item[:lo_essential] = mod_so.essential
+          match_item[:subject_id] = sch_subject_id
+          match_item[:model_lo_id] = mod_so.id
+          so.lo_code = mod_so.lo_code
+          so.description = mod_so.description
+          so.marking_period = mod_so.marking_period
+          so.active = mod_so.active
+          so.subject_id = sch_subject_id
+          so.model_lo_id = mod_so.id
+          if !so.save
+            Rails.logger.error("ERROR: #{so.inspect}")
+            match_item[:error_str] = "ERROR: error saving Learning Outcome #{so.name} for subject id #{sch_subject_id}"
+            fail(match_item[:error_str])
+          end
+          matches << match_item
+        end
       end
 
       Rails.logger.debug("** Done copying Learning Outcomes to subject ID #{sch_subject_id}")
