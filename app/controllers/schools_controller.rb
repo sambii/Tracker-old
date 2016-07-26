@@ -196,14 +196,13 @@ class SchoolsController < ApplicationController
           end
         end
 
-        rollover_school_year(@school)
-
         Rails.logger.debug("*** Update School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
         Rails.logger.debug("*** Update Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
 
         # increment student grade levels for all students in school, deactivate students > max grade (3 - egypt, 12 - others)
         rollover_student_grade_levels(@school)
 
+        notice_msg = ''
         # Copy subjects and learning outcomes from model school if it exists.
         if model_schools.count == 1
           if @school.acronym == 'MOD'
@@ -219,10 +218,13 @@ class SchoolsController < ApplicationController
             end
           end
           copy_subjects(model_schools.first, @school)
-          format.html { redirect_to( schools_path, notice: "School year was successfully rolled over.") }
+          notice_msg = "School year was successfully rolled over."
         else
-          format.html { redirect_to( schools_path, notice: 'School year was successfully rolled over (without Model School LOs).') }
+          notice_msg = 'School year was successfully rolled over (without Model School LOs).'
         end
+        rollover_school_year(@school)
+        format.html { redirect_to( schools_path, notice: notice_msg) }
+
 
       rescue Exception => e
         Rails.logger.error("ERROR in School.new_year_rollover: Exception #{e.message}")
@@ -429,9 +431,11 @@ class SchoolsController < ApplicationController
             so.description = mod_so.description
             so.marking_period = mod_so.marking_period
             so.active = mod_so.active
-            match_item[:error_str] = "ERROR: error saving Learning Outcome #{s.name} for subject id #{sch_subject_id}" if !so.save
-            fail(match_item[:error_str]) if match_item[:error_str]
-            Rails.logger.error(match_item[:error_str])
+            if !so.save
+              match_item[:error_str] = "ERROR: error saving Learning Outcome #{so.name} for subject id #{sch_subject_id}, errors: #{so.errors.full_messages}" 
+              fail(match_item[:error_str]) if match_item[:error_str]
+              Rails.logger.error(match_item[:error_str])
+            end
             match_item[:lo_name] = so.name
             match_item[:lo_position] = so.position
             match_item[:lo_mp] = so.marking_period
@@ -489,7 +493,7 @@ class SchoolsController < ApplicationController
           so.model_lo_id = mod_so.id
           if !so.save
             Rails.logger.error("ERROR: #{so.inspect}")
-            match_item[:error_str] = "ERROR: error saving Learning Outcome #{so.name} for subject id #{sch_subject_id}"
+            match_item[:error_str] = "ERROR: error saving Learning Outcome #{so.name} for subject id #{sch_subject_id}, errors: #{so.errors.full_messages}"
             fail(match_item[:error_str])
           end
           matches << match_item
