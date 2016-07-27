@@ -48,11 +48,15 @@
         %i.fa.fa-lg.fa-users
         %i.fa.fa-lg.fa-stack-overflow
     - if can?(:new_year_rollover, @school)
+      - puts("+++ @model_school id: #{@model_school.id}, starts_at: #{@model_school.school_year.starts_at.year}") if @model_school
+      - puts("+++ @school id: #{@model_school.id}, starts_at: #{@school.school_year.starts_at.year}")
       - if @model_school && (@model_school.school_year.starts_at.year > @school.school_year.starts_at.year || @model_school.id == @school.id)
+        - puts("+++ Rollover Available")
         - # model school year is after the current school year - rollover is available
         %a.btn.btn-sm.btn-primary{id: "rollover-#{@school.id}", href: new_year_rollover_school_path(@school.id), data: {method: :post, confirm: "Are you sure you want to rollover to year '#{@school.school_year.starts_at.year+1}-#{@school.school_year.ends_at.year+1}'?"}, title: 'Rollover to New Year'}
           %i.fa.fa-lg.fa-forward
       - else
+        - puts("+++ Rollover Not Available")
         - # rollover is not available now
         %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{id: "rollover-#{@school.id}", href: 'javascript:void(0)', title: 'Rollover to New Year'}
           %i.fa.fa-lg.fa-forward
