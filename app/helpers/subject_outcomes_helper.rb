@@ -231,9 +231,36 @@ module SubjectOutcomesHelper
   end
 
   def lo_match_new(new_rec, old_recs, match_level)
+    Rails.logger.debug("*** lo_match_new at stage: #{@stage}")
     return_array = []
-    # check matching against all new records, returning all that match at or above match_level
+    # check matching against all old records, returning all that match at or above match_level or add
     old_recs.each do |k, old_rec|
+      match_h = get_matching_level(old_rec, new_rec)
+      if ( match_level <= match_h[:total_match] ||
+        match_h[:code_match] == MAX_CODE_LEVEL ||
+        match_h[:desc_match] == MAX_DESC_LEVEL)
+          return_array << [old_rec, new_rec, match_h]
+      end
+    end
+    # if no matches add a pair with a blank old record (for adding new)
+    exact_matches = return_array.select{ |v| v[2][:total_match] == 6}
+    if return_array.length == 0 || exact_matches.count == 0
+      match_h = get_matching_level({}, new_rec)
+      return_array << [{action: :'+'}, new_rec, match_h]
+    end
+    # return matches in descending match_level order
+    sorted_array = return_array.sort_by { |pair| pair[2][:match_level_total] }.reverse!
+    Rails.logger.debug("*** Pair for new_rec #{new_rec[:rec_id]}, sorted_array: #{sorted_array.inspect}")
+    return sorted_array
+  end
+
+  def lo_match_new_for_rec(new_rec, old_rec, match_level)
+    Rails.logger.debug("*** lo_match_new_for_rec at stage: #{@stage}")
+    return_array = []
+    # check matching against a single old record, returning match or add
+    # old_recs.each do |k, old_rec|
+    if old_rec.present?
+      k = 0
       match_h = get_matching_level(old_rec, new_rec)
       if ( match_level <= match_h[:total_match] ||
         match_h[:code_match] == MAX_CODE_LEVEL ||
@@ -436,41 +463,51 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @selected_new_rec_ids: #{@selected_new_rec_ids.inspect}")
     Rails.logger.debug("*** @selections: #{@selections.inspect}")
     @new_recs_to_process.each do |rk, new_rec|
-      Rails.logger.debug("***")
+      Rails.logger.debug("*** Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       Rails.logger.debug("*** new rec to process: #{new_rec.inspect}")
       new_rec_num = Integer(new_rec[:rec_id]) rescue -1
       new_lo_code = new_rec[:"LO Code:"]
       # only match pairs for pairs not selected by user yet (in the @pairs_matched array) and no errors
       if @selections[new_rec_num.to_s].present?
         db_id = Integer(@selections[new_rec_num.to_s]) rescue 0
-        Rails.logger.debug("*** Pre-selected: rk: #{rk}, new_rec: #{new_rec.inspect}")
+        # Rails.logger.debug("*** Pre-selected: rk: #{rk}, new_rec: #{new_rec.inspect}")
         if @deactivations.include?(db_id.to_s)
           Rails.logger.debug("*** selection is also has a deactivation of the db record!")
           Rails.logger.debug("*** Error - do Matching: rk: #{rk}, new_rec: #{new_rec.inspect} at level: #{@match_level}")
-          matching_pairs = lo_match_new(new_rec, @old_los_by_lo, @match_level)
+          if @stage < 4
+            # only do matching against old records with same lo_code
+            matching_pairs = lo_match_new_for_rec(new_rec, @old_los_by_lo[new_rec[:'LO Code:']], @match_level)
+          else
+            matching_pairs = lo_match_new(new_rec, @old_los_by_lo, @match_level)
+          end
           @pairs_matched.concat(matching_pairs)
-          Rails.logger.debug("*** Matching: matching_pairs: #{matching_pairs}")
+          # Rails.logger.debug("*** Matching: matching_pairs: #{matching_pairs}")
         elsif db_id < 1
           # deselect chosen
           old_rec = @old_los_by_id[db_id*-1].present? ? @old_los_by_id[db_id*-1] : {}
           Rails.logger.debug("*** Deselect chosen - Generate pairs for old_rec: #{old_rec.inspect}")
           new_pair = [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
-          Rails.logger.debug("*** new_pair: #{new_pair}")
+          # Rails.logger.debug("*** new_pair: #{new_pair}")
           @pairs_matched << new_pair
         else
           # selection exists, generate a pair for it
           old_rec = @old_los_by_id[db_id].present? ? @old_los_by_id[db_id] : {}
           Rails.logger.debug("*** Generate pairs for old_rec: #{old_rec.inspect}")
           new_pair = [old_rec, new_rec, get_matching_level(old_rec, new_rec)]
-          Rails.logger.debug("*** new_pair: #{new_pair}")
+          # Rails.logger.debug("*** new_pair: #{new_pair}")
           @pairs_matched << new_pair
         end
       # elsif new_rec[:matched].blank? || new_rec[:error].blank?
       else
         Rails.logger.debug("*** Matching: rk: #{rk}, new_rec: #{new_rec.inspect} at level: #{@match_level}")
-        matching_pairs = lo_match_new(new_rec, @old_los_by_lo, @match_level)
+        if @stage < 4
+          # only do matching against old records with same lo_code
+          matching_pairs = lo_match_new_for_rec(new_rec, @old_los_by_lo[new_rec[:'LO Code:']], @match_level)
+        else
+          matching_pairs = lo_match_new(new_rec, @old_los_by_lo, @match_level)
+        end
         @pairs_matched.concat(matching_pairs)
-        Rails.logger.debug("*** Matching: matching_pairs: #{matching_pairs}")
+        # Rails.logger.debug("*** Matching: matching_pairs: #{matching_pairs}")
       end
     end
   end
@@ -533,7 +570,7 @@ module SubjectOutcomesHelper
       old_lo_code = matched_old_rec[:lo_code]
       new_rec_to_match[:matching_rec_id] = new_rec_to_match[:rec_id]
       if matched_weights[:selected] == true
-        Rails.logger.debug("*** set selected on old rec. matched_old_rec: #{matched_old_rec.inspect}")
+        # Rails.logger.debug("*** set selected on old rec. matched_old_rec: #{matched_old_rec.inspect}")
         @old_los_by_lo[old_lo_code][:selected] = new_rec_to_match[:rec_id] if old_lo_code.present?
       # else
       #   @old_los_by_lo[old_lo_code][:matched] = nil if matched_old_rec[:db_id].present?
@@ -581,18 +618,16 @@ module SubjectOutcomesHelper
           else
             @error_count += 1
           end
-        elsif matched_old_rec[:action] == :'+'
+        else
           # no matching old record, set new LO to add
           new_rec_to_match[:action] = :'+'
           matched_old_rec[:action] = :'+'
           matched_weights[:action] = :'+'
           matched_weights[:action_desc] = 'Add New'
           @add_count += 1
-        else
-          @error_count += 1
         end
         @pairs_filtered << [matched_old_rec, new_rec_to_match, matched_weights]
-        Rails.logger.debug("*** output pair: #{[matched_old_rec, new_rec_to_match, matched_weights]}")
+        # Rails.logger.debug("*** output pair: #{[matched_old_rec, new_rec_to_match, matched_weights]}")
 
       end # if subject to process
 
@@ -641,19 +676,19 @@ module SubjectOutcomesHelper
         new_rec[:matching_rec_id] = matching_db_id.to_s
         if @deactivations.include?(old_rec[:db_id].to_s)
           if @selected_db_ids.include?(old_rec[:db_id].to_s)
-            Rails.logger.debug("*** Deactivated record was also selected")
+            # Rails.logger.debug("*** Deactivated record was also selected")
             match_h[:error] = 'also selected'
             match_h[:selected] = false
           else
             match_h[:selected] = true
           end
         else
-          Rails.logger.debug("*** Deactivated record not selected")
+          # Rails.logger.debug("*** Deactivated record not selected")
         end
         @deactivate_count += 1
         add_pair << [old_rec_clone, new_rec, match_h]
         @pairs_filtered.concat(add_pair)
-        Rails.logger.debug("*** Added deactivate pair: #{add_pair.inspect}")
+        # Rails.logger.debug("*** Added deactivate pair: #{add_pair.inspect}")
       end
     end
   end
@@ -696,18 +731,18 @@ module SubjectOutcomesHelper
 
     Rails.logger.debug("*** database records count: #{@old_los_by_lo.count}")
     # Rails.logger.debug("*** old records to process count: #{@old_recs_to_process.count}")
-    Rails.logger.debug("*** records count: #{@records.count}")
-    Rails.logger.debug("*** new records to process count: #{@new_recs_to_process.count}")
-    Rails.logger.debug("*** records_by_id count: #{@new_los_by_rec.length}")
-    Rails.logger.debug("*** pairs_filtered count: #{@pairs_filtered.count}")
-    Rails.logger.debug("*** mismatch_count : #{@mismatch_count}")
-    Rails.logger.debug("*** not_add_count : #{@not_add_count}")
-    Rails.logger.debug("*** add_count : #{@add_count}")
-    Rails.logger.debug("*** do_nothing_count : #{@do_nothing_count}")
-    Rails.logger.debug("*** reactivate_count : #{@reactivate_count}")
-    Rails.logger.debug("*** deactivate_count : #{@deactivate_count}")
+    Rails.logger.debug("*** @records count: #{@records.count}")
+    Rails.logger.debug("*** @new_recs_to_process count: #{@new_recs_to_process.count}")
+    Rails.logger.debug("*** @new_los_by_rec count: #{@new_los_by_rec.length}")
+    Rails.logger.debug("*** @pairs_filtered count: #{@pairs_filtered.count}")
+    Rails.logger.debug("*** @mismatch_count : #{@mismatch_count}")
+    Rails.logger.debug("*** @not_add_count : #{@not_add_count}")
+    Rails.logger.debug("*** @add_count : #{@add_count}")
+    Rails.logger.debug("*** @do_nothing_count : #{@do_nothing_count}")
+    Rails.logger.debug("*** @reactivate_count : #{@reactivate_count}")
+    Rails.logger.debug("*** @deactivate_count : #{@deactivate_count}")
     Rails.logger.debug("*** @process_by_subject : #{@process_by_subject_id} - #{@process_by_subject.name}") if @process_by_subject.present?
-    Rails.logger.debug("*** process_count : #{@process_count}")
+    Rails.logger.debug("*** @process_count : #{@process_count}")
     Rails.logger.debug("*** @do_nothing_count + @add_count : #{@do_nothing_count + @add_count}")
     Rails.logger.debug("*** @exact_match_count : #{@exact_match_count}")
     Rails.logger.debug("*** (@pairs_filtered.count - @exact_match_count) : #{(@pairs_filtered.count - @exact_match_count)}")
@@ -715,12 +750,18 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @deactivations.count : #{@deactivations.count}")
     Rails.logger.debug("*** @selections.count : #{@selections.count}")
     Rails.logger.debug("*** @error_count : #{@error_count}")
+    Rails.logger.debug("*** @selected_count : #{@selected_count}")
     Rails.logger.debug("*** @unselect_count : #{@unselect_count}")
     Rails.logger.debug("*** @inactive_old_count : #{@inactive_old_count}")
+    Rails.logger.debug("*** @stage : #{@stage}")
+    Rails.logger.debug("*** @process_by_subject : #{@process_by_subject.present?}")
+    Rails.logger.debug("*** @selected_pairs.count : #{@selected_pairs.count}")
+    Rails.logger.debug("*** @selected_pairs.inspect : #{@selected_pairs.inspect}")
 
     @allow_save = true
     net_active = @deactivate_count + @inactive_old_count - @reactivate_count
-    if !params['selections'].present? && @pairs_filtered.count > 0
+    Rails.logger.debug("*** net_active = #{net_active} = #{@inactive_old_count} + #{@deactivate_count} - #{@reactivate_count}}")
+    if !@process_by_subject && !params['selections'].present? && @pairs_filtered.count > 0
       Rails.logger.debug("*** Test1 #{@records.count != @do_nothing_count + @add_count} = #{@records.count} != #{@do_nothing_count} + #{@add_count}")
       @allow_save = false if @records.count != @do_nothing_count + @add_count
       Rails.logger.debug("*** Test2 #{@old_los_by_lo.count != @do_nothing_count + net_active} = #{@old_los_by_lo.count} != #{@do_nothing_count} + #{net_active}")
@@ -732,15 +773,14 @@ module SubjectOutcomesHelper
       Rails.logger.debug("*** Test5 #{@error_count > 0} = #{@error_count} > 0")
       @allow_save = false if @error_count > 0
     else
-      Rails.logger.debug("*** net_active = #{net_active} = #{@inactive_old_count} + #{@deactivate_count} - #{@reactivate_count}}")
-      Rails.logger.debug("*** Test1 #{@selections.count != @new_recs_to_process.count || @error_count > 0} = #{@selections.count} != #{@new_recs_to_process.count} || #{@error_count > 0}")
-      @allow_save = false if @selections.count != @new_recs_to_process.count || @error_count > 0
-      Rails.logger.debug("*** Test2 #{@selections.count != @old_los_by_lo.count + @add_count - net_active} != #{@old_los_by_lo.count} + #{@add_count} - #{net_active}")
-      @allow_save = false if @selections.count != @old_los_by_lo.count + @add_count - net_active
-      Rails.logger.debug("*** Test3 #{@new_recs_to_process.count != @pairs_filtered.count - @unselect_count - @deactivate_count} = #{@new_recs_to_process.count} != #{@pairs_filtered.count} - #{@deactivate_count} - #{@unselect_count}")
+      Rails.logger.debug("*** Test1 #{@selected_count != @new_recs_to_process.count || @error_count > 0} : #{@selected_count} != #{@new_recs_to_process.count} || #{@error_count > 0}")
+      @allow_save = false if @selected_count != @new_recs_to_process.count || @error_count > 0
+      Rails.logger.debug("*** Test2 #{@selected_count != @old_los_by_lo.count + @add_count - net_active} : #{@selected_count} != #{@old_los_by_lo.count} + #{@add_count} - #{net_active}")
+      @allow_save = false if @selected_count != @old_los_by_lo.count + @add_count - net_active
+      Rails.logger.debug("*** Test3 #{@new_recs_to_process.count != @pairs_filtered.count - @unselect_count - @deactivate_count} : #{@new_recs_to_process.count} != #{@pairs_filtered.count} - #{@deactivate_count} - #{@unselect_count}")
       @allow_save = false if @new_recs_to_process.count != @pairs_filtered.count - @unselect_count - @deactivate_count
-      Rails.logger.debug("*** Test4 #{@pairs_filtered.count != @selections.count + @unselect_count + @deactivate_count} = #{@pairs_filtered.count} != #{@selections.count} + #{@unselect_count} + #{@deactivate_count}")
-      @allow_save = false if @pairs_filtered.count != @selections.count + @unselect_count + @deactivate_count
+      Rails.logger.debug("*** Test4 #{@pairs_filtered.count != @selected_count + @unselect_count + @deactivate_count} : #{@pairs_filtered.count} != #{@selected_count} + #{@unselect_count} + #{@deactivate_count}")
+      @allow_save = false if @pairs_filtered.count != @selected_count + @unselect_count + @deactivate_count
 
       # make sure new records are not selected and deactivated at the same time
       counts_h = Hash.new(0)
@@ -751,7 +791,8 @@ module SubjectOutcomesHelper
 
       # make sure old records are not selected and deactivated at the same time
       counts_h = Hash.new(0)
-      sel_counts = params['selections'].present? ? params['selections'].map{ |k,v| counts_h[(Integer(v) rescue -99999).abs] += 1} : []
+      # sel_counts = params['selections'].present? ? params['selections'].map{ |k,v| counts_h[(Integer(v) rescue -99999).abs] += 1} : []
+      sel_counts = @selections.map{ |k,v| counts_h[(Integer(k) rescue -99999).abs] += 1}
       Rails.logger.debug("*** db records sel_counts: #{sel_counts.inspect}")
       Rails.logger.debug("*** Test6 #{sel_counts.length > 0 && sel_counts.max > 1}")
       @allow_save = false if sel_counts.length > 0 && sel_counts.max > 1
@@ -786,7 +827,7 @@ module SubjectOutcomesHelper
     # @records.each do |p|
     #   Rails.logger.debug("*** record: #{p.inspect}")
     # end
-    Rails.logger.debug("*** Step 1a")
+    Rails.logger.debug("*** Step 1a Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     @new_recs_to_process = lo_get_new_recs_to_process(@records)
     # Rails.logger.debug("*** new_recs_to_process ***")
     # @new_recs_to_process.each do |p|
@@ -797,7 +838,7 @@ module SubjectOutcomesHelper
     # @new_los_by_rec.each do |rec|
     #   Rails.logger.debug("*** @new_los_by_rec: #{rec.inspect}")
     # end
-    Rails.logger.debug("*** Step 1b")
+    Rails.logger.debug("*** Step 1b Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     @pairs_filtered = Array.new
     @old_los_by_lo = lo_get_old_los
     @old_los_by_lo.each do |rec|
@@ -806,13 +847,13 @@ module SubjectOutcomesHelper
     @old_los_by_id = lo_get_old_los_by_id(@old_los_by_lo)
     @old_records_counts = @old_los_by_lo.count
     step = 2
-    Rails.logger.debug("*** Step #{step}")
+    Rails.logger.debug("*** Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     @pairs_matched = Array.new
     step = 3
-    Rails.logger.debug("*** Step #{step}")
+    Rails.logger.debug("*** Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     lo_get_matches_for_new
     step = 4
-    Rails.logger.debug("*** Step #{step}")
+    Rails.logger.debug("*** Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     @exact_match_count = 0
     @selected_count = 0
     lo_process_pairs
@@ -820,14 +861,14 @@ module SubjectOutcomesHelper
       Rails.logger.debug("*** lo_process_pairs pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
     end
     step = 5
-    Rails.logger.debug("*** Step #{step}")
+    Rails.logger.debug("*** Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     lo_deactivate_unmatched_old
     @pairs_filtered.each do |p|
       Rails.logger.debug("*** unsorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
     end
     @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
     @pairs_filtered.each do |p|
-      Rails.logger.debug("*** sorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
+      Rails.logger.debug("*** sorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, [#{p[2][:lo_code]}, total_match: #{p[2][:total_match]}, selected: #{p[2][:selected]}, action: #{p[2][:action]}]")
     end
     last_exact_match = ''
     last_matched = ''
@@ -841,14 +882,14 @@ module SubjectOutcomesHelper
     # - remove all other options
     # Rails.logger.debug("*** Step #{step}")
     Rails.logger.debug("***")
-    Rails.logger.debug("*** lo_matching_at_level @pairs_filtered loop")
+    Rails.logger.debug("*** lo_matching_at_level @pairs_filtered loop. Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     Rails.logger.debug("***")
     @pairs_filtered.each do |p|
       rec_id = Integer(p[1][:rec_id]) rescue -1
       db_id = Integer(p[0][:db_id]) rescue -1
       # put db_id in match field for use in view
       p[2][:db_id] = db_id
-      Rails.logger.debug("*** rec_id: #{rec_id}, db_id: #{db_id}, @selected_pairs[rec_id]: #{@selected_pairs[rec_id].inspect}, p[2][:pair_id]: #{p[2][:pair_id]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}, selected: #{p[2][:selected]}")
+      Rails.logger.debug("*** rec_id: #{rec_id}, db_id: #{db_id}, @selected_pairs[rec_id]: #{@selected_pairs[rec_id].inspect}, p[2][:pair_id]: #{p[2][:pair_id]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}, selected: #{p[2][:selected]}, action: #{p[2][:action]}")
 
 
       # If this new record has a selected pair, only output the selected pair for it (and corresponding unselect if not exact match)
@@ -860,21 +901,21 @@ module SubjectOutcomesHelper
           # output the selected pair
           p[0][:matched] = p[1][:rec_id]
           @pairs_filtered_n << p
-          Rails.logger.debug("*** This is the matching pair: #{p.inspect}")
+          # Rails.logger.debug("*** This is the matching pair: #{p.inspect}")
 
           # add an unselect pair if the matching is not exact
           if p[2][:total_match] != 6
             new_pair = [p[0].merge({action: :'x='}), p[1], get_matching_level({}, p[1]).merge({db_id: db_id*-1, action: :'x=', action_desc: 'unselect'})]
             @pairs_filtered_n << new_pair
             @unselect_count += 1
-            Rails.logger.debug("*** This creates the unselect for the matching pair id: #{new_pair.inspect}")
+            # Rails.logger.debug("*** This creates the unselect for the matching pair id: #{new_pair.inspect}")
           end
         else
-          Rails.logger.debug("*** This is not the matching pair id: no output")
+          # Rails.logger.debug("*** This is not the matching pair id: no output")
 
         end
       else
-        Rails.logger.debug("*** There is no matching pair, so output: #{p.inspect}")
+        # Rails.logger.debug("*** There is no matching pair, so output: #{p.inspect}")
         @pairs_filtered_n << p
       end
 

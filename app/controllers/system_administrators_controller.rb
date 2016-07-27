@@ -5,9 +5,10 @@ class SystemAdministratorsController < ApplicationController
 
   load_and_authorize_resource
 
-  # New UI - Teacher Dashboard
+  # New UI - System Administrator Dashboard
   def show
     @model_school = School.where(acronym: 'MOD').first
+    @school = get_current_school 
     @schools = School.accessible_by(current_ability).order('name')
     respond_to do |format|
       format.html

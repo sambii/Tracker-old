@@ -114,7 +114,7 @@ class SubjectOutcomesController < ApplicationController
       end
 
       @stage = 2
-      Rails.logger.debug("*** Stage: #{@stage}")
+      Rails.logger.debug("*** Stage: #{@stage} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
 
       Rails.logger.debug("*** create subject hashes")
       @subject_ids = Hash.new
@@ -155,7 +155,7 @@ class SubjectOutcomesController < ApplicationController
       @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
 
       @stage = 3
-      Rails.logger.debug("*** Stage: #{@stage}")
+      Rails.logger.debug("*** Stage: #{@stage} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
 
       step = 0
@@ -173,12 +173,13 @@ class SubjectOutcomesController < ApplicationController
       # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
       lo_matching_at_level(true)
 
+      @stage = 4
       # if cannot update all records without matching, then start matching process on first subject.
       if !@allow_save
         @process_by_subject = @subjects.first
         @process_by_subject_id = @process_by_subject.id
         Rails.logger.debug("***")
-        Rails.logger.debug("*** Running at @match_level #{@match_level}")
+        Rails.logger.debug("*** Running at @match_level #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         Rails.logger.debug("***")
         lo_matching_at_level(true)
         # tighten @match_level until no deactivates or reactivates
@@ -186,7 +187,7 @@ class SubjectOutcomesController < ApplicationController
           until @match_level <= 0
             @match_level -= 1
             Rails.logger.debug("***")
-            Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
+            Rails.logger.debug("*** Reducing @match_level to #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
             Rails.logger.debug("***")
             action_count = 0
             lo_matching_at_level(true)
@@ -197,7 +198,6 @@ class SubjectOutcomesController < ApplicationController
         @process_by_subject = nil
         @allow_save_all = true
       end
-
 
       if @errors.count == 0 && @error_list.length == 0 && !first_display
 
@@ -316,8 +316,13 @@ class SubjectOutcomesController < ApplicationController
       # development manual adjustmenmt of matching level from input field in matching page.
       @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
 
+      # only update to stage 4 if not all subjects update
+      @stage = 4 if !@process_by_subject
       # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
+      # note this is to process the records sent from user, and if all pairs are matched and are good, do the update
       lo_matching_at_level(false)
+
+      @stage = 4
 
       step = 7
       Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}")

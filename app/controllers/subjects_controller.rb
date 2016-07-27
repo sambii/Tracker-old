@@ -11,9 +11,19 @@ class SubjectsController < ApplicationController
     begin
       @school = get_current_school
       school_year_id = @school.school_year_id
+
       @model_school = School.find(1)
-      @sections = Section.where school_year_id: @school.school_year_id
     rescue
+      if @model_school.blank?
+        # for staging server without model school with ID 1
+        model_schools = School.where(acronym: 'MOD')
+        @model_school = model_schools.first if model_schools.count > 0
+      end
+    end
+    if @school.school_year_id
+      @sections = Section.where school_year_id: @school.school_year_id
+    else
+      
       @sections = []
     end
     # note this does not preread teaching assignments
