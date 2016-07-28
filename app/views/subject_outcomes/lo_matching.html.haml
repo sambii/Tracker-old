@@ -59,18 +59,21 @@
             %tbody.tbody-body
               - prior_new_rec_num = 0
               - prior_matched_rec_id = -1
+              - prior_matched_lo_code = ''
               - highlight_class = ''
               - @pairs_filtered.each_with_index do |set, ix|
                 - rx = set[0]
                 - ry = set[1]
                 - match = set[2]
                 - # set up alternate old record highlighting
-                - if prior_matched_rec_id != ry[:matching_rec_id]
-                  - prior_matched_rec_id = ry[:matching_rec_id]
+                - if prior_matched_lo_code != match[:lo_code]
+                  - prior_matched_lo_code = match[:lo_code]
                   - highlight_class = (highlight_class == 'on' ? '' : 'on')
                   - break_class = 'break'
                 - else
                   - break_class = ''
+                - if prior_matched_rec_id != ry[:matching_rec_id]
+                  - prior_matched_rec_id = ry[:matching_rec_id]
                 - pair_subject_id = rx[SubjectOutcomesHelper::COL_SUBJECT_ID]
                 - pair_subject_id = ry[SubjectOutcomesHelper::COL_SUBJECT_ID] if !pair_subject_id.present?
                 - pair_subject_id_i = Integer(pair_subject_id) rescue -1

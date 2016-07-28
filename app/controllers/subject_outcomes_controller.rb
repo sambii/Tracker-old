@@ -171,6 +171,7 @@ class SubjectOutcomesController < ApplicationController
       @match_level = MAX_MATCH_LEVEL
 
       # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
+      @errors = Hash.new
       lo_matching_at_level(true)
 
       @stage = 4
@@ -181,6 +182,7 @@ class SubjectOutcomesController < ApplicationController
         Rails.logger.debug("***")
         Rails.logger.debug("*** Running at @match_level #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         Rails.logger.debug("***")
+        @errors = Hash.new
         lo_matching_at_level(true)
         # tighten @match_level until no deactivates or reactivates
         if !@allow_save && @loosen_level
@@ -190,6 +192,7 @@ class SubjectOutcomesController < ApplicationController
             Rails.logger.debug("*** Reducing @match_level to #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
             Rails.logger.debug("***")
             action_count = 0
+            @errors = Hash.new
             lo_matching_at_level(true)
             break if @allow_save || !@loosen_level
           end
@@ -243,6 +246,7 @@ class SubjectOutcomesController < ApplicationController
     authorize! :upload_lo, SubjectOutcome
     step = 0
     begin
+      current_pair = nil
       @stage = 1
       @records = Array.new
       @errors = Hash.new
@@ -320,6 +324,7 @@ class SubjectOutcomesController < ApplicationController
       @stage = 4 if !@process_by_subject
       # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
       # note this is to process the records sent from user, and if all pairs are matched and are good, do the update
+      @errors = Hash.new
       lo_matching_at_level(false)
 
       @stage = 4
@@ -331,22 +336,27 @@ class SubjectOutcomesController < ApplicationController
           Rails.logger.debug("***")
           Rails.logger.debug("*** Update Subject Learning Outcomes")
           Rails.logger.debug("***")
-          @pairs_matched.each_with_index do |pair, ix|
+          # @pairs_matched.each_with_index do |pair, ix|
+          @pairs_filtered.each_with_index do |pair, ix|
+            current_pair = pair
             rec = pair[0]
             matched_new_rec = pair[1].clone # only change state for this matching pair
             matched_weights = pair[2]
 
             Rails.logger.debug("*** Pair: #{matched_weights.inspect}")
-            Rails.logger.debug("*** process? #{lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?}")
+            # Rails.logger.debug("*** process? #{lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?}")
+            Rails.logger.debug("*** process? #{matched_weights[PARAM_ACTION].present?}")
 
-            if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?
-              Rails.logger.debug("*** Update old rec: #{rec}")
+            # if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?
+            if matched_weights[PARAM_ACTION].present?
+              Rails.logger.debug("*** Update old rec: #{rec}, action: #{matched_weights[PARAM_ACTION]}")
               case matched_weights[PARAM_ACTION]
               when :'=='
                 # identical - no update needed
                 Rails.logger.debug("*** No Update - Identical")
                 matched_weights[:action_desc] = 'Exact Match'
               when :'~='
+                Rails.logger.debug("*** Update - Not Identical")
                 so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = true
                 so.lo_code = matched_new_rec[:'LO Code:']
@@ -358,6 +368,7 @@ class SubjectOutcomesController < ApplicationController
                 Rails.logger.debug("*** Updated to : #{so.inspect}")
                 # matched_weights[:action_desc] = 'Close Match'
               when :'==^', :'~=^'
+                Rails.logger.debug("*** Reactivate")
                 so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = true
                 so.lo_code = matched_new_rec[:'LO Code:']
@@ -369,6 +380,7 @@ class SubjectOutcomesController < ApplicationController
                 Rails.logger.debug("*** Pair Restored: #{so.inspect}")
                 # matched_weights[:action_desc] = 'Reactivate'
               when :'-'
+                Rails.logger.debug("*** Deactivate")
                 so = SubjectOutcome.find(rec[COL_DB_ID])
                 so.active = false
                 so.save!
@@ -377,11 +389,14 @@ class SubjectOutcomesController < ApplicationController
                 Rails.logger.debug("*** Pair Removed: #{so.inspect}")
                 # matched_weights[:action_desc] = 'Deactivate'
               when :'+'
+                Rails.logger.debug("*** Add")
                 so = SubjectOutcome.new
+                so.active = false
                 so.lo_code = matched_new_rec[:'LO Code:']
                 so.description = matched_new_rec[:'Learning Outcome']
                 so.marking_period = matched_new_rec[:mp_bitmap]
-                so.subject_id = rec[:subject_id].to_i
+                so.subject_id = matched_new_rec[:subject_id].to_i
+                Rails.logger.debug("*** add: #{so.inspect}")
                 so.save!
                 action_count += 1
                 action = 'Added'
@@ -410,10 +425,12 @@ class SubjectOutcomesController < ApplicationController
       end # if @allow_save
 
     rescue => e
-      msg_str = "ERROR: lo_matching Exception at step #{step} - item #{action_count+1} - #{e.message}"
+      item_at = "step #{step} - item #{action_count+1}"
+      item_at = "LO Code: #{current_pair[2][[:lo_code]]}, Action: #{current_pair[2][[:action]]}" if current_pair.present?
+      msg_str = "ERROR: lo_matching Exception at #{item_at} - #{e.message}"
       @errors[:base] = append_with_comma(@errors[:base], msg_str)
       Rails.logger.error(msg_str)
-      flash.now[:alert] = msg_str
+      flash[:alert] = msg_str
       @stage = 5
     end
 
@@ -421,7 +438,7 @@ class SubjectOutcomesController < ApplicationController
     respond_to do |format|
       Rails.logger.debug("@stage: #{@stage}")
       if @errors.count > 0
-        flash[:alert] = (@errors[:base].present?) ? @errors[:base] : 'Errors'
+        flash[:alert] += (@errors[:base].present?) ? @errors[:base] : 'Errors'
       end
       if @stage == 9 && @process_by_subject.blank?
         format.html { render :action => "lo_matching_update" }
@@ -441,6 +458,9 @@ class SubjectOutcomesController < ApplicationController
         if @stage == 9 && !@process_by_subject.present?
           # No more subjects, generate report for all subjects
           @process_by_subject = nil
+          @match_level = MAX_MATCH_LEVEL
+          @stage = 10 # will set matching by lo_code for performance
+          # @errors = Hash.new
           lo_matching_at_level(true)
           format.html { render :action => "lo_matching_update" }
         else
@@ -457,11 +477,12 @@ class SubjectOutcomesController < ApplicationController
           end
 
           # continue generate pairs for subject
+          # @errors = Hash.new
           lo_matching_at_level(false)
 
           # tighten @match_level until allow save or dont loosen level
           # if @deactivate_count > 0 || @reactivate_count > 0
-          if @stage < 10 && @loosen_level && !@allow_save
+          if @stage < 10 && @loosen_level && (!@allow_save || @errors.count > 0)
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")
@@ -469,8 +490,9 @@ class SubjectOutcomesController < ApplicationController
               Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
               Rails.logger.debug("***")
               action_count = 0
+              # @errors = Hash.new
               lo_matching_at_level(false)
-              break if @allow_save || !@loosen_level
+              break if (@allow_save && @errors.count == 0) || !@loosen_level
             end
           end # loosen level (and not done yet)
           Rails.logger.debug("*** format.html")

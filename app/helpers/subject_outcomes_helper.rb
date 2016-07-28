@@ -474,7 +474,7 @@ module SubjectOutcomesHelper
         if @deactivations.include?(db_id.to_s)
           Rails.logger.debug("*** selection is also has a deactivation of the db record!")
           Rails.logger.debug("*** Error - do Matching: rk: #{rk}, new_rec: #{new_rec.inspect} at level: #{@match_level}")
-          if @stage < 4
+          if @stage < 4 || @stage > 9
             # only do matching against old records with same lo_code
             matching_pairs = lo_match_new_for_rec(new_rec, @old_los_by_lo[new_rec[:'LO Code:']], @match_level)
           else
@@ -500,7 +500,7 @@ module SubjectOutcomesHelper
       # elsif new_rec[:matched].blank? || new_rec[:error].blank?
       else
         Rails.logger.debug("*** Matching: rk: #{rk}, new_rec: #{new_rec.inspect} at level: #{@match_level}")
-        if @stage < 4
+        if @stage < 4 || @stage > 9
           # only do matching against old records with same lo_code
           matching_pairs = lo_match_new_for_rec(new_rec, @old_los_by_lo[new_rec[:'LO Code:']], @match_level)
         else
@@ -759,8 +759,9 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @selected_pairs.inspect : #{@selected_pairs.inspect}")
 
     @allow_save = true
-    net_active = @deactivate_count + @inactive_old_count - @reactivate_count
-    Rails.logger.debug("*** net_active = #{net_active} = #{@inactive_old_count} + #{@deactivate_count} - #{@reactivate_count}}")
+    # net_active = @deactivate_count + @inactive_old_count - @reactivate_count
+    net_active = @deactivate_count - @reactivate_count
+    Rails.logger.debug("*** net_active = #{net_active} = #{@deactivate_count} + #{@inactive_old_count} + #{@reactivate_count}}")
     if !@process_by_subject && !params['selections'].present? && @pairs_filtered.count > 0
       Rails.logger.debug("*** Test1 #{@records.count != @do_nothing_count + @add_count} = #{@records.count} != #{@do_nothing_count} + #{@add_count}")
       @allow_save = false if @records.count != @do_nothing_count + @add_count
@@ -775,8 +776,8 @@ module SubjectOutcomesHelper
     else
       Rails.logger.debug("*** Test1 #{@selected_count != @new_recs_to_process.count || @error_count > 0} : #{@selected_count} != #{@new_recs_to_process.count} || #{@error_count > 0}")
       @allow_save = false if @selected_count != @new_recs_to_process.count || @error_count > 0
-      Rails.logger.debug("*** Test2 #{@selected_count != @old_los_by_lo.count + @add_count - net_active} : #{@selected_count} != #{@old_los_by_lo.count} + #{@add_count} - #{net_active}")
-      @allow_save = false if @selected_count != @old_los_by_lo.count + @add_count - net_active
+      Rails.logger.debug("*** Test2 #{@selected_count != @old_los_by_lo.count - @inactive_old_count + @add_count - net_active} : #{@selected_count} != #{@old_los_by_lo.count} - #{@inactive_old_count} + #{@add_count} - #{net_active}")
+      @allow_save = false if @selected_count != @old_los_by_lo.count - @inactive_old_count + @add_count - net_active
       Rails.logger.debug("*** Test3 #{@new_recs_to_process.count != @pairs_filtered.count - @unselect_count - @deactivate_count} : #{@new_recs_to_process.count} != #{@pairs_filtered.count} - #{@deactivate_count} - #{@unselect_count}")
       @allow_save = false if @new_recs_to_process.count != @pairs_filtered.count - @unselect_count - @deactivate_count
       Rails.logger.debug("*** Test4 #{@pairs_filtered.count != @selected_count + @unselect_count + @deactivate_count} : #{@pairs_filtered.count} != #{@selected_count} + #{@unselect_count} + #{@deactivate_count}")
@@ -800,6 +801,7 @@ module SubjectOutcomesHelper
     end
     Rails.logger.debug("*** allow_save : #{@allow_save} (selections present?: #{params['selections'].present?})")
 
+    # @loosen_level = (@pairs_filtered.count - @exact_match_count) <= (([@new_recs_to_process.count, @old_los_by_lo.count].max - @exact_match_count) * 2)
     @loosen_level = (@pairs_filtered.count - @exact_match_count) <= ((@new_recs_to_process.count - @exact_match_count) * 2)
     Rails.logger.debug("*** @loosen_level (#{@match_level}): #{@loosen_level}")
 
@@ -821,7 +823,6 @@ module SubjectOutcomesHelper
   def lo_matching_at_level(first_run)
     step = 1
     clear_matching_counts
-    @errors = Hash.new
     @records = @records_clean.clone
     # Rails.logger.debug("*** records ***")
     # @records.each do |p|
