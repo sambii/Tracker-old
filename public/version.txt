@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.027 July 28, 2016
+- School Year rollover performance and loop tuning
 PARLO Tracker version v2.01.026 July 27, 2016
 - School year rollover for school admin debugging
 PARLO Tracker version v2.01.025 July 26, 2016
