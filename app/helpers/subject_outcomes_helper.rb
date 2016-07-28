@@ -446,6 +446,39 @@ module SubjectOutcomesHelper
     return old_los_by_lo
   end
 
+  def lo_get_all_old_los
+    # get hash by lo_code of array of all subject outcomes from the database for subject to process
+    old_los = Array.new
+    SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).each do |so|
+      subject_name = @subject_ids[so.subject_id].name
+      # only add record if all subjects or the matching selected subject
+      if lo_subject_to_process?(so.subject_id)
+        # Rails.logger.debug("*** Subject Outcome: #{so.inspect}")
+        old_rec = {
+          db_id: so.id,
+          subject_name: subject_name,
+          subject_id: so.subject_id,
+          lo_code: so.lo_code,
+          name: so.name,
+          short_desc: so.shortened_description,
+          desc: so.description,
+          course: so.subject.subject_name_without_grade,
+          grade: so.subject.grade_from_subject_name,
+          mp: SubjectOutcome.get_bitmask_string(so.marking_period),
+          active: so.active
+        }
+        @inactive_old_count += 1 if !so.active
+        old_los << old_rec
+      end
+    end
+
+    # create a hash by lo_code that has an array of all matching old records
+    old_los_by_lo = Hash.new([])
+    old_los.each { |lo| old_los_by_lo[lo[:lo_code]] += lo}
+
+    return old_los_by_lo
+  end
+
   def lo_get_old_los_by_id(old_los)
     old_los_by_id = Hash.new
     old_los.each do |k,rec|

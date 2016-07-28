@@ -391,7 +391,7 @@ class SubjectOutcomesController < ApplicationController
               when :'+'
                 Rails.logger.debug("*** Add")
                 so = SubjectOutcome.new
-                so.active = false
+                so.active = true
                 so.lo_code = matched_new_rec[:'LO Code:']
                 so.description = matched_new_rec[:'Learning Outcome']
                 so.marking_period = matched_new_rec[:mp_bitmap]
