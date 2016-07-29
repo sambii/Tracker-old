@@ -104,27 +104,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # if no errors and not requiring subject by subject matching, then save button should be showing
       page.should have_css("#save_all")
       page.should have_content('Match Old LOs to New LOs')
-      # within("#old-lo-count") do
-      #   page.should have_content('38')
-      # end
-      # within("#new-lo-count") do
-      #   page.should have_content('38')
-      # end
-      # within("#add-count") do
-      #   page.should have_content('0')
-      # end
-      # within("#do-nothing-count") do
-      #   page.should have_content('38')
-      # end
-      # within("#reactivated-count") do
-      #   page.should have_content('0')
-      # end
-      # within("#deactivated-count") do
-      #   page.should have_content('0')
-      # end
-      # within("#error-count") do
-      #   page.should have_content('0')
-      # end
       page.should have_button("SAVE ALL")
       find('#save_all').click
     end # within #page-content
@@ -145,15 +124,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # if no errors, then save button should be showing
       page.should have_css("#save_all")
       page.should have_content('Match Old LOs to New LOs')
-      # within("#old-lo-count") do
-      #   page.should have_content('4')
-      # end
-      # within("#new-lo-count") do
-      #   page.should have_content('4')
-      # end
-      # within("#add-count") do
-      #   page.should have_content('0')
-      # end
       page.should have_button("SAVE ALL")
       find('#save_all').click
     end # within #page-content
@@ -175,15 +145,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # if no errors, then save button should be showing
       page.should have_css("#save_all")
       page.should have_content('Match Old LOs to New LOs')
-      # within("#old-lo-count") do
-      #   page.should have_content('1')
-      # end
-      # within("#new-lo-count") do
-      #   page.should have_content('2')
-      # end
-      # within("#add-count") do
-      #   page.should have_content('1')
-      # end
       page.should have_button("SAVE ALL")
       find('#save_all').click
     end # within #page-content
@@ -203,18 +164,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Match Old LOs to New LOs')
-      # within("#old-lo-count") do
-      #   page.should have_content('4')
-      # end
-      # within("#new-lo-count") do
-      #   page.should have_content('4')
-      # end
-      # within("#add-count") do
-      #   page.should have_content('2')
-      # end
-      # within("#do-nothing-count") do
-      #   page.should have_content('2')
-      # end
       # errors - save button should be showing
       page.should_not have_css("#save_all")
       page.should_not have_button("SAVE ALL")
@@ -226,6 +175,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
   # some mismatches (deactivates, reactivates or changes) - requires subject by subject matching
   def bulk_upload_all_mismatches
     visit upload_lo_file_subject_outcomes_path
+    # hide the sidebar for better printing during debugging
+    find('li#head-sidebar-toggle a').click
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
@@ -234,8 +185,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      # sleep 10
-      # save_and_open_page
+      # sleep 20
+      save_and_open_page
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
@@ -293,9 +244,17 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_css("td.new_lo_desc", text: "AT.2.01 Changed")
         page.should have_content("~=")
         page.should have_css("input[name='selections[4]']")
-        page.should have_css("input#selections_4_#{@so_at_2_01.id}")
+        page.should have_css("input#selections_4_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
         find("input#selections_4_#{@so_at_2_01.id}").should_not be_checked
         page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_-1']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.01 Changed")
+        page.should have_content("+")
+        page.should have_css("input[name='selections[4]']")
+        page.should have_css("input#selections_4_-1", value: '-1')
+        find("input#selections_4_-1").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "")
       end
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
         page.should have_css("td.new_lo_desc", text: "")
@@ -333,37 +292,31 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_css("td.new_lo_code", text: "AT 2.04")
         page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
         page.should have_content("~=")
-        page.should have_css("input[name='selections[7]']")
-        page.should have_css("input#selections_7_#{@so_at_2_04.id}")
+        page.should have_css("input")
+        page.should have_css("input#selections_7_#{@so_at_2_04.id}[name='selections[7]']", value: @so_at_2_04.id)
         find("input#selections_7_#{@so_at_2_04.id}").should_not be_checked
         page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
       end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_03.id}']") do
-        page.should have_css("td.new_lo_code", text: "AT 2.04")
-        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[7]']")
-        page.should have_css("input#selections_7_#{@so_at_2_03.id}")
-        find("input#selections_7_#{@so_at_2_03.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "AT.2.03 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_02.id}']") do
-        page.should have_css("td.new_lo_code", text: "AT 2.04")
-        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[7]']")
-        page.should have_css("input#selections_7_#{@so_at_2_02.id}")
-        find("input#selections_7_#{@so_at_2_02.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "AT.2.02 Original")
-      end
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_03.id}']")
+      page.should_not have_css("input#selections_7_#{@so_at_2_03.id}[name='selections[7]']", value: @so_at_2_03.id)
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_02.id}']")
+      page.should_not have_css("input#selections_7_#{@so_at_2_02.id}[name='selections[7]']", value: @so_at_2_02.id)
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_01.id}']") do
         page.should have_css("td.new_lo_code", text: "AT 2.04")
         page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
         page.should have_content("~=")
         page.should have_css("input[name='selections[7]']")
-        page.should have_css("input#selections_7_#{@so_at_2_01.id}")
+        page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
         find("input#selections_7_#{@so_at_2_01.id}").should_not be_checked
         page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_-1']") do
+        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
+        page.should have_content("+")
+        page.should have_css("input[name='selections[7]']")
+        page.should have_css("input#selections_7_-1", value: '-1')
+        find("input#selections_7_-1").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "")
       end
 
       # select matches plus deactivate one of the matches - for error
@@ -373,8 +326,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
       find('#save_matches').click
 
+      false.should == true
+
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
       page.should have_content('Match Old LOs to New LOs')
       within('thead.table-title') do
@@ -391,16 +346,19 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find("input#selections_5_#{@so_at_2_02.id}").should be_checked
       find("input#selections_6_#{@so_at_2_03.id}").should be_checked
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
+        page.should have_content("-")
         find("input#selections__#{@so_at_2_04.id}").should_not be_checked
         page.should have_css('span.ui-error')
       end
       within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
+        page.should have_content("~=")
         find("input#selections_7_#{@so_at_2_04.id}").should_not be_checked
         page.should have_css('span.ui-error')
       end
       page.should have_css("input#selections_7_#{@so_at_2_03.id}")
       page.should have_css("input#selections_7_#{@so_at_2_02.id}")
-      page.should have_css("input#selections_7_#{@so_at_2_01.id}")
+      page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
+      page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "-1")
 
       # unselect the first match to confirm unselect works
       find("input#selections_4_-#{@so_at_2_01.id}").click
@@ -408,7 +366,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
 
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
       # confirm page is back to original
       page.should have_content('Match Old LOs to New LOs')
@@ -434,7 +392,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       page.should have_css("input#selections_7_#{@so_at_2_03.id}")
       page.should have_css("input#selections_7_#{@so_at_2_02.id}")
-      page.should have_css("input#selections_7_#{@so_at_2_01.id}")
+      page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
+      page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "-1")
 
       # Try deactivating one and selecting another (should leave first item unmatched, and no update)
       # deactivate the first match
@@ -445,7 +404,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
 
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
       # page has deselection of first db rec, with all corresponding new records, fourth selected with unselect
       page.should have_content('Match Old LOs to New LOs')
@@ -484,7 +443,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
 
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
 
       # page has deselection of first db rec and selection of first for errors
@@ -532,7 +491,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
 
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
       # Capstone 3s1 with all preselected identical pairs
       page.should have_content('Match Old LOs to New LOs')
@@ -576,9 +535,82 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         find("input#selections_11_#{@cp_3_04.id}").should be_checked
         page.should have_css("td.old_lo_desc", text: "CP.3.04 Original")
       end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_05.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_05.id}]']")
+        page.should have_css("input#selections__#{@cp_3_05.id}")
+        find("input#selections__#{@cp_3_05.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.05 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_06.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_06.id}]']")
+        page.should have_css("input#selections__-#{@cp_3_06.id}")
+        find("input#selections__#{@cp_3_06.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.06 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_07.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_07.id}]']")
+        page.should have_css("input#selections__-#{@cp_3_07.id}")
+        find("input#selections__#{@cp_3_07.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.07 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_08.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_08.id}]']")
+        page.should have_css("input#selections__-#{@cp_3_08.id}")
+        find("input#selections__#{@cp_3_08.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.08 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_09.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_09.id}]']")
+        page.should have_css("input#selections__-#{@cp_3_09.id}")
+        find("input#selections__#{@cp_3_09.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.09 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_10.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_10.id}]']")
+        page.should have_css("input#selections__-#{@cp_3_10.id}")
+        find("input#selections__#{@cp_3_10.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.10 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_11.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_11.id}]']")
+        page.should have_css("input#selections__-#{@cp_3_11.id}")
+        find("input#selections__#{@cp_3_11.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.11 Original")
+      end
+      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_12.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@cp_3_12.id}]']")
+        page.should have_css("input#selections__-#{@cp_3_12.id}")
+        find("input#selections__#{@cp_3_12.id}").should_not be_checked
+        page.should have_css("td.old_lo_desc", text: "CP.3.12 Original")
+      end
+
+        # find("input#selections__#{@cp_3_05.id}").click
+        # find("input#selections__#{@cp_3_06.id}").click
+        # find("input#selections__#{@cp_3_07.id}").click
+        # find("input#selections__#{@cp_3_08.id}").click
+        # find("input#selections__#{@cp_3_09.id}").click
+        # find("input#selections__#{@cp_3_10.id}").click
+        # find("input#selections__#{@cp_3_11.id}").click
+        # find("input#selections__#{@cp_3_12.id}").click
 
       find('#save_matches').click
-      # sleep 30
+      # sleep 20
       # save_and_open_page
 
       # Math 1 with all preselected identical pairs
@@ -769,12 +801,12 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find("input#selections_14_#{@ma_1_08.id}").click
       find("input#selections__#{@ma_1_08.id}").click
 
-      # sleep 30
+      # sleep 20
       # save_and_open_page
 
       find('#save_matches').click
-      # sleep 30
-      # save_and_open_page
+      sleep 30
+      save_and_open_page
 
       within('thead.table-title') do
         page.should have_content("Processing #{@subj_math_1.name} of All Subjects")
@@ -820,7 +852,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find("input#selections_13_#{@ma_1_03.id}").click
 
       find('#save_matches').click
-      # sleep 30
+      sleep 20
       # save_and_open_page
 
       # Confirm Report is properly generated
@@ -837,8 +869,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # end
       page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_02.id}']")
 
-      # sleep 30
-      # save_and_open_page
+      sleep 20
+      save_and_open_page
 
 
     end # within #page-content

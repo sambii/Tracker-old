@@ -268,7 +268,14 @@ module LoadSectionHelper
     @cp_3_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.02', description: 'CP.3.02 Original', marking_period: '1'
     @cp_3_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.03', description: 'CP.3.03 Original', marking_period: '1'
     @cp_3_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.04', description: 'CP.3.04 Original', marking_period: '1'
-
+    @cp_3_05 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.05', description: 'CP.3.05 Original', marking_period: '1'
+    @cp_3_06 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.06', description: 'CP.3.06 Original', marking_period: '1'
+    @cp_3_07 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.07', description: 'CP.3.07 Original', marking_period: '1'
+    @cp_3_08 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.08', description: 'CP.3.08 Original', marking_period: '1'
+    @cp_3_09 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.09', description: 'CP.3.09 Original', marking_period: '1'
+    @cp_3_10 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.10', description: 'CP.3.10 Original', marking_period: '1'
+    @cp_3_11 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.11', description: 'CP.3.11 Original', marking_period: '1'
+    @cp_3_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_3s1, lo_code: 'CP.3.12', description: 'CP.3.12 Original', marking_period: '1'
 
     # @subj_math_1 = FactoryGirl.create :subject, name: 'Math 1', subject_manager: @model_subject_manager, school: model_school
     @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.01', description: 'Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.', marking_period: '1'

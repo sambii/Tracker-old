@@ -582,7 +582,8 @@ module SubjectOutcomesHelper
             matched_weights[:selected] = true
             @selected_count += 1
             @selected_pairs[matched_rec_num] = ix
-            @selected_new_rec_ids << matched_rec_num
+            # todo fix this dup add to @selected_new_rec_ids
+            # @selected_new_rec_ids << matched_rec_num
             Rails.logger.debug("*** matched selection for - ix: #{ix} #{matched_weights.inspect}")
           end
         end
@@ -594,6 +595,8 @@ module SubjectOutcomesHelper
           @selected_pairs[matched_rec_num] = ix
           @selected_new_rec_ids << matched_rec_num
           Rails.logger.debug("*** exact selection for - ix: #{ix} #{matched_weights.inspect}")
+          # @old_los_by_lo[matched_old_rec[:lo_code]][:exact] = true if matched_old_rec[:db_id].present?
+          @exact_db_ids << matched_old_rec[:db_id]  if matched_old_rec[:db_id].present?
         else
           Rails.logger.debug("*** not exact selection for - ix: #{ix} #{matched_weights.inspect}")
         end
@@ -660,7 +663,7 @@ module SubjectOutcomesHelper
           @add_count += 1
         end
         @pairs_filtered << [matched_old_rec, new_rec_to_match, matched_weights]
-        # Rails.logger.debug("*** output pair: #{[matched_old_rec, new_rec_to_match, matched_weights]}")
+        Rails.logger.debug("*** output pair: #{[matched_old_rec, new_rec_to_match, matched_weights]}")
 
       end # if subject to process
 
@@ -763,6 +766,7 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** Update? : #{@mismatch_count == 0 && params[:submit_action] == 'save_all'}")
 
     Rails.logger.debug("*** database records count: #{@old_los_by_lo.count}")
+    Rails.logger.debug("*** @old_los_by_lo.count: #{@old_los_by_lo.count}")
     # Rails.logger.debug("*** old records to process count: #{@old_recs_to_process.count}")
     Rails.logger.debug("*** @records count: #{@records.count}")
     Rails.logger.debug("*** @new_recs_to_process count: #{@new_recs_to_process.count}")
@@ -831,11 +835,28 @@ module SubjectOutcomesHelper
       Rails.logger.debug("*** Test6 #{sel_counts.length > 0 && sel_counts.max > 1}")
       @allow_save = false if sel_counts.length > 0 && sel_counts.max > 1
 
+      # new tests
+      Rails.logger.debug("*** @selections: #{@selections.inspect}")
+      sel_matches = @selections.select{ |k,v| (Integer(k) rescue -1) > -1 && (Integer(v) rescue -1) > 0}
+      Rails.logger.debug("*** sel_matches: (count: #{sel_matches.count})  #{sel_matches.inspect}")
+      sel_match_vals = sel_matches.map{ |k,v| Integer(v) rescue -99999}
+      Rails.logger.debug("*** sel_match_vals - max: #{sel_match_vals.max} - sum: #{sel_match_vals.sum}")
+      sel_matches_counts_h = Hash.new(0)
+      sel_matches_counts = sel_matches.map{ |k,v| sel_matches_counts_h[(Integer(k) rescue -99999).abs] += 1}
+      Rails.logger.debug("*** sel_matches_counts: #{sel_matches_counts.inspect}")
+      Rails.logger.debug("*** sel_matches_counts - count: #{sel_matches_counts.count} - max: #{sel_matches_counts.max} - sum: #{sel_matches_counts.sum}")
+
+      sel_deacts = @selections.select{ |k,v| (Integer(k) rescue -1) < 0}
+      Rails.logger.debug("*** sel_deacts: #{sel_deacts.inspect}")
+      sel_adds = @selections.select{ |k,v| (Integer(v) rescue -1) < 0}
+      Rails.logger.debug("*** sel_adds: #{sel_adds.inspect}")
+
     end
     Rails.logger.debug("*** allow_save : #{@allow_save} (selections present?: #{params['selections'].present?})")
 
     # @loosen_level = (@pairs_filtered.count - @exact_match_count) <= (([@new_recs_to_process.count, @old_los_by_lo.count].max - @exact_match_count) * 2)
-    @loosen_level = (@pairs_filtered.count - @exact_match_count) <= ((@new_recs_to_process.count - @exact_match_count) * 2)
+    @loosen_level = (@pairs_filtered.count - @exact_match_count) <= ((@new_recs_to_process.count - @exact_match_count) * 3)
+    Rails.logger.debug("*** @loosen_level = (#{@pairs_filtered.count} - #{@exact_match_count}) <= ((#{@new_recs_to_process.count - @exact_match_count}) * 3)")
     Rails.logger.debug("*** @loosen_level (#{@match_level}): #{@loosen_level}")
 
   end
@@ -851,6 +872,7 @@ module SubjectOutcomesHelper
     @selected_count = 0
     @unselect_count = 0
     @inactive_old_count = 0
+    @exact_db_ids = Array.new
   end
 
   def lo_matching_at_level(first_run)
@@ -918,13 +940,13 @@ module SubjectOutcomesHelper
     Rails.logger.debug("***")
     Rails.logger.debug("*** lo_matching_at_level @pairs_filtered loop. Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     Rails.logger.debug("***")
+    Rails.logger.debug("*** @exact_db_ids: #{@exact_db_ids}")
     @pairs_filtered.each do |p|
       rec_id = Integer(p[1][:rec_id]) rescue -1
       db_id = Integer(p[0][:db_id]) rescue -1
       # put db_id in match field for use in view
       p[2][:db_id] = db_id
-      Rails.logger.debug("*** rec_id: #{rec_id}, db_id: #{db_id}, @selected_pairs[rec_id]: #{@selected_pairs[rec_id].inspect}, p[2][:pair_id]: #{p[2][:pair_id]}, old code: #{p[0][:lo_code]}, new code: #{p[1][COL_OUTCOME_CODE]}, total match: #{p[2][:total_match]}, old[:matched]: #{p[0][:matched].inspect}, old[:exact]: #{p[0][:exact].inspect}, selected: #{p[2][:selected]}, action: #{p[2][:action]}")
-
+      Rails.logger.debug("*** rec_id: #{rec_id}, db_id: #{db_id}, codes(0,1,2): #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, total match: #{p[2][:total_match]}, p2: #{p[2].inspect}")
 
       # If this new record has a selected pair, only output the selected pair for it (and corresponding unselect if not exact match)
       # does the new record in this pair have a selection made yet
@@ -950,7 +972,9 @@ module SubjectOutcomesHelper
         end
       else
         # Rails.logger.debug("*** There is no matching pair, so output: #{p.inspect}")
-        @pairs_filtered_n << p
+        do_output_pair = true
+        do_output_pair = false if db_id > 0 && @exact_db_ids.include?(db_id)
+        @pairs_filtered_n << p if do_output_pair
       end
 
       Rails.logger.debug("*** @pairs_filtered_n.count: #{@pairs_filtered_n.count}")
