@@ -68,6 +68,7 @@ class SubjectOutcomesController < ApplicationController
       @records = Array.new
       @errors = Hash.new
       @selections = Hash.new
+      @selection_params = Hash.new
       @deactivations = Array.new
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
@@ -251,11 +252,13 @@ class SubjectOutcomesController < ApplicationController
       @records = Array.new
       @errors = Hash.new
       @selections = Hash.new
+      @selection_params = Hash.new
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
       @selected_db_ids = Array.new
       @deactivations = Array.new
       if params['selections'].present?
+        @selection_params = params['selections']
         params['selections'].each do |k,v|
           if (Integer(k) rescue -99999) < 0
             # deactivate old record selected
@@ -268,6 +271,13 @@ class SubjectOutcomesController < ApplicationController
         end
       end
       @inactive_old_count = 0
+      Rails.logger.debug("*** params[:submit_action]: #{params[:submit_action]}")
+      @skip_subject = params[:submit_action] == 'skip'
+      if @skip_subject
+        Rails.logger.debug("***")
+        Rails.logger.debug("*** Will Skip Update Subject Learning Outcomes")
+        Rails.logger.debug("***")
+      end
 
       action_count = 0
 
@@ -321,7 +331,7 @@ class SubjectOutcomesController < ApplicationController
       @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
 
       # only update to stage 4 if not all subjects update
-      @stage = 4 if !@process_by_subject
+      @stage = 4 if @process_by_subject
       # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
       # note this is to process the records sent from user, and if all pairs are matched and are good, do the update
       @errors = Hash.new
@@ -330,8 +340,8 @@ class SubjectOutcomesController < ApplicationController
       @stage = 4
 
       step = 7
-      Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}")
-      if @allow_save
+      Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+      if !@skip_subject && @allow_save
         ActiveRecord::Base.transaction do
           Rails.logger.debug("***")
           Rails.logger.debug("*** Update Subject Learning Outcomes")
@@ -402,9 +412,6 @@ class SubjectOutcomesController < ApplicationController
                 action = 'Added'
                 Rails.logger.debug("*** Pair Added: #{so.inspect}")
                 # matched_weights[:action_desc] = 'Add New'
-              when :'x='
-                Rails.logger.debug("*** Error: no x= possible")
-                matched_weights[:error] = 'no x= possible'
               when 'Mismatch'
                 Rails.logger.debug("*** Pair Mismatch")
                 matched_weights[:error] = 'Mismatch'
@@ -419,8 +426,17 @@ class SubjectOutcomesController < ApplicationController
           # raise "Successful Test cancelled" if action_count > 0
         end # transaction
         @stage = 9
+      elsif @skip_subject
+          Rails.logger.debug("***")
+          Rails.logger.debug("*** Skipping Update Subject Learning Outcomes")
+          Rails.logger.debug("***")
+        # @errors[:base] =  'Invalid Upload (only adds allowed) - Not Saved'
+        @stage = 9
       else
         # @errors[:base] =  'Invalid Upload (only adds allowed) - Not Saved'
+          Rails.logger.debug("***")
+          Rails.logger.debug("*** invalid upload")
+          Rails.logger.debug("***")
         @stage = 5
       end # if @allow_save
 
@@ -444,6 +460,7 @@ class SubjectOutcomesController < ApplicationController
         format.html { render :action => "lo_matching_update" }
       else
         # get current subject
+        Rails.logger.debug("*** current subject @process_by_subject_id: #{@process_by_subject_id}")
         current_subject_ix = 0
         @subjects.each_with_index do |subj, ix|
           if subj.id == @process_by_subject_id
@@ -451,9 +468,13 @@ class SubjectOutcomesController < ApplicationController
             break
           end
         end
+        Rails.logger.debug("*** current subject @subjects[current_subject_ix]: #{@subjects[current_subject_ix].inspect}")
+        Rails.logger.debug("*** next subject @subjects[current_subject_ix+1]: #{@subjects[current_subject_ix+1].inspect}")
         if @stage == 9
           # process_by_subject increment to next subject after update
           @process_by_subject = @subjects[current_subject_ix+1]
+          @process_by_subject_id = @process_by_subject.id
+          Rails.logger.debug("*** current subject @process_by_subject_id: #{@process_by_subject_id}")
         end
         if @stage == 9 && !@process_by_subject.present?
           # No more subjects, generate report for all subjects
@@ -474,6 +495,7 @@ class SubjectOutcomesController < ApplicationController
             Rails.logger.debug("***")
             # clear out selections from prior subject submit
             @selections = Hash.new
+            @selection_params = Hash.new
           end
 
           # continue generate pairs for subject
