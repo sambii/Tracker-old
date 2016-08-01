@@ -174,6 +174,7 @@ class SubjectOutcomesController < ApplicationController
       # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
       @errors = Hash.new
       lo_matching_at_level(true)
+      Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
 
       @stage = 4
       # if cannot update all records without matching, then start matching process on first subject.
@@ -185,6 +186,7 @@ class SubjectOutcomesController < ApplicationController
         Rails.logger.debug("***")
         @errors = Hash.new
         lo_matching_at_level(true)
+        Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
         # tighten @match_level until no deactivates or reactivates
         if !@allow_save && @loosen_level
           until @match_level <= 0
@@ -195,6 +197,7 @@ class SubjectOutcomesController < ApplicationController
             action_count = 0
             @errors = Hash.new
             lo_matching_at_level(true)
+            Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
             break if @allow_save || !@loosen_level
           end
         end
@@ -336,6 +339,7 @@ class SubjectOutcomesController < ApplicationController
       # note this is to process the records sent from user, and if all pairs are matched and are good, do the update
       @errors = Hash.new
       lo_matching_at_level(false)
+      Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
 
       @stage = 4
 
@@ -412,14 +416,14 @@ class SubjectOutcomesController < ApplicationController
                 action = 'Added'
                 Rails.logger.debug("*** Pair Added: #{so.inspect}")
                 # matched_weights[:action_desc] = 'Add New'
-              when 'Mismatch'
-                Rails.logger.debug("*** Pair Mismatch")
-                matched_weights[:error] = 'Mismatch'
-                raise("Attempt to update with Mismatch - item #{action_count+1}")
-              else
-                Rails.logger.debug("*** Pair Invalid LO")
-                matched_weights[:error] = 'Invalid Action'
-                raise("Invalid subject outcome action: #{rec[PARAM_ACTION].inspect} - item #{action_count+1}")
+              # when 'Mismatch'
+              #   Rails.logger.debug("*** Pair Mismatch")
+              #   matched_weights[:error] = 'Mismatch'
+              #   raise("Attempt to update with Mismatch - item #{action_count+1}")
+              # else
+              #   Rails.logger.debug("*** Pair Invalid LO")
+              #   matched_weights[:error] = 'Invalid Action'
+              #   raise("Invalid subject outcome action: #{rec[PARAM_ACTION].inspect} - item #{action_count+1}")
               end # case matched_weights[PARAM_ACTION]
             end # if lo_subject_to_process?
           end # @pairs_matched.each_with_index
@@ -483,6 +487,7 @@ class SubjectOutcomesController < ApplicationController
           @stage = 10 # will set matching by lo_code for performance
           # @errors = Hash.new
           lo_matching_at_level(true)
+          Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
           format.html { render :action => "lo_matching_update" }
         else
           # Continue on in this action
@@ -501,6 +506,7 @@ class SubjectOutcomesController < ApplicationController
           # continue generate pairs for subject
           # @errors = Hash.new
           lo_matching_at_level(false)
+          Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
 
           # tighten @match_level until allow save or dont loosen level
           # if @deactivate_count > 0 || @reactivate_count > 0
@@ -514,6 +520,7 @@ class SubjectOutcomesController < ApplicationController
               action_count = 0
               # @errors = Hash.new
               lo_matching_at_level(false)
+              Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
               break if (@allow_save && @errors.count == 0) || !@loosen_level
             end
           end # loosen level (and not done yet)

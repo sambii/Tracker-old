@@ -837,13 +837,13 @@ module SubjectOutcomesHelper
       @allow_save = false if sel_counts.length > 0 && sel_counts.max > 1
       @allow_save_new = false if sel_counts.length > 0 && sel_counts.max > 1
 
-      # make sure old records are not selected and deactivated at the same time
-      counts_h = Hash.new(0)
-      sel_counts = @selection_params.map{ |k,v|counts_h[(Integer(v) rescue -99999).abs] += 1 }
-      Rails.logger.debug("*** new records sel_counts: #{sel_counts.inspect}")
-      Rails.logger.debug("*** Test5 #{sel_counts.length > 0 && sel_counts.max > 1}")
-      @allow_save = false if sel_counts.length > 0 && sel_counts.max > 1
-      @allow_save_new = false if sel_counts.length > 0 && sel_counts.max > 1
+      # # make sure old records are not selected and deactivated at the same time
+      # counts_h = Hash.new(0)
+      # sel_counts = @selection_params.map{ |k,v|counts_h[(Integer(v) rescue -99999).abs] += 1 }
+      # Rails.logger.debug("*** new records sel_counts: #{sel_counts.inspect}")
+      # Rails.logger.debug("*** Test5 #{sel_counts.length > 0 && sel_counts.max > 1}")
+      # @allow_save = false if sel_counts.length > 0 && sel_counts.max > 1
+      # @allow_save_new = false if sel_counts.length > 0 && sel_counts.max > 1
 
       # new tests
 
