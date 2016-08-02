@@ -565,7 +565,15 @@ module SubjectOutcomesHelper
       matched_weights[:pair_id] = ix
 
       this_is_exact = matched_weights[:total_match] == MAX_MATCH_LEVEL
-      @exact_match_count += 1 if this_is_exact
+      this_desc_is_equal = matched_weights[:desc_match] == MAX_DESC_LEVEL
+      if this_is_exact
+        @exact_match_count += 1
+        matched_weights[:status] = '1-Exact'
+      elsif this_desc_is_equal
+        @exact_match_count += 1
+        matched_weights[:status] = '2-Desc='
+      end
+      @exact_match_count += 1 if this_is_exact || this_desc_is_equal
 
       matched_db_id = matched_old_rec[:db_id]
       matched_db_id_num = Integer(matched_old_rec[:db_id]) rescue -1
@@ -695,7 +703,8 @@ module SubjectOutcomesHelper
         # user clicked deactivation radio button, so generate a deactivation pair
         deactivate_me = true
       end
-      if old_rec[:active] == true && old_rec[:selected].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
+      # if old_rec[:active] == true && old_rec[:selected].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
+      if old_rec[:active] == true && old_rec[:status].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         # record has no new records assigned to it, so deactivate it
         deactivate_me = true
       end
@@ -975,7 +984,9 @@ module SubjectOutcomesHelper
     @pairs_filtered.each do |p|
       Rails.logger.debug("*** unsorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
     end
-    @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
+    # @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
+    @pairs_filtered.sort_by! { |v| [v[2][:status], -v[2][:total_match]]}
+
     @pairs_filtered.each do |p|
       Rails.logger.debug("*** sorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, [#{p[2][:lo_code]}, total_match: #{p[2][:total_match]}, selected: #{p[2][:selected]}, action: #{p[2][:action]}]")
     end
