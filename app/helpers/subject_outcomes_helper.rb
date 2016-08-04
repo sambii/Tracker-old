@@ -504,6 +504,14 @@ module SubjectOutcomesHelper
       # only match pairs for pairs not selected by user yet (in the @pairs_matched array) and no errors
       if @selections[new_rec_num.to_s].present?
         db_id = Integer(@selections[new_rec_num.to_s]) rescue 0
+        count = 0
+        @selections.each { |k,v| count += 1 if v == matched_db_id_num.to_s}
+        Rails.logger.debug("*** matching db_id count: #{count}")
+        if count > 1
+          error_on_match = true
+        else
+          error_on_match = false
+        end
         # Rails.logger.debug("*** Pre-selected: rk: #{rk}, new_rec: #{new_rec.inspect}")
         if @deactivations.include?(db_id.to_s)
           Rails.logger.debug("*** selection is also has a deactivation of the db record!")
@@ -564,34 +572,51 @@ module SubjectOutcomesHelper
       # mark pair with unique id
       matched_weights[:pair_id] = ix
 
+      matched_db_id = matched_old_rec[:db_id]
+      matched_db_id_num = Integer(matched_old_rec[:db_id]) rescue -1
+      matched_rec_num = Integer(new_rec_to_match[:rec_id]) rescue -1
+
       this_is_exact = matched_weights[:total_match] == MAX_MATCH_LEVEL
       this_desc_is_equal = matched_weights[:desc_match] == MAX_DESC_LEVEL
       if this_is_exact
         @exact_match_count += 1
+        @update_as_equal_count += 1
         matched_weights[:status] = '1-Exact'
+        matched_weights[:selected] = true
+        @selected_count += 1
+        @selected_pairs[matched_rec_num] = ix
+        @selected_new_rec_ids << matched_rec_num
+        Rails.logger.debug("*** exact selection for - ix: #{ix} #{matched_weights.inspect}")
+        # @old_los_by_lo[matched_old_rec[:lo_code]][:exact] = true if matched_old_rec[:db_id].present?
+        @exact_db_ids << matched_old_rec[:db_id]  if matched_old_rec[:db_id].present?
       elsif this_desc_is_equal
-        @exact_match_count += 1
+        @update_as_equal_count += 1
         matched_weights[:status] = '2-Desc='
       end
-      @exact_match_count += 1 if this_is_exact || this_desc_is_equal
-
-      matched_db_id = matched_old_rec[:db_id]
-      matched_db_id_num = Integer(matched_old_rec[:db_id]) rescue -1
-      matched_rec_num = Integer(new_rec_to_match[:rec_id]) rescue -1
 
 
       if @selections.count > 0
         # mark selected pair
         Rails.logger.debug("*** Have Selections: #{matched_rec_num.to_s} -> #{@selections[matched_rec_num.to_s].inspect} ?=? #{matched_db_id_num.inspect}")
         if @selections[matched_rec_num.to_s] == matched_db_id_num.to_s
+          # this pair's new rec num has a selection that points to this pair's database record.
+          # this is the pair corresponding with the selection
           if @deactivations.include?(matched_db_id.to_s)
             Rails.logger.debug("*** selection is also has a deactivation of the db record!")
             matched_weights[:error] = 'also deactivated'
             matched_weights[:selected] = false
-          else
+          elsif !this_is_exact
             matched_weights[:selected] = true
             @selected_count += 1
-            @selected_pairs[matched_rec_num] = ix
+            count = 0
+            @selections.each { |k,v| count += 1 if v == matched_db_id_num.to_s}
+            Rails.logger.debug("*** matching db_id count: #{count}")
+            if count > 1
+              Rails.logger.debug("*** duplicated assignment to database record #{ix}")
+              matched_weights[:error] = 'already assigned'
+            else
+              @selected_pairs[matched_rec_num] = ix
+            end
             # todo fix this dup add to @selected_new_rec_ids
             # @selected_new_rec_ids << matched_rec_num
             Rails.logger.debug("*** matched selection for - ix: #{ix} #{matched_weights.inspect}")
@@ -599,17 +624,6 @@ module SubjectOutcomesHelper
         end
       else
         Rails.logger.debug("*** Have No Selections - matched_rec_num: #{matched_rec_num}")
-        if this_is_exact
-          matched_weights[:selected] = true
-          @selected_count += 1
-          @selected_pairs[matched_rec_num] = ix
-          @selected_new_rec_ids << matched_rec_num
-          Rails.logger.debug("*** exact selection for - ix: #{ix} #{matched_weights.inspect}")
-          # @old_los_by_lo[matched_old_rec[:lo_code]][:exact] = true if matched_old_rec[:db_id].present?
-          @exact_db_ids << matched_old_rec[:db_id]  if matched_old_rec[:db_id].present?
-        else
-          Rails.logger.debug("*** not exact selection for - ix: #{ix} #{matched_weights.inspect}")
-        end
       end
 
       # save matching new record in old record (as well in pair)
@@ -696,15 +710,15 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** @deactivations: #{@deactivations.inspect}")
 
     @old_los_by_lo.each do |rk, old_rec|
-      # Rails.logger.debug("*** deactivate old record: old_rec: #{old_rec.inspect}")
+      Rails.logger.debug("*** deactivate old record: old_rec: #{old_rec.inspect}")
       Rails.logger.debug("*** #{old_rec[:active]}, old_rec[:matched]: #{old_rec[:selected]}, old_rec[:selected]: #{old_rec[:selected]}, process? #{lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)}")
       deactivate_me = false
       if @deactivations.include?(old_rec[:db_id].to_s)
         # user clicked deactivation radio button, so generate a deactivation pair
         deactivate_me = true
       end
-      # if old_rec[:active] == true && old_rec[:selected].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
-      if old_rec[:active] == true && old_rec[:status].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
+      if old_rec[:active] == true && old_rec[:selected].blank? && old_rec[:matched].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
+      # if old_rec[:active] == true && old_rec[:status].blank? && lo_subject_to_process?(old_rec[SubjectOutcomesController::COL_SUBJECT_ID].to_i)
         # record has no new records assigned to it, so deactivate it
         deactivate_me = true
       end
@@ -973,6 +987,7 @@ module SubjectOutcomesHelper
     step = 4
     Rails.logger.debug("*** Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     @exact_match_count = 0
+    @update_as_equal_count = 0
     @selected_count = 0
     lo_process_pairs
     @pairs_filtered.each do |p|
@@ -984,8 +999,8 @@ module SubjectOutcomesHelper
     @pairs_filtered.each do |p|
       Rails.logger.debug("*** unsorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, #{p[2][:lo_code]}, #{p[2][:total_match]}")
     end
-    # @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
-    @pairs_filtered.sort_by! { |v| [v[2][:status], -v[2][:total_match]]}
+    @pairs_filtered.sort_by! { |v| [v[2][:lo_code], -v[2][:total_match]]}
+    # @pairs_filtered.sort_by! { |v| [v[2][:status], -v[2][:total_match]]}
 
     @pairs_filtered.each do |p|
       Rails.logger.debug("*** sorted pairs: #{p[0][:lo_code]}, #{p[1][COL_OUTCOME_CODE]}, [#{p[2][:lo_code]}, total_match: #{p[2][:total_match]}, selected: #{p[2][:selected]}, action: #{p[2][:action]}]")
@@ -1045,6 +1060,7 @@ module SubjectOutcomesHelper
       if p[2][:error].present?
         @error_count += 1
         Rails.logger.debug("*** @error_count incremented for #{p[2][:error]}")
+        p[2][:selected] = nil
       end
     end
     @pairs_filtered = @pairs_filtered_n

@@ -415,15 +415,6 @@ class SubjectOutcomesController < ApplicationController
                 action_count += 1
                 action = 'Added'
                 Rails.logger.debug("*** Pair Added: #{so.inspect}")
-                # matched_weights[:action_desc] = 'Add New'
-              # when 'Mismatch'
-              #   Rails.logger.debug("*** Pair Mismatch")
-              #   matched_weights[:error] = 'Mismatch'
-              #   raise("Attempt to update with Mismatch - item #{action_count+1}")
-              # else
-              #   Rails.logger.debug("*** Pair Invalid LO")
-              #   matched_weights[:error] = 'Invalid Action'
-              #   raise("Invalid subject outcome action: #{rec[PARAM_ACTION].inspect} - item #{action_count+1}")
               end # case matched_weights[PARAM_ACTION]
             end # if lo_subject_to_process?
           end # @pairs_matched.each_with_index
@@ -460,8 +451,11 @@ class SubjectOutcomesController < ApplicationController
       if @errors.count > 0
         flash[:alert] += (@errors[:base].present?) ? @errors[:base] : 'Errors'
       end
-      if @stage == 9 && @process_by_subject.blank?
-        format.html { render :action => "lo_matching_update" }
+      if @process_by_subject.blank?
+        if @stage == 9
+          @stage = 10
+          # format.html { render :action => "lo_matching_update" }
+        end
       else
         # get current subject
         Rails.logger.debug("*** current subject @process_by_subject_id: #{@process_by_subject_id}")
@@ -472,45 +466,46 @@ class SubjectOutcomesController < ApplicationController
             break
           end
         end
-        Rails.logger.debug("*** current subject @subjects[current_subject_ix]: #{@subjects[current_subject_ix].inspect}")
-        Rails.logger.debug("*** next subject @subjects[current_subject_ix+1]: #{@subjects[current_subject_ix+1].inspect}")
+        Rails.logger.debug("*** @subjects.length: #{@subjects.length}")
+        Rails.logger.debug("*** current_subject_ix: #{current_subject_ix}")
         if @stage == 9
-          # process_by_subject increment to next subject after update
-          @process_by_subject = @subjects[current_subject_ix+1]
-          @process_by_subject_id = @process_by_subject.id
-          Rails.logger.debug("*** current subject @process_by_subject_id: #{@process_by_subject_id}")
-        end
-        if @stage == 9 && !@process_by_subject.present?
-          # No more subjects, generate report for all subjects
-          @process_by_subject = nil
-          @match_level = MAX_MATCH_LEVEL
-          @stage = 10 # will set matching by lo_code for performance
-          # @errors = Hash.new
-          lo_matching_at_level(true)
-          Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-          format.html { render :action => "lo_matching_update" }
-        else
-          # Continue on in this action
-          if @stage == 9 && @process_by_subject.present?
-            # we have another subject, process it
+          if current_subject_ix < @subjects.length
+            # process_by_subject increment to next subject after update
+            @process_by_subject = @subjects[current_subject_ix+1]
             @process_by_subject_id = @process_by_subject.id
+            @selections = Hash.new
+            @selection_params = Hash.new
             Rails.logger.debug("***")
             Rails.logger.debug("*** Running at @match_level #{@match_level}")
             Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
             Rails.logger.debug("***")
-            # clear out selections from prior subject submit
-            @selections = Hash.new
-            @selection_params = Hash.new
+          else
+            # last subject was processed, go to report
+            @process_by_subject = nil
+            @stage = 10 # will set matching by lo_code for performance
           end
+        end
 
+        if @stage == 10
+          @errors = Hash.new
+          @selections = Hash.new
+          @selection_params = Hash.new
+          @match_level = MAX_MATCH_LEVEL
+          lo_matching_at_level(true)
+          Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+          format.html { render :action => "lo_matching_update" }
+        else
+          # clear out selections from prior subject submit
+          # @selections = Hash.new
+          # @selection_params = Hash.new
           # continue generate pairs for subject
-          # @errors = Hash.new
+          @errors = Hash.new
+          @match_level = DEFAULT_MATCH_LEVEL
           lo_matching_at_level(false)
           Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-
           # tighten @match_level until allow save or dont loosen level
           # if @deactivate_count > 0 || @reactivate_count > 0
-          if @stage < 10 && @loosen_level && (!@allow_save || @errors.count > 0)
+          if @loosen_level && (!@allow_save || @errors.count > 0)
             until @match_level <= 0
               @match_level -= 1
               Rails.logger.debug("***")

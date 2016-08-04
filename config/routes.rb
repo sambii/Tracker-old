@@ -28,7 +28,7 @@ Tracker2::Application.routes.draw do
       post 'bulk_update_staff', defaults: {format: :html } # new ui
     end
   end
-  
+
   resources :system_administrators
   resources :school_administrators
 
