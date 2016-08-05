@@ -7,14 +7,14 @@ class SupportMailer < ActionMailer::Base
 
   def show(ex, req, sess)
     server_config = ServerConfig.first
-    web_server_name = server_config.web_server_name
+    @web_server_name = server_config.present? ? server_config.web_server_name : 'Server: (error: Missing server config)'
     Rails.logger.debug("*** support_mailer.rb Exception: #{ex.exception} #{ex.message}")
     Rails.logger.debug("*** support_mailer.rb Trace: #{ex.backtrace.join('/n')}")
     @ex = ex
     @req = req
     @sess = sess
     @server_config = server_config
-    mail(from: get_support_email, to: get_support_email, subject: "exception for server: #{web_server_name}")
+    mail(from: get_support_email, to: get_support_email, subject: "exception for server: #{@web_server_name}")
   end
 
   private
@@ -24,7 +24,7 @@ class SupportMailer < ActionMailer::Base
     if scr
       return scr.support_email
     else
-      raise "Error: Missing Server Config Record"
+      Rails.logger.error "Error: Missing Server Config Record"
     end
   end
 

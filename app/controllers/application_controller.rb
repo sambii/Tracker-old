@@ -517,10 +517,11 @@ class ApplicationController < ActionController::Base
     Rails.logger.error("Error 500 Exception")
     if ex
       Rails.logger.error("Exception: #{ex.message}")
-      Rails.logger.error("Error: support email send")
+      Rails.logger.error("Error: Send email message to support.")
       SupportMailer.show(ex, request, session).deliver
+      flash[:notice] = "Exception: #{ex.message}"
     end
-    raise "Fatal Error"
+    redirect_to(root_path)
   end
 
   # Possible approach to capturing various other problematic errors
