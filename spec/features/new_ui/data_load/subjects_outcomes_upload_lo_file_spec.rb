@@ -227,10 +227,12 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
       Rails.logger.debug("++++++ Test T1")
 
+      sleep 20
+
       find('#save_matches').click
 
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
       # Art 2 with two preselected identical pairs
       page.should have_content('Match Old LOs to New LOs')
@@ -626,7 +628,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
       find('#skip_subject').click
       # sleep 20
-      # save_and_open_page
+      save_and_open_page
 
       # skip past Capstones 3.2 and move on to Math
 
@@ -675,24 +677,22 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       #   find("input#selections__#{@ma_1_03.id}").should_not be_checked
       #   page.should have_css("td.old_lo_desc", text: "Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
       # end
+
+      # exact match on description should be checked
       page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_28']")
       within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_#{@ma_1_08.id}']") do
         page.should have_css("td.new_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
         page.should have_content("~=")
         page.should have_css("input[name='selections[18]']")
         page.should have_css("input#selections_18_#{@ma_1_08.id}")
-        find("input#selections_18_#{@ma_1_08.id}").should_not be_checked
+        find("input#selections_18_#{@ma_1_08.id}").should be_checked
         page.should have_css("td.old_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
       end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_24']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_#{@ma_1_04.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[18]']")
-        page.should have_css("input#selections_18_#{@ma_1_04.id}")
-        find("input#selections_18_#{@ma_1_04.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
-      end
+
+      # exact match on description should not have any other options
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_24']")
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_#{@ma_1_04.id}']")
+
       # page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__24']")
       # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_04.id}']") do
       #   page.should have_css("td.new_lo_desc", text: "")
@@ -738,24 +738,27 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         find("input#selections_14_#{@ma_1_04.id}").should_not be_checked
         page.should have_css("td.old_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
       end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_28']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_#{@ma_1_08.id}']") do
-        page.should have_css("td.new_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[14]']")
-        page.should have_css("input#selections_14_#{@ma_1_08.id}")
-        find("input#selections_14_#{@ma_1_08.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
-      end
-      # page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__28']")
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_08.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@ma_1_08.id}]']")
-      #   page.should have_css("input#selections__#{@ma_1_08.id}")
-      #   find("input#selections__#{@ma_1_08.id}").should_not be_checked
+      # exact match on description should not have any other options
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_28']")
+      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_#{@ma_1_08.id}']")
+      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_#{@ma_1_08.id}']") do
+      #   page.should have_css("td.new_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
+      #   page.should have_content("~=")
+      #   page.should have_css("input[name='selections[14]']")
+      #   page.should have_css("input#selections_14_#{@ma_1_08.id}")
+      #   find("input#selections_14_#{@ma_1_08.id}").should_not be_checked
       #   page.should have_css("td.old_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
       # end
+      # exact match on description should be checked
+      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__28']")
+      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_08.id}']") do
+        page.should have_css("td.new_lo_desc", text: "")
+        page.should have_content("-")
+        page.should have_css("input[name='selections[-#{@ma_1_08.id}]']")
+        page.should have_css("input#selections__#{@ma_1_08.id}")
+        find("input#selections__#{@ma_1_08.id}").should be_checked
+        page.should have_css("td.old_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
+      end
       page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_19_29']")
       within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_19_#{@ma_1_09.id}']") do
         page.should have_css("td.new_lo_desc", text: "Will have a description that is very similar to 10.")
@@ -827,7 +830,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find("input#selections_14_#{@ma_1_08.id}").click
       # find("input#selections__#{@ma_1_08.id}").click
 
-      # sleep 20
+      sleep 20
 
       find('#save_matches').click
       # sleep 20

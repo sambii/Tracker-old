@@ -505,7 +505,7 @@ module SubjectOutcomesHelper
       if @selections[new_rec_num.to_s].present?
         db_id = Integer(@selections[new_rec_num.to_s]) rescue 0
         count = 0
-        @selections.each { |k,v| count += 1 if v == matched_db_id_num.to_s}
+        @selections.each { |k,v| count += 1 if v == db_id.to_s}
         Rails.logger.debug("*** matching db_id count: #{count}")
         if count > 1
           error_on_match = true
@@ -586,12 +586,16 @@ module SubjectOutcomesHelper
         @selected_count += 1
         @selected_pairs[matched_rec_num] = ix
         @selected_new_rec_ids << matched_rec_num
-        Rails.logger.debug("*** exact selection for - ix: #{ix} #{matched_weights.inspect}")
+        Rails.logger.debug("*** exact match selection for - ix: #{ix} #{matched_weights.inspect}")
         # @old_los_by_lo[matched_old_rec[:lo_code]][:exact] = true if matched_old_rec[:db_id].present?
         @exact_db_ids << matched_old_rec[:db_id]  if matched_old_rec[:db_id].present?
       elsif this_desc_is_equal
         @update_as_equal_count += 1
         matched_weights[:status] = '2-Desc='
+        @selected_count += 1
+        @selected_pairs[matched_rec_num] = ix
+        @selected_new_rec_ids << matched_rec_num
+        Rails.logger.debug("*** description exact match selection for - ix: #{ix} #{matched_weights.inspect}")
       end
 
 
