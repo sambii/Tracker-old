@@ -179,8 +179,13 @@ class SubjectOutcomesController < ApplicationController
       @stage = 4
       # if cannot update all records without matching, then start matching process on first subject.
       if !@allow_save
-        @process_by_subject = @subjects.first
-        @process_by_subject_id = @process_by_subject.id
+        if @match_subject.blank?
+          @process_by_subject = @subjects.first
+          @process_by_subject_id = @process_by_subject.id
+        else
+          @process_by_subject = nil
+          @process_by_subject_id = nil
+        end
         Rails.logger.debug("***")
         Rails.logger.debug("*** Running at @match_level #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         Rails.logger.debug("***")
@@ -233,6 +238,9 @@ class SubjectOutcomesController < ApplicationController
       end
     end
 
+
+    Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+    Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
 
     respond_to do |format|
       if @stage == 1 || @any_errors
@@ -493,6 +501,8 @@ class SubjectOutcomesController < ApplicationController
           @match_level = MAX_MATCH_LEVEL
           lo_matching_at_level(true)
           Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+          Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+          Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
           format.html { render :action => "lo_matching_update" }
         else
           # clear out selections from prior subject submit
@@ -521,6 +531,8 @@ class SubjectOutcomesController < ApplicationController
           end # loosen level (and not done yet)
           Rails.logger.debug("*** format.html")
           Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
+          Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+          Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
           format.html
         end
       end

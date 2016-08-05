@@ -31,72 +31,75 @@
           ='Learning Outcomes Matching Process'
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
-
           - valid_update = true
-          %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
-            %thead.table-title
-              %tr
-                %th{colspan: 12}
-                  = @match_subject.present? ? "Processing Only #{@match_subject.name}" : (@process_by_subject.present? ? "Processing #{@process_by_subject.name} of All Subjects" : "Processing All Subjects")
-                  = # " - Matching Level: "
-                  = # select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
-                  %input{type: 'hidden', name: "school_id", value: @school.id}
-                  - if @match_subject.present?
-                    %input{type: 'hidden', name: "match_subject_id", value: @match_subject.id}
-                  - if @process_by_subject.present?
-                    %input{type: 'hidden', name: "process_subject_id", value: @process_by_subject.id}
-              %tr
-                %th{title: 'New Marking Period'}= 'New MP'
-                %th= 'New Code'
-                %th= 'New Description'
-                %th= 'Match'
-                %th{title: 'Old Marking Period'}= 'Old MP'
-                %th= 'Old Code'
-                %th= 'Old Description'
-            %tbody.tbody-body
-              - prior_new_rec_num = 0
-              - prior_matched_rec_id = -1
-              - prior_matched_lo_code = ''
-              - highlight_class = ''
-              - @pairs_filtered.each_with_index do |set, ix|
-                - rx = set[0]
-                - ry = set[1]
-                - match = set[2]
-                - # set up alternate old record highlighting
-                - if prior_matched_lo_code != match[:lo_code]
-                  - prior_matched_lo_code = match[:lo_code]
-                  - highlight_class = (highlight_class == 'on' ? '' : 'on')
-                  - break_class = 'break'
-                - else
-                  - break_class = ''
-                - if prior_matched_rec_id != ry[:matching_rec_id]
-                  - prior_matched_rec_id = ry[:matching_rec_id]
-                - pair_subject_id = rx[SubjectOutcomesHelper::COL_SUBJECT_ID]
-                - pair_subject_id = ry[SubjectOutcomesHelper::COL_SUBJECT_ID] if !pair_subject_id.present?
-                - pair_subject_id_i = Integer(pair_subject_id) rescue -1
-
-                - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != pair_subject_id_i ? 'display-none' : '') : ''
-                - prior_old_rec_num = match[SubjectOutcomesHelper::COL_DB_ID]
-                - prior_old_code = rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]
-                - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
-                - lo_name = rx[:lo_code].present? ? rx[:lo_code] : (ry[:lo_code].present? ? ry[:lo_code] : ry[SubjectOutcomesHelper::COL_REC_ID])
-                - action = rx[:action].present? ? rx[:action].to_s : '??'
-                - if hide_subject_class.blank?
-                  %tr{ class: "#{highlight_class} #{break_class}", data: {displayed_pair: "pair_#{pair_subject_id}_#{new_rec_id}_#{prior_old_rec_num}"}, title: match[:action_desc]}
-                    - deact_class = (rx[:active] == false ? 'deactivated ' : '')
-                    - error_class = (match[:error].present? ? 'ui-error' : '')
-                    %td.new_mp=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
-                    %td.new_lo_code=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
-                    %td.new_lo_desc=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
-                    %td.text-center
-                      - is_selected = match[:selected]
-                      %label{for: "selections_#{new_rec_id}_#{prior_old_rec_num}"}=action
-                      = radio_button_tag "selections[#{prior_matched_rec_id}]", "#{prior_old_rec_num}", is_selected, id: "selections_#{new_rec_id}_#{prior_old_rec_num}"
-                      - if match[:error].present?
-                        %span{class: "#{error_class}"}=match[:error]
-                    %td{class: "old_mp match-field-#{match[:mp_match]} #{deact_class}"}=rx[:mp]
-                    %td{class: "old_lo_code similar-field-#{match[:code_match]}-2 #{deact_class}"}=rx[:lo_code]
-                    %td{class: "old_lo_desc similar-field-#{match[:desc_match]}-4 #{deact_class}"}=rx[:desc]
+          .row
+            .col-sm-6
+              %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
+                %thead.table-title
+                  %tr
+                    %th{colspan: 12}
+                      = @match_subject.present? ? "Processing Only #{@match_subject.name}" : (@process_by_subject.present? ? "Processing #{@process_by_subject.name} of All Subjects" : "Processing All Subjects")
+                      = # " - Matching Level: "
+                      = # select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
+                      %input{type: 'hidden', name: "school_id", value: @school.id}
+                      - if @match_subject.present?
+                        %input{type: 'hidden', name: "match_subject_id", value: @match_subject.id}
+                      - if @process_by_subject.present?
+                        %input{type: 'hidden', name: "process_subject_id", value: @process_by_subject.id}
+                  %tr
+                    %th{title: 'New Marking Period'}= 'New MP'
+                    %th= 'New Code'
+                    %th= 'New Description'
+                    %th= 'Match'
+                %tbody.tbody-body
+                  - @new_recs_to_process.each do |rk, new_rec|
+                    - subject_id = new_rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
+                    - subject_id_i = Integer(subject_id) rescue -1
+                    - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != subject_id_i ? 'display-none' : '') : ''
+                    - new_rec_id = new_rec[SubjectOutcomesHelper::COL_REC_ID]
+                    - if hide_subject_class.blank?
+                      %tr.break
+                        - error_class = (new_rec[:error].present? ? 'ui-error' : '')
+                        %td.new_mp=new_rec[SubjectOutcomesHelper::COL_MP_BITMAP]
+                        %td.new_lo_code=new_rec[SubjectOutcomesHelper::COL_OUTCOME_CODE]
+                        %td.new_lo_desc=new_rec[SubjectOutcomesHelper::COL_OUTCOME_NAME]
+                        %td.text-center
+                          - is_selected = new_rec[:selected]
+                          %label{for: "selections_#{new_rec_id}"}='Match?'
+                          - select_tag("selections[#{new_rec_id}]", options_for_select([ ['12',12],['11',11],['10',10], ['9',9],['8',8],['7',7],['6',6],['5',5],['4',4],['3',3],['2',2],['1',1] ]))
+                          - if new_rec[:error].present?
+                            %span{class: "#{error_class}"}=new_rec[:error]
+            .col-sm-6
+              %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
+                %thead.table-title
+                  %tr
+                    %th{colspan: 12}
+                      = @match_subject.present? ? "Processing Only #{@match_subject.name}" : (@process_by_subject.present? ? "Processing #{@process_by_subject.name} of All Subjects" : "Processing All Subjects")
+                      = # " - Matching Level: "
+                      = # select_tag 'match_level', options_for_select(SubjectOutcomesHelper::MATCH_LEVEL_OPTIONS, @match_level)
+                      %input{type: 'hidden', name: "school_id", value: @school.id}
+                      - if @match_subject.present?
+                        %input{type: 'hidden', name: "match_subject_id", value: @match_subject.id}
+                      - if @process_by_subject.present?
+                        %input{type: 'hidden', name: "process_subject_id", value: @process_by_subject.id}
+                  %tr
+                    %th{title: 'Identifier for this Learning Outcome for Matching to a New Learning Outcome'}= 'Match ID'
+                    %th{title: 'Old Marking Period'}= 'Old MP'
+                    %th= 'Old Code'
+                    %th= 'Old Description'
+                %tbody.tbody-body
+                  - @old_los_by_lo.each do |k, old_rec|
+                    - subject_id = old_rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
+                    - subject_id_i = Integer(subject_id) rescue -1
+                    - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != subject_id_i ? 'display-none' : '') : ''
+                    - if hide_subject_class.blank?
+                      %tr.break
+                        - deact_class = (old_rec[:active] == false ? 'deactivated ' : '')
+                        - error_class = (old_rec[:error].present? ? 'ui-error' : '')
+                        %td{class: "match_id #{deact_class}"}=old_rec[:ix]
+                        %td{class: "old_mp #{deact_class}"}=old_rec[:mp]
+                        %td{class: "old_lo_code #{deact_class}"}=old_rec[:lo_code]
+                        %td{class: "old_lo_desc #{deact_class}"}=old_rec[:desc]
           .row
             - @records.each_with_index do |rec, ix|
               - pair_subject_id = rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
