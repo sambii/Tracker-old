@@ -77,15 +77,11 @@ class SubjectOutcomesController < ApplicationController
       action_count = 0
 
       # get the model school
-      # - creates/udpates @school, @school_year
-      # errors are added to @errors and raised
       @school = lo_get_model_school(params)
       # get the subjects for the model school
-      # @subjects = Subject.where(school_id: @school.id)
       @subjects = Subject.where(school_id: @school.id).includes(:discipline).order('disciplines.name, subjects.name')
       # if only processing one subject
       # - creates/updates @match_subject, @subject_id
-      # errors are added to @errors and raised
       @match_subject = lo_get_match_subject(params)
 
       # ensure that model_lo_id is preset
@@ -159,26 +155,44 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** Stage: #{@stage} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
 
-      step = 0
-      # get the subject outcomes from the database for all subjects to process
-      @old_los_by_lo_clean = lo_get_old_los
-      @old_los_by_lo = @old_los_by_lo_clean.clone
-      # @old_records_counts = @old_los_by_lo.count
-      # @old_recs_to_process = Hash.new
-      # @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
-
       step = 1
-      # initial matching level from default value
-      @match_level = MAX_MATCH_LEVEL
+      # get the subject outcomes from the database by subject
+      old_los = lo_get_all_old_los
+      @old_los_by_subject = old_los[:old_los_by_subject].clone
+      @all_old_los = old_los[:all_old_los].clone
 
-      # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
+      Rails.logger.debug("*** @subject_ids: #{@subject_ids}")
+      step = 2
+      # get the subject outcomes from the upload by subject
+      new_los = lo_get_all_new_los(@records)
+      @new_los_by_subject = new_los[:new_los_by_subject].clone
+      @all_new_los = new_los[:all_new_los].clone
+
+      step = 3
       @errors = Hash.new
-      lo_matching_at_level(true)
-      Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+      clear_matching_counts
+      # @records = @records_clean.clone
+      Rails.logger.debug("*** Step 1 Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      # @new_recs_to_process = lo_get_new_recs_to_process(@records)
+
+      @old_los_to_process = @all_old_los.clone
+      @new_los_to_process = @all_new_los.clone.sort_by{ |h| h[:lo_code]}
+
+      step = 4
+      lo_set_matches(@new_los_to_process, @old_los_to_process)
+
+      Rails.logger.debug("*** @old_los_to_process:")
+      @old_los_to_process.each do |rec|
+        Rails.logger.debug("*** old rec: #{rec.inspect}")
+      end
+      Rails.logger.debug("*** @new_los_to_process:")
+      @new_los_to_process.each do |rec|
+        Rails.logger.debug("*** new rec: #{rec.inspect}")
+      end
 
       @stage = 4
-      # if cannot update all records without matching, then start matching process on first subject.
       if !@allow_save
+        # if cannot update all records without matching, then start matching process on first subject (but only if not matching a single subject).
         if @match_subject.blank?
           @process_by_subject = @subjects.first
           @process_by_subject_id = @process_by_subject.id
@@ -190,23 +204,25 @@ class SubjectOutcomesController < ApplicationController
         Rails.logger.debug("*** Running at @match_level #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         Rails.logger.debug("***")
         @errors = Hash.new
-        lo_matching_at_level(true)
-        Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-        # tighten @match_level until no deactivates or reactivates
-        if !@allow_save && @loosen_level
-          until @match_level <= 0
-            @match_level -= 1
-            Rails.logger.debug("***")
-            Rails.logger.debug("*** Reducing @match_level to #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-            Rails.logger.debug("***")
-            action_count = 0
-            @errors = Hash.new
-            lo_matching_at_level(true)
-            Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-            break if @allow_save || !@loosen_level
-          end
-        end
+        # lo_matching_at_level(true)
+        # Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+        # # tighten @match_level until no deactivates or reactivates
+        # if !@allow_save && @loosen_level
+        #   until @match_level <= 0
+        #     @match_level -= 1
+        #     Rails.logger.debug("***")
+        #     Rails.logger.debug("*** Reducing @match_level to #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+        #     Rails.logger.debug("***")
+        #     action_count = 0
+        #     @errors = Hash.new
+        #     lo_matching_at_level(true)
+        #     Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+        #     break if @allow_save || !@loosen_level
+        #   end
+        # end
+        @allow_save_all = false
       else
+        # can update all at once, don't process by subject and enable save_all button.
         @process_by_subject = nil
         @allow_save_all = true
       end
@@ -239,8 +255,8 @@ class SubjectOutcomesController < ApplicationController
     end
 
 
-    Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
-    Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
+    # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+    # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
 
     respond_to do |format|
       if @stage == 1 || @any_errors
@@ -501,8 +517,8 @@ class SubjectOutcomesController < ApplicationController
           @match_level = MAX_MATCH_LEVEL
           lo_matching_at_level(true)
           Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-          Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
-          Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
+          # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+          # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
           format.html { render :action => "lo_matching_update" }
         else
           # clear out selections from prior subject submit
@@ -531,8 +547,8 @@ class SubjectOutcomesController < ApplicationController
           end # loosen level (and not done yet)
           Rails.logger.debug("*** format.html")
           Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
-          Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
-          Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
+          # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+          # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
           format.html
         end
       end
