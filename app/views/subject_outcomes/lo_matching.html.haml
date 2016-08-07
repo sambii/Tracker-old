@@ -113,12 +113,14 @@
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"
-            - if valid_update && !@allow_save_all
+            - if valid_update && !@allow_save_all && @dup_error_count == 0
               %button#save_matches.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'set_matches'}='Save Matches'
-            - if @allow_save_all
+            - if @allow_save_all && @dup_error_count == 0
               %button#save_all.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
             - if @process_by_subject.present?
               %button#skip_subject.btn.btn-primary.cancel{type: "submit", title: 'Skip This Subject', name: 'submit_action', value: 'skip'}='Skip'
+            - else
+              %button#cancel.btn.btn-primary.cancel{type: "submit", title: 'Cancel Update for this Subject', name: 'submit_action', value: 'cancel'}='Cancel'
 .col-sm-1
 
 

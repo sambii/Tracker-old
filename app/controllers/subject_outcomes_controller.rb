@@ -111,7 +111,8 @@ class SubjectOutcomesController < ApplicationController
       end
 
       @stage = 2
-      Rails.logger.debug("*** Stage: #{@stage} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      step = 0
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
 
       Rails.logger.debug("*** create subject hashes")
       @subject_ids = Hash.new
@@ -121,15 +122,19 @@ class SubjectOutcomesController < ApplicationController
         @subject_names[s.name] = s
       end
 
+      step = 1
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # create hash of new LO records from uploaded csv file
       recs_from_upload = lo_get_file_from_upload(params)
       @records = recs_from_upload[:records]
-      Rails.logger.debug("*** @records: #{@records.inspect}")
+      # Rails.logger.debug("*** @records: #{@records.inspect}")
       @new_los_by_rec_clean = recs_from_upload[:new_los_by_rec]
-      Rails.logger.debug("*** @new_los_by_rec_clean: #{@new_los_by_rec_clean.inspect}")
+      # Rails.logger.debug("*** @new_los_by_rec_clean: #{@new_los_by_rec_clean.inspect}")
       @new_los_by_lo_code_clean = recs_from_upload[:new_los_by_lo_code]
-      Rails.logger.debug("*** @new_los_by_lo_code_clean: #{@new_los_by_lo_code_clean.inspect}")
+      # Rails.logger.debug("*** @new_los_by_lo_code_clean: #{@new_los_by_lo_code_clean.inspect}")
 
+      step = 2
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # Check for duplicate LO codes in uploaded file
       @error_list = Hash.new
       # check for file duplicate LO Codes
@@ -140,6 +145,9 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** records count: #{@records.count}")
       @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
 
+
+      step = 3
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # Check for duplicate LO descriptions in uploaded file
       @error_list2 = Hash.new
       # check for file duplicate LO Descriptions
@@ -150,45 +158,109 @@ class SubjectOutcomesController < ApplicationController
       @records_clean = @records.clone
       Rails.logger.debug("*** records count: #{@records.count}")
       @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
+      # Rails.logger.debug("*** rec 0: #{@records[0]}")
+      # Rails.logger.debug("*** rec 1: #{@records[1]}")
+      # Rails.logger.debug("*** rec 2: #{@records[2]}")
+      # Rails.logger.debug("*** rec 3: #{@records[3]}")
+      # Rails.logger.debug("*** rec 4: #{@records[4]}")
+
+      Rails.logger.debug("*** @errors: #{@errors.inspect}")
 
       @stage = 3
-      Rails.logger.debug("*** Stage: #{@stage} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      step = 0
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
 
       step = 1
       # get the subject outcomes from the database by subject
-      old_los = lo_get_all_old_los
-      @old_los_by_subject = old_los[:old_los_by_subject].clone
-      @all_old_los = old_los[:all_old_los].clone
+      saved_old_los = lo_get_all_old_los
+      @old_db_ids_by_subject = saved_old_los[:old_db_ids_by_subject].clone
+      @all_old_los = saved_old_los[:all_old_los].clone
 
-      Rails.logger.debug("*** @subject_ids: #{@subject_ids}")
+      # Rails.logger.debug("*** @old_db_ids_by_subject: #{@old_db_ids_by_subject}")
       step = 2
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # get the subject outcomes from the upload by subject
       new_los = lo_get_all_new_los(@records)
-      @new_los_by_subject = new_los[:new_los_by_subject].clone
+      @new_rec_ids_by_subject = new_los[:new_rec_ids_by_subject].clone
       @all_new_los = new_los[:all_new_los].clone
 
       step = 3
-      @errors = Hash.new
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      # @errors = Hash.new
       clear_matching_counts
       # @records = @records_clean.clone
-      Rails.logger.debug("*** Step 1 Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
 
-      @old_los_to_process = @all_old_los.clone
-      @new_los_to_process = @all_new_los.clone.sort_by{ |h| h[:lo_code]}
+      @new_los_to_process = Array.new
+      @old_los_to_process = Array.new
+      if @match_subject.present?
+        step = '3a'
+        Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+        # we are processing one subject, so we are not looping through subjects
+        @process_by_subject = nil
+        @process_by_subject_id = nil
+        # pull the new learning outcomes to process from the @new_rec_ids_by_subject
+        @new_rec_ids_by_subject[@match_subject.id].each do |rec_id|
+          @new_los_to_process << @all_new_los[rec_id]
+        end
+        step = '3b'
+        Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+        # pull the old learning outcomes to process from the @old_db_ids_by_subject
+        @old_db_ids_by_subject[@match_subject.id].each do |db_id|
+          @old_los_to_process << @all_old_los[db_id]
+        end
+      elsif @errors.count > 0
+        step = '3c'
+        # we are processing all subjects, and there are errors, so we must loop through subjects
+        @process_by_subject = @subjects.first
+        @process_by_subject_id = @process_by_subject.id
+        # pull the new learning outcomes to process from the @new_rec_ids_by_subject
+        @new_rec_ids_by_subject[@process_by_subject.id].each do |rec_id|
+          @new_los_to_process << @all_new_los[rec_id]
+        end
+        step = '3d'
+        Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+        # pull the old learning outcomes to process from the @old_db_ids_by_subject
+        @old_db_ids_by_subject[@process_by_subject.id].each do |db_id|
+          @old_los_to_process << @all_old_los[db_id]
+        end
+      else
+        step = '3e'
+        # we are processing all subjects, and there are no errors, so we can process them all at once.
+        @process_by_subject = nil
+        @process_by_subject_id = nil
+        # pull the new learning outcomes to process from the @new_rec_ids_by_subject
+        @new_rec_ids_by_subject.each do |subj_recs|
+          subj_recs[@process_by_subject.id].each do |rec_id|
+            @new_los_to_process << @all_new_los[rec_id]
+          end
+        end
+        step = '3f'
+        Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+        # pull the old learning outcomes to process from the @old_db_ids_by_subject
+        @old_db_ids_by_subject.each do |subj_recs|
+          subj_recs[@process_by_subject.id].each do |rec_id|
+            @old_los_to_process << @all_old_los[rec_id]
+          end
+        end
+      end
+
+      # @old_los_to_process = @all_old_los.clone
+      # @new_los_to_process = @all_new_los.clone.sort_by{ |h| h[:lo_code]}
 
       step = 4
-      lo_set_matches(@new_los_to_process, @old_los_to_process)
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      @dup_error_count = lo_set_matches(@new_los_to_process, @old_los_to_process, @old_db_ids_by_subject, @all_old_los)
 
-      Rails.logger.debug("*** @old_los_to_process:")
-      @old_los_to_process.each do |rec|
-        Rails.logger.debug("*** old rec: #{rec.inspect}")
-      end
-      Rails.logger.debug("*** @new_los_to_process:")
-      @new_los_to_process.each do |rec|
-        Rails.logger.debug("*** new rec: #{rec.inspect}")
-      end
+      # Rails.logger.debug("*** @old_los_to_process:")
+      # @old_los_to_process.each do |rec|
+      #   Rails.logger.debug("*** old rec to process: #{rec.inspect}")
+      # end
+      # Rails.logger.debug("*** @new_los_to_process:")
+      # @new_los_to_process.each do |rec|
+      #   Rails.logger.debug("*** new rec to process: #{rec.inspect}")
+      # end
 
       @stage = 4
       if !@allow_save
@@ -227,7 +299,8 @@ class SubjectOutcomesController < ApplicationController
         @allow_save_all = true
       end
 
-      if @errors.count == 0 && @error_list.length == 0 && !first_display
+      @any_errors = @errors.count > 0 || @error_list.count > 0 || @error_list2.length > 0
+      if !@any_errors && !first_display
 
         # stage 5
         @stage = 5
@@ -236,7 +309,6 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** Final Stage: #{@stage}")
 
       Rails.logger.debug("*** @errors: #{@errors.inspect}")
-      @any_errors = @errors.count > 0 || @error_list.count > 0
 
       @rollback = false
 
@@ -259,7 +331,8 @@ class SubjectOutcomesController < ApplicationController
     # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
 
     respond_to do |format|
-      if @stage == 1 || @any_errors
+      # if @stage == 1 || @any_errors
+      if @stage == 1
         format.html
       else
         format.html { render :action => "lo_matching" }

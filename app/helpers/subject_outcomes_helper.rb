@@ -120,17 +120,19 @@ module SubjectOutcomesHelper
 
   # curriculum / LOs bulk upload file stage 2 processing - duplicate LO Code check
   def validate_dup_lo_codes(records_in)
+    Rails.logger.debug("*** validate_dup_lo_codes")
     records = records_in.clone
     begin
       error_list = Hash.new
       records.each_with_index do |rx, ix|
         # check all records following it for duplicated LO Code
         if !error_list[ix+2].present? || error_list[ix+2].present? && error_list[ix+2][0] != '-1'
+          # only process records after the current record
           records.drop(ix+1).each_with_index do |ry, iy|
             iyall = iy + ix + 1 # index of the later row being tested
             # if later record has not been matched already, check if a match to current
             if rx[COL_OUTCOME_CODE] == ry[COL_OUTCOME_CODE] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
-              # Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+              Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
               if !error_list[iyall+2].present? || (error_list[iyall+2].present? && error_list[iyall+2][0] != '-1')
                 # put or add to end the list of duplicated lines, but only if not listed prior
                 # ix+2 or iyall+2 for zero relative ruby arrays and ignoring the header line.
@@ -142,9 +144,9 @@ module SubjectOutcomesHelper
                 error_list[iyall+2] = ['-1', '']
               end
               # add the duplicate LO Code message to this row, if not there already
-              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], '*') if !(records[ix][COL_ERROR] ||= '').include?('*')
+              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Dup LO Code') if !(records[ix][COL_ERROR] ||= '').include?('Dup LO Code')
               # add the duplicate LO Code message to the later row, if not there already
-              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], '*') if !(records[iyall][COL_ERROR] ||= '').include?('*')
+              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Dup LO Code') if !(records[iyall][COL_ERROR] ||= '').include?('Dup LO Code')
             end
           end
         end
@@ -171,7 +173,7 @@ module SubjectOutcomesHelper
             iyall = iy + ix + 1 # index of the later row being tested
             # if later record has not been matched already, check if a match to current
             if rx[COL_OUTCOME_NAME] == ry[COL_OUTCOME_NAME] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
-              # Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+              Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
               if !error_list[iyall+2].present? || (error_list[iyall+2].present? && error_list[iyall+2][0] != '-1')
                 # put or add to end the list of duplicated lines, but only if not listed prior
                 # ix+2 or iyall+2 for zero relative ruby arrays and ignoring the header line.
@@ -183,9 +185,9 @@ module SubjectOutcomesHelper
                 error_list[iyall+2] = ['-1', '']
               end
               # add the duplicate LO Description message to this row, if not there already
-              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], '*') if !(records[ix][COL_ERROR] ||= '').include?('*')
+              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Dup LO Desc') if !(records[ix][COL_ERROR] ||= '').include?('Dup LO Desc')
               # add the duplicate LO Description message to the later row, if not there already
-              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], '*') if !(records[iyall][COL_ERROR] ||= '').include?('*')
+              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Dup LO Desc') if !(records[iyall][COL_ERROR] ||= '').include?('Dup LO Desc')
             end
           end
         end
@@ -356,10 +358,12 @@ module SubjectOutcomesHelper
 
   def lo_get_all_old_los
     # create hash by subject containing array of all subject outcomes for each subject in this (model) school
-    old_los_by_subject = Hash.new([])
-    all_old_los = Array.new
+    old_db_ids_by_subject = Hash.new()
+    all_old_los = Hash.new()
     ix = 0
-    SubjectOutcome.where(subject_id: @subject_ids.map{|k,v| k}).order('active DESC, lo_code, id').each do |so|
+    subject_ids = @subject_ids.map{|k,v| k}
+    # Rails.logger.debug("*** subject_ids: #{subject_ids.inspect}")
+    SubjectOutcome.where(subject_id: subject_ids).includes(:subject).order('active DESC, lo_code, id').each do |so|
       old_rec = {
         match_id: ix.to_s(26).each_char.map {|i| ('A'..'Z').to_a[i.to_i(26)]}.join.to_s,
         db_id: so.id,
@@ -372,23 +376,23 @@ module SubjectOutcomesHelper
         mp: SubjectOutcome.get_bitmask_string(so.marking_period),
         active: so.active
       }
-      Rails.logger.debug("*** insert old rec: #{old_rec.inspect}")
-      old_los_by_subject[so.subject_id] = old_los_by_subject[so.subject_id] << old_rec
-      Rails.logger.debug("*** append old rec: #{old_rec.inspect}")
-      all_old_los << old_rec
+      # Rails.logger.debug("*** insert old rec: #{old_rec.inspect}")
+      old_db_ids_by_subject[so.subject_id] = old_db_ids_by_subject[so.subject_id].present? ? old_db_ids_by_subject[so.subject_id] << old_rec[:db_id] : [old_rec[:db_id]]
+      all_old_los[so.id] = old_rec
       ix += 1
+      # Rails.logger.debug("*** subject_id: #{so.subject_id}, old_db_ids_by_subject[so.subject_id] #{old_db_ids_by_subject[so.subject_id]}")
     end
 
-    return {old_los_by_subject: old_los_by_subject, all_old_los: all_old_los}
+    return {old_db_ids_by_subject: old_db_ids_by_subject, all_old_los: all_old_los}
   end
 
   def lo_get_all_new_los(records)
-    new_los_by_subject = Hash.new([])
-    all_new_los = Array.new
+    new_rec_ids_by_subject = Hash.new([])
+    all_new_los = Hash.new
     records.each do |rec|
-      Rails.logger.debug("*** rec: #{rec.inspect}")
+      # Rails.logger.debug("*** rec: #{rec.inspect}")
       subject_id = rec[:subject_id]
-      Rails.logger.debug("*** subject_id: #{subject_id}")
+      # Rails.logger.debug("*** subject_id: #{subject_id}")
       subject_name = @subject_ids[subject_id].name
       if subject_id > 0
         new_rec = {
@@ -400,14 +404,18 @@ module SubjectOutcomesHelper
           course: rec[:'Course'],
           grade: rec[:'Grade'],
           mp: rec[:mp_bitmap],
+          error: rec[:error],
           exact_match: nil,
           matches: Hash.new
         }
-        new_los_by_subject[subject_id] = new_los_by_subject[subject_id] << new_rec
-        all_new_los << new_rec
+        # Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
+        new_rec_ids_by_subject[subject_id] = new_rec_ids_by_subject[subject_id] << new_rec[:rec_id]
+        # Rails.logger.debug("*** new_rec_ids_by_subject[#{subject_id}]: #{new_rec_ids_by_subject[subject_id]}")
+        all_new_los[new_rec[:rec_id]] = new_rec
+        # Rails.logger.debug("*** all_new_los[#{new_rec[:rec_id]}]: #{all_new_los[new_rec[:rec_id]].inspect}")
       end
     end
-    return {new_los_by_subject: new_los_by_subject, all_new_los: all_new_los}
+    return {new_rec_ids_by_subject: new_rec_ids_by_subject, all_new_los: all_new_los}
   end
 
   # def lo_get_old_los_by_id(old_los)
@@ -418,13 +426,21 @@ module SubjectOutcomesHelper
   #   return old_los_by_id
   # end
 
-  def lo_set_matches(new_recs_in, old_recs_in)
+  def lo_set_matches(new_recs_in, old_recs_in, old_db_ids_by_subject, all_old_los)
+    step = 5
+    Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+    dup_error_count = 0
     # first set all exact matches
     new_recs_in.each do |new_rec|
+      dup_error_count += 1 if new_rec[:error].present? # was an error in the duplicates checking
       desc_new = (new_rec[:desc].present?) ? new_rec[:desc].strip().split.join('\n') : ''
-      old_recs_in.each do |old_rec|
+      subject_id = new_rec[:subject_id]
+      old_db_ids_by_subject[subject_id].each do |old_db_id|
+        old_rec = all_old_los[old_db_id]
+        # Rails.logger.debug("*** compare: #{new_rec[:rec_id]} to #{old_rec[:db_id]}")
         desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
-        if desc_new == desc_old
+        if new_rec[:error].blank? && desc_new == desc_old
+          # Rails.logger.debug("***     Exact Match for: #{new_rec[:rec_id]} to #{old_rec[:db_id]}")
           matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: MAX_DESC_LEVEL, db_id: old_rec[:db_id], rec_id: new_rec[:rec_id]}
           new_rec[:exact_match] = matching_h
           old_rec[:exact_match] = matching_h
@@ -433,10 +449,17 @@ module SubjectOutcomesHelper
         end
       end
     end
+    step = 6
+    Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     # next set matching values for non exact matches
     new_recs_in.each do |new_rec|
+      step = 69
+      rec_proc_count = 0
       if new_rec[:exact_match].blank?
-        old_recs_in.each do |old_rec|
+        subject_id = new_rec[:subject_id]
+        old_db_ids_by_subject[subject_id].each do |old_db_id|
+          old_rec = all_old_los[old_db_id]
+          rec_proc_count += 1
           if old_rec[:exact_match].blank?
             match_h = get_matching_level(old_rec, new_rec)
             matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: match_h[:desc_match], db_id: old_rec[:db_id], rec_id: new_rec[:rec_id]}
@@ -445,7 +468,11 @@ module SubjectOutcomesHelper
           end
         end
       end
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step}, recs: #{rec_proc_count} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     end
+    step = 7
+    Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+    return dup_error_count
   end
 
   # def lo_get_matches_for_new
@@ -909,7 +936,6 @@ module SubjectOutcomesHelper
     @do_nothing_count = 0
     @reactivate_count = 0
     @deactivate_count = 0
-    @error_count = 0
     @selected_count = 0
     @unselect_count = 0
     @inactive_old_count = 0
