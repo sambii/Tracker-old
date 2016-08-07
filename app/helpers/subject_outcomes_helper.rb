@@ -419,16 +419,31 @@ module SubjectOutcomesHelper
   # end
 
   def lo_set_matches(new_recs_in, old_recs_in)
-    new_recs_in.each do |rec_new|
-      old_recs_in.each do |rec_old|
-        match_h = get_matching_level(rec_old, rec_new)
-        Rails.logger.debug("*** new rec: #{rec_new[:rec_id]}, old rec: #{rec_old[:db_id]}, match: #{match_h.inspect}")
-        if match_h[:desc_match] == MAX_DESC_LEVEL
-          rec_new[:exact_match] = {key: rec_old[:match_id], descr: "#{rec_old[:match_id]}-#{rec_old[:lo_code]}", val: match_h[:desc_match], db_id: rec_old[:db_id]}
-          rec_old[:active] = false
+    # first set all exact matches
+    new_recs_in.each do |new_rec|
+      desc_new = (new_rec[:desc].present?) ? new_rec[:desc].strip().split.join('\n') : ''
+      old_recs_in.each do |old_rec|
+        desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
+        if desc_new == desc_old
+          matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: MAX_DESC_LEVEL, db_id: old_rec[:db_id], rec_id: new_rec[:rec_id]}
+          new_rec[:exact_match] = matching_h
+          old_rec[:exact_match] = matching_h
+          new_rec[:matches] = nil
           break
         end
-        rec_new[:matches][rec_old[:match_id]] = {key: rec_old[:match_id], descr: "#{rec_old[:match_id]}-#{rec_old[:lo_code]}", val: match_h[:desc_match]}
+      end
+    end
+    # next set matching values for non exact matches
+    new_recs_in.each do |new_rec|
+      if new_rec[:exact_match].blank?
+        old_recs_in.each do |old_rec|
+          if old_rec[:exact_match].blank?
+            match_h = get_matching_level(old_rec, new_rec)
+            matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: match_h[:desc_match], db_id: old_rec[:db_id], rec_id: new_rec[:rec_id]}
+            # Rails.logger.debug("*** new rec: #{new_rec[:rec_id]}, old rec: #{old_rec[:db_id]}, match: #{match_h.inspect}")
+            new_rec[:matches][old_rec[:match_id]] = matching_h
+          end
+        end
       end
     end
   end

@@ -91,7 +91,7 @@
                     - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != subject_id_i ? 'display-none' : '') : ''
                     - if hide_subject_class.blank?
                       %tr.break
-                        - deact_class = (old_rec[:active] == false ? 'deactivated ' : '')
+                        - deact_class = ( (old_rec[:active] == false || old_rec[:exact_match].present?) ? 'deactivated ' : '')
                         - error_class = (old_rec[:error].present? ? 'ui-error' : '')
                         %td{class: "match_id #{deact_class}"}=old_rec[:match_id]
                         %td{class: "old_mp #{deact_class}"}=old_rec[:mp]
