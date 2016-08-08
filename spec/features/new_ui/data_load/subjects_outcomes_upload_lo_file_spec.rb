@@ -101,6 +101,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
+      sleep 20
+      save_and_open_page
       # if no errors and not requiring subject by subject matching, then save button should be showing
       page.should have_css("#save_all")
       page.should have_content('Match Old LOs to New LOs')
@@ -185,8 +187,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      # sleep 20
-      # save_and_open_page
+      sleep 20
+      save_and_open_page
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')

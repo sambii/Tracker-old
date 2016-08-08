@@ -380,7 +380,7 @@ module SubjectOutcomesHelper
       old_db_ids_by_subject[so.subject_id] = old_db_ids_by_subject[so.subject_id].present? ? old_db_ids_by_subject[so.subject_id] << old_rec[:db_id] : [old_rec[:db_id]]
       all_old_los[so.id] = old_rec
       ix += 1
-      # Rails.logger.debug("*** subject_id: #{so.subject_id}, old_db_ids_by_subject[so.subject_id] #{old_db_ids_by_subject[so.subject_id]}")
+      # Rails.logger.debug("*** old_db_ids_by_subject[#{so.subject_id}] #{old_db_ids_by_subject[so.subject_id]}")
     end
 
     return {old_db_ids_by_subject: old_db_ids_by_subject, all_old_los: all_old_los}
@@ -392,7 +392,6 @@ module SubjectOutcomesHelper
     records.each do |rec|
       # Rails.logger.debug("*** rec: #{rec.inspect}")
       subject_id = rec[:subject_id]
-      # Rails.logger.debug("*** subject_id: #{subject_id}")
       subject_name = @subject_ids[subject_id].name
       if subject_id > 0
         new_rec = {
@@ -409,7 +408,7 @@ module SubjectOutcomesHelper
           matches: Hash.new
         }
         # Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
-        new_rec_ids_by_subject[subject_id] = new_rec_ids_by_subject[subject_id] << new_rec[:rec_id]
+        new_rec_ids_by_subject[subject_id] = new_rec_ids_by_subject[subject_id].present? ? new_rec_ids_by_subject[subject_id] << new_rec[:rec_id] : [new_rec[:rec_id]]
         # Rails.logger.debug("*** new_rec_ids_by_subject[#{subject_id}]: #{new_rec_ids_by_subject[subject_id]}")
         all_new_los[new_rec[:rec_id]] = new_rec
         # Rails.logger.debug("*** all_new_los[#{new_rec[:rec_id]}]: #{all_new_los[new_rec[:rec_id]].inspect}")
@@ -426,37 +425,98 @@ module SubjectOutcomesHelper
   #   return old_los_by_id
   # end
 
-  def lo_set_matches(new_recs_in, old_recs_in, old_db_ids_by_subject, all_old_los)
+  def lo_matches_for_subject(subj)
     step = 5
-    Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+    Rails.logger.debug("*** Stage: #{@stage}, Subject #{subj.id}-#{subj.name} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+    exact_count = 0
+    exact_deact_count = 0
+    exact_active_count = 0
     dup_error_count = 0
-    # first set all exact matches
-    new_recs_in.each do |new_rec|
-      dup_error_count += 1 if new_rec[:error].present? # was an error in the duplicates checking
+    old_db_ids = @old_db_ids_by_subject[subj.id].present? ? @old_db_ids_by_subject[subj.id] : []
+    new_rec_ids = @new_rec_ids_by_subject[subj.id].present? ? @new_rec_ids_by_subject[subj.id] : []
+    Rails.logger.debug("*** old_db_ids: #{old_db_ids.inspect}")
+    Rails.logger.debug("*** new_rec_ids: #{new_rec_ids.inspect}")
+    # subj_flags = @subj_to_proc[subj.id].present? ? @subj_to_proc[subj.id] : {}
+    subj_flags = {}
+    new_rec_ids.each do |rec_id|
+      new_rec = @all_new_los[rec_id]
+      if new_rec[:error].present? # was an error in the duplicates checking
+        dup_error_count += 1
+        subj_flags[:error] = true
+        subj_flags[:process] = true
+      end
       desc_new = (new_rec[:desc].present?) ? new_rec[:desc].strip().split.join('\n') : ''
-      subject_id = new_rec[:subject_id]
-      old_db_ids_by_subject[subject_id].each do |old_db_id|
-        old_rec = all_old_los[old_db_id]
-        # Rails.logger.debug("*** compare: #{new_rec[:rec_id]} to #{old_rec[:db_id]}")
+      old_db_ids.each do |db_id|
+        old_rec = @all_old_los[db_id]
         desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
-        if new_rec[:error].blank? && desc_new == desc_old
-          # Rails.logger.debug("***     Exact Match for: #{new_rec[:rec_id]} to #{old_rec[:db_id]}")
+        if !new_rec[:error].blank?
+          subj_flags[:error] = true
+        end
+        # if new_rec[:error].blank? && desc_new == desc_old
+        if desc_new == desc_old
+          exact_count += 1
+          if old_rec[:active]
+            exact_active_count += 1
+          else
+            exact_deact_count += 1
+          end
           matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: MAX_DESC_LEVEL, db_id: old_rec[:db_id], rec_id: new_rec[:rec_id]}
           new_rec[:exact_match] = matching_h
           old_rec[:exact_match] = matching_h
           new_rec[:matches] = nil
-          break
+          if new_rec[:lo_code] != old_rec[:lo_code]
+            subj_flags[:code_change] = true
+          end
+          if !old_rec[:active]
+            subj_flags[:reactivate] = true
+          end
+          if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
+            subj_flags[:process] = true
+          end
         end
       end
     end
+    if exact_count == old_db_ids.count
+      # no changes to old records
+      if new_rec_ids.count > exact_count
+        # all new records must be adds
+        # subj_flags[:only_adds] = true
+      elsif new_rec_ids.count == exact_count
+        subj_flags[:skip] = true
+      else
+        # ? not possible
+      end
+    else
+      subj_flags[:process] = true
+    end
+    db_deact_count = 0
+    db_active_count = 0
+    old_db_ids.each do |db_id|
+      old_rec = @all_old_los[db_id]
+      if old_rec[:active]
+        db_active_count += 1
+      else
+        db_deact_count += 1
+      end
+    end
+    # flag subject as add only if all new learning outcomes have exact matches in the database (active or deactivated)
+    subj_flags[:add_only] = true if db_active_count == exact_active_count && db_deact_count >= exact_deact_count
+    Rails.logger.debug("*** subj_flags[:add_only]: #{subj_flags[:add_only]}")
+    Rails.logger.debug("*** #{db_active_count == exact_active_count} - db_active_count: #{db_active_count} ?=? exact_active_count: #{exact_active_count}")
+    Rails.logger.debug("*** #{db_deact_count == exact_deact_count} - db_deact_count: #{db_deact_count} ?>=? exact_deact_count: #{exact_deact_count}")
+    @subj_to_proc[subj.id] = subj_flags
+    Rails.logger.debug("*** Subject: #{subj.id}-#{subj.name}, Old Count: #{old_db_ids.count}, New Count: #{new_rec_ids.count}, exact_count: #{exact_count}, @subj_to_proc[subj.id]: #{subj_flags.inspect}")
+  end
+
+  def lo_set_matches(new_recs_in, old_recs_in, old_db_ids_by_subject, all_old_los)
     step = 6
     Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     # next set matching values for non exact matches
     new_recs_in.each do |new_rec|
-      step = 69
+      Rails.logger.debug("*** lo_set_matches new rec: #{new_rec.inspect}")
+      subject_id = new_rec[:subject_id]
       rec_proc_count = 0
       if new_rec[:exact_match].blank?
-        subject_id = new_rec[:subject_id]
         old_db_ids_by_subject[subject_id].each do |old_db_id|
           old_rec = all_old_los[old_db_id]
           rec_proc_count += 1
@@ -468,11 +528,11 @@ module SubjectOutcomesHelper
           end
         end
       end
-      Rails.logger.debug("*** Stage: #{@stage}, Step #{step}, recs: #{rec_proc_count} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      Rails.logger.debug("*** Stage: #{@stage}, subject_id #{subject_id}, recs: #{rec_proc_count} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
     end
     step = 7
     Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-    return dup_error_count
+    return
   end
 
   # def lo_get_matches_for_new
