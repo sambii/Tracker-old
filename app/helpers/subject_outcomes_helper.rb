@@ -251,8 +251,8 @@ module SubjectOutcomesHelper
     # if only processing one subject, look up the subject by selected subject ID
     @match_subject = nil
     @subject_id = ''
-    if params[SubjectOutcomesHelper::COL_SUBJECT_ID].present?
-      match_subjects = Subject.where(id: params[SubjectOutcomesHelper::COL_SUBJECT_ID])
+    if params[:subject_id].present?
+      match_subjects = Subject.where(id: params[:subject_id])
       if match_subjects.count == 0
         @errors[:subject] = "Error: Cannot find subject"
         raise @errors[:subject]
@@ -261,7 +261,7 @@ module SubjectOutcomesHelper
         @subject_id = @match_subject.present? ? @match_subject.id : ''
       end
     end
-    # Rails.logger.debug("*** @match_subject: #{@match_subject} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
+    Rails.logger.debug("*** @match_subject: #{@match_subject.inspect} = #{@match_subject.name.unpack('U' * @match_subject.name.length)}") if @match_subject
     return @match_subject
   end
 
@@ -295,15 +295,16 @@ module SubjectOutcomesHelper
       # recreate upload records (with only fields needed)
       if pnew.length > 0 && pnew[COL_REC_ID] && pnew[COL_OUTCOME_CODE]
         rec  = Hash.new
-        rec[COL_REC_ID] = pnew[COL_REC_ID]
-        rec[COL_COURSE] = pnew[COL_COURSE]
-        rec[COL_SUBJECT_ID] = pnew[COL_SUBJECT_ID]
-        rec[COL_GRADE] = pnew[COL_GRADE]
-        rec[COL_MP_BITMAP] = pnew[COL_MP_BITMAP]
-        rec[COL_OUTCOME_CODE] = pnew[COL_OUTCOME_CODE]
-        rec[COL_OUTCOME_NAME] = pnew[COL_OUTCOME_NAME]
-        rec[PARAM_ID] = pnew[PARAM_ID]
-        rec[PARAM_ACTION] =  pnew[PARAM_ACTION]
+        rec[:rec_id] = pnew[COL_REC_ID]
+        rec[:subject_id] = pnew[COL_SUBJECT_ID]
+        rec[:course] = pnew[COL_COURSE]
+        rec[:grade] = pnew[COL_GRADE]
+        rec[:mp] = pnew[COL_MP_BITMAP]
+        # rec[:subject_name] = pnew[:subject_name]
+        rec[:lo_code] = pnew[COL_OUTCOME_CODE]
+        rec[:desc] = pnew[COL_OUTCOME_NAME]
+        rec[:error] =  pnew[:error]
+        # :exact_match=>{:key=>"BC", :descr=>"BC-MA.1.09", :val=>4, :db_id=>29, :rec_id=>28}
         records << rec
         # Rails.logger.debug("*** Recreated record: #{rec.inspect}")
         new_los_by_rec[pnew[COL_REC_ID]] = rec
@@ -390,19 +391,25 @@ module SubjectOutcomesHelper
     new_rec_ids_by_subject = Hash.new([])
     all_new_los = Hash.new
     records.each do |rec|
-      # Rails.logger.debug("*** rec: #{rec.inspect}")
-      subject_id = rec[:subject_id]
+      Rails.logger.debug("*** lo_get_all_new_los rec: #{rec.inspect}")
+      subject_id = Integer(rec[:subject_id]) rescue 0
       subject_name = @subject_ids[subject_id].name
+      # fix for two different formats coming in:
+      lo_code = rec[:lo_code].present? ? rec[:lo_code] : rec[:'LO Code:']
+      lo_desc = rec[:desc].present? ? rec[:desc] : rec[:'Learning Outcome']
+      lo_course = rec[:course].present? ? rec[:course] : rec[:'Course']
+      lo_grade = rec[:grade].present? ? rec[:grade] : rec[:'Grade']
+      lo_mp = rec[:mp].present? ? rec[:mp] : rec[:mp_bitmap]
       if subject_id > 0
         new_rec = {
           rec_id: rec[:rec_id],
           subject_name: subject_name,
           subject_id: subject_id,
-          lo_code:  rec[:'LO Code:'],
-          desc: rec[:'Learning Outcome'],
-          course: rec[:'Course'],
-          grade: rec[:'Grade'],
-          mp: rec[:mp_bitmap],
+          lo_code:  lo_code,
+          desc: lo_desc,
+          course: lo_course,
+          grade: lo_grade,
+          mp: lo_mp,
           error: rec[:error],
           exact_match: nil,
           matches: Hash.new
@@ -547,59 +554,72 @@ module SubjectOutcomesHelper
         db_id = new_rec[:exact_match][:db_id]
         old_rec = @all_old_los[db_id]
         Rails.logger.debug("*** matching Old rec: #{db_id} - #{old_rec.inspect}")
-        if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
-          # do updates for this exact match
-          so = SubjectOutcome.find(db_id)
-          so.active = true
-          so.lo_code = new_rec[:lo_code]
-          # description update not necessary - they are the same
-          # so.description = new_rec[:desc]
-          so.marking_period = new_rec[:mp]
-          so.save
-          if so.errors.count > 0
-            subj_errors_count += 1
-            Rails.logger.error("*** Error updating : #{so.inspect}, #{so.errors.full_messages}")
-            old_rec[:error] = so.errors.full_messages
-            @count_errors += 1
-          else
-            old_rec[:up_to_date] = true
-            Rails.logger.debug("*** Updated to : #{so.inspect}")
-            @count_updates += 1
-          end
-        else
-          old_rec[:up_to_date] = true
-          Rails.logger.debug("*** No Update - are identical")
-        end
+        lo_update(new_rec, old_rec)
       else
         # should be none in :add_only mode
       end
     end
     # Deactivate all old records that are not :up_to_date
     if subj_errors_count == 0
-      old_db_ids = @old_db_ids_by_subject[subj.id].present? ? @old_db_ids_by_subject[subj.id] : []
-      old_db_ids.each do |db_id|
-        old_rec = @all_old_los[db_id]
-        if (old_rec[:up_to_date].blank? || old_rec[:up_to_date] == false) && old_rec[:active] == true
-          db_id = old_rec[:db_id]
-          so = SubjectOutcome.find(db_id)
-          Rails.logger.debug("*** Before Deactivation : #{so.inspect}")
-          so.active = false
-          so.save
-          if so.errors.count > 0
-            subj_errors_count += 1
-            Rails.logger.error("*** Error updating : #{so.inspect}, #{so.errors.full_messages}")
-            old_rec[:error] = so.errors.full_messages
-            @count_errors += 1
-          else
-            old_rec[:up_to_date] = true
-            Rails.logger.debug("*** Deactivated : #{so.inspect}")
-            @count_deactivates += 1
-          end
-        end
-      end
+      lo_deact_rest_old_recs(subj)
     end
     if subj_errors_count > 0
       @subj_to_proc[subj.id][:error] = true
+    end
+  end
+
+  def lo_update(new_rec, old_rec)
+    if new_rec[:error].blank?
+      if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:desc] != old_rec[:desc] || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
+        so = SubjectOutcome.find(old_rec[:db_id])
+        so.active = true
+        so.lo_code = new_rec[:lo_code]
+        so.description = new_rec[:desc]
+        so.marking_period = new_rec[:mp]
+        so.save
+        if so.errors.count > 0
+          Rails.logger.error("*** Error updating : #{so.inspect}, #{so.errors.full_messages}")
+          old_rec[:error] = so.errors.full_messages
+          @count_errors += 1
+        else
+          old_rec[:up_to_date] = true
+          Rails.logger.debug("*** Updated to : #{so.inspect}")
+          @count_updates += 1
+        end
+      else
+        old_rec[:up_to_date] = true
+        Rails.logger.debug("*** already up to date : #{so.inspect}")
+      end
+    else
+      old_rec[:error] = true
+      Rails.logger.debug("*** error : #{so.inspect}")
+    end
+  end
+
+  def lo_deact_rest_old_recs(subj)
+    # Deactivate all old records that are not :up_to_date
+    Rails.logger.debug("*** subj: #{subj} - #{subj.inspect}")
+    old_db_ids = @old_db_ids_by_subject[subj.id].present? ? @old_db_ids_by_subject[subj.id] : []
+    old_db_ids.each do |db_id|
+      old_rec = @all_old_los[db_id]
+      Rails.logger.debug("*** old_rec: #{db_id} - #{old_rec.inspect}")
+      if (old_rec[:up_to_date].blank? || old_rec[:up_to_date] == false) && old_rec[:active] == true
+        db_id = old_rec[:db_id]
+        so = SubjectOutcome.find(db_id)
+        Rails.logger.debug("*** Before Deactivation : #{so.inspect}")
+        so.active = false
+        so.save
+        if so.errors.count > 0
+          subj_errors_count += 1
+          Rails.logger.error("*** Error updating : #{so.inspect}, #{so.errors.full_messages}")
+          old_rec[:error] = so.errors.full_messages
+          @count_errors += 1
+        else
+          old_rec[:up_to_date] = true
+          Rails.logger.debug("*** Deactivated : #{so.inspect}")
+          @count_deactivates += 1
+        end
+      end
     end
   end
 

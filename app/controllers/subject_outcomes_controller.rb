@@ -276,25 +276,13 @@ class SubjectOutcomesController < ApplicationController
       @stage = 1
       @records = Array.new
       @errors = Hash.new
-      @selections = Hash.new
-      @selection_params = Hash.new
-      @selected_pairs = Hash.new
-      @selected_new_rec_ids = Array.new
-      @selected_db_ids = Array.new
-      @deactivations = Array.new
-      if params['selections'].present?
-        @selection_params = params['selections']
-        params['selections'].each do |k,v|
-          if (Integer(k) rescue -99999) < 0
-            # deactivate old record selected
-            @deactivations << v
-          else
-            @selections[k] = v
-            @selected_new_rec_ids << k.to_s
-            @selected_db_ids << v.to_s
-          end
-        end
-      end
+      # @selections = Hash.new
+      # @selection_params = Hash.new
+      # @selected_pairs = Hash.new
+      # @selected_new_rec_ids = Array.new
+      # @selected_db_ids = Array.new
+      # @deactivations = Array.new
+
       @inactive_old_count = 0
       Rails.logger.debug("*** params[:submit_action]: #{params[:submit_action]}")
       @skip_subject = params[:submit_action] == 'skip'
@@ -317,7 +305,8 @@ class SubjectOutcomesController < ApplicationController
       @process_by_subject = lo_get_processed_subject(params)
 
       @stage = 2
-      Rails.logger.debug("*** Stage: #{@stage}")
+      step = 0
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
 
       Rails.logger.debug("*** create subject hashes")
       @subject_ids = Hash.new
@@ -327,6 +316,8 @@ class SubjectOutcomesController < ApplicationController
         @subject_names[s.name] = s
       end
 
+      step = 1
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # get records and hash of new LO records from hidden variables (params)
       Rails.logger.debug("*** lo_get_file_from_hidden")
       recs_from_hidden = lo_get_file_from_hidden(params)
@@ -338,11 +329,16 @@ class SubjectOutcomesController < ApplicationController
       # @new_los_by_rec = @new_los_by_rec_clean.clone
 
       @stage = 3
-      Rails.logger.debug("*** Stage: #{@stage}")
-
       step = 0
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # get the subject outcomes from the database for all subjects to process
-      @old_los_by_lo = lo_get_old_los
+
+      step = 1
+      # get the subject outcomes from the database by subject
+      saved_old_los = lo_get_all_old_los
+      @old_db_ids_by_subject = saved_old_los[:old_db_ids_by_subject].clone
+      @all_old_los = saved_old_los[:all_old_los].clone
+      # @old_los_by_lo = lo_get_old_los
       # @old_records_counts = @old_los_by_lo.count
       # @old_recs_to_process = Hash.new
       # @old_recs_to_process = lo_get_old_recs_to_process(@old_los_by_lo)
@@ -351,97 +347,177 @@ class SubjectOutcomesController < ApplicationController
       # @old_los_by_lo.each do |rk, old_rec|
       #   Rails.logger.debug("*** rk: #{rk}, old_rec: #{old_rec}")
 
-      step = 1
-      # development manual adjustmenmt of matching level from input field in matching page.
-      @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
+      # Rails.logger.debug("*** @old_db_ids_by_subject: #{@old_db_ids_by_subject}")
+      step = 2
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      # get the subject outcomes from the upload by subject
+      new_los = lo_get_all_new_los(@records)
+      @new_rec_ids_by_subject = new_los[:new_rec_ids_by_subject].clone
+      @all_new_los = new_los[:all_new_los].clone
 
-      # only update to stage 4 if not all subjects update
-      @stage = 4 if @process_by_subject
-      # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
-      # note this is to process the records sent from user, and if all pairs are matched and are good, do the update
-      @errors = Hash.new
-      lo_matching_at_level(false)
-      Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+      step = 3
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      # @errors = Hash.new
+      clear_matching_counts
 
-      @stage = 4
+      # hash to determine if subject should be processed or matched (by subject id)
+      @subj_to_proc = Hash.new({})
+
+      # array of old and new records to present to the user
+      @new_los_to_present = Array.new
+      @old_los_to_present = Array.new
+      @present_by_subject = nil
+      @subject_to_show_next = nil
+
+      @count_errors = 0
+      @count_updates = 0
+      @count_adds = 0
+      @count_deactivates = 0
+
+      Rails.logger.debug("*** @all_old_los: #{@all_old_los.inspect}")
+      # update the database from selections #####
+      params['selections'].each do |new_rec_id,old_db_id|
+        Rails.logger.debug("*** Selection: #{new_rec_id} => #{old_db_id}")
+        new_rec = @all_new_los[new_rec_id]
+        Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
+        if old_db_id.present?
+          db_id = Integer(old_db_id) rescue 0
+          # new record assigned to an old record
+          old_rec = @all_old_los[db_id]
+          Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
+          new_rec[:error] = new_rec[:error].present? ? new_rec[:error] + 'Mismatched subject' : 'Mismatched subject' if old_rec[:subject_id] != new_rec[:subject_id]
+          Rails.logger.debug("*** lo_update old_rec: #{old_rec}")
+          lo_update(new_rec, old_rec)
+        else # old_db_id.present?
+          Rails.logger.debug("*** add new rec")
+          # this new record is to be added
+          so = SubjectOutcome.new
+          so.active = true
+          so.subject_id = new_rec[:subject_id]
+          so.lo_code = new_rec[:lo_code]
+          so.description = new_rec[:desc]
+          so.marking_period = new_rec[:mp]
+          so.save
+          if so.errors.count > 0
+            Rails.logger.error("*** Error adding : #{so.inspect}, #{so.errors.full_messages}")
+            old_rec[:error] = so.errors.full_messages
+            @count_errors += 1
+          else
+            old_rec[:up_to_date] = true
+            Rails.logger.debug("*** Added : #{so.inspect}")
+            @count_adds += 1
+          end
+        end # old_db_id.present?
+      end # params['selections'].each
+
+      Rails.logger.debug("*** lo_deact_rest_old_recs")
+      lo_deact_rest_old_recs(@match_subject) if @count_errors == 0
+      Rails.logger.debug("*** lo_deact_rest_old_recs done")
+
+      ##### todo skip updates if chosen #####
+      ##### todo get next subject to present to user #####
+      # get starting subject to present to user
+      if @match_subject.present?
+        # present it again if errors???
+        lo_process_subject(@match_subject)
+      else
+        # @subjects.each do |subj|
+        #   lo_process_subject(subj)
+        # end
+        @present_by_subject = @subject_to_show_next
+      end
+
+      # step = 1
+      # # development manual adjustmenmt of matching level from input field in matching page.
+      # @match_level = params[:match_level].present? ? params[:match_level].to_i : DEFAULT_MATCH_LEVEL
+
+      # # only update to stage 4 if not all subjects update
+      # @stage = 4 if @process_by_subject
+      # # process the new LO records in lo_code order, and generate all matching pairs (with matching level reduced till update or sufficient to display).
+      # # note this is to process the records sent from user, and if all pairs are matched and are good, do the update
+      # @errors = Hash.new
+      # lo_matching_at_level(false)
+      # Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+
+      # @stage = 4
 
       step = 7
       Rails.logger.debug("*** step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
       if !@skip_subject && @allow_save
-        ActiveRecord::Base.transaction do
-          Rails.logger.debug("***")
-          Rails.logger.debug("*** Update Subject Learning Outcomes")
-          Rails.logger.debug("***")
-          # @pairs_matched.each_with_index do |pair, ix|
-          @pairs_filtered.each_with_index do |pair, ix|
-            current_pair = pair
-            rec = pair[0]
-            matched_new_rec = pair[1].clone # only change state for this matching pair
-            matched_weights = pair[2]
+        # ActiveRecord::Base.transaction do
+        #   Rails.logger.debug("***")
+        #   Rails.logger.debug("*** Update Subject Learning Outcomes")
+        #   Rails.logger.debug("***")
+        #   # @pairs_matched.each_with_index do |pair, ix|
+        #   @pairs_filtered.each_with_index do |pair, ix|
+        #     current_pair = pair
+        #     rec = pair[0]
+        #     matched_new_rec = pair[1].clone # only change state for this matching pair
+        #     matched_weights = pair[2]
 
-            Rails.logger.debug("*** Pair: #{matched_weights.inspect}")
-            # Rails.logger.debug("*** process? #{lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?}")
-            Rails.logger.debug("*** process? #{matched_weights[PARAM_ACTION].present?}")
+        #     Rails.logger.debug("*** Pair: #{matched_weights.inspect}")
+        #     # Rails.logger.debug("*** process? #{lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?}")
+        #     Rails.logger.debug("*** process? #{matched_weights[PARAM_ACTION].present?}")
 
-            # if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?
-            if matched_weights[PARAM_ACTION].present?
-              Rails.logger.debug("*** Update old rec: #{rec}, action: #{matched_weights[PARAM_ACTION]}")
-              case matched_weights[PARAM_ACTION]
-              when :'=='
-                # identical - no update needed
-                Rails.logger.debug("*** No Update - Identical")
-                matched_weights[:action_desc] = 'Exact Match'
-              when :'~='
-                Rails.logger.debug("*** Update - Not Identical")
-                so = SubjectOutcome.find(rec[COL_DB_ID])
-                so.active = true
-                so.lo_code = matched_new_rec[:'LO Code:']
-                so.description = matched_new_rec[:'Learning Outcome']
-                so.marking_period = matched_new_rec[:mp_bitmap]
-                so.save!
-                action_count += 1
-                action = 'Updated'
-                Rails.logger.debug("*** Updated to : #{so.inspect}")
-                # matched_weights[:action_desc] = 'Close Match'
-              when :'==^', :'~=^'
-                Rails.logger.debug("*** Reactivate")
-                so = SubjectOutcome.find(rec[COL_DB_ID])
-                so.active = true
-                so.lo_code = matched_new_rec[:'LO Code:']
-                so.description = matched_new_rec[:'Learning Outcome']
-                so.marking_period = matched_new_rec[:mp_bitmap]
-                so.save!
-                action_count += 1
-                action = 'Restored'
-                Rails.logger.debug("*** Pair Restored: #{so.inspect}")
-                # matched_weights[:action_desc] = 'Reactivate'
-              when :'-'
-                Rails.logger.debug("*** Deactivate")
-                so = SubjectOutcome.find(rec[COL_DB_ID])
-                so.active = false
-                so.save!
-                action_count += 1
-                action = 'Removed'
-                Rails.logger.debug("*** Pair Removed: #{so.inspect}")
-                # matched_weights[:action_desc] = 'Deactivate'
-              when :'+'
-                Rails.logger.debug("*** Add")
-                so = SubjectOutcome.new
-                so.active = true
-                so.lo_code = matched_new_rec[:'LO Code:']
-                so.description = matched_new_rec[:'Learning Outcome']
-                so.marking_period = matched_new_rec[:mp_bitmap]
-                so.subject_id = matched_new_rec[:subject_id].to_i
-                Rails.logger.debug("*** add: #{so.inspect}")
-                so.save!
-                action_count += 1
-                action = 'Added'
-                Rails.logger.debug("*** Pair Added: #{so.inspect}")
-              end # case matched_weights[PARAM_ACTION]
-            end # if lo_subject_to_process?
-          end # @pairs_matched.each_with_index
-          # raise "Successful Test cancelled" if action_count > 0
-        end # transaction
+        #     # if lo_subject_to_process?(rec[SubjectOutcomesController::COL_SUBJECT_ID]) && matched_weights[PARAM_ACTION].present?
+        #     if matched_weights[PARAM_ACTION].present?
+        #       Rails.logger.debug("*** Update old rec: #{rec}, action: #{matched_weights[PARAM_ACTION]}")
+        #       case matched_weights[PARAM_ACTION]
+        #       when :'=='
+        #         # identical - no update needed
+        #         Rails.logger.debug("*** No Update - Identical")
+        #         matched_weights[:action_desc] = 'Exact Match'
+        #       when :'~='
+        #         Rails.logger.debug("*** Update - Not Identical")
+        #         so = SubjectOutcome.find(rec[COL_DB_ID])
+        #         so.active = true
+        #         so.lo_code = matched_new_rec[:'LO Code:']
+        #         so.description = matched_new_rec[:'Learning Outcome']
+        #         so.marking_period = matched_new_rec[:mp_bitmap]
+        #         so.save!
+        #         action_count += 1
+        #         action = 'Updated'
+        #         Rails.logger.debug("*** Updated to : #{so.inspect}")
+        #         # matched_weights[:action_desc] = 'Close Match'
+        #       when :'==^', :'~=^'
+        #         Rails.logger.debug("*** Reactivate")
+        #         so = SubjectOutcome.find(rec[COL_DB_ID])
+        #         so.active = true
+        #         so.lo_code = matched_new_rec[:'LO Code:']
+        #         so.description = matched_new_rec[:'Learning Outcome']
+        #         so.marking_period = matched_new_rec[:mp_bitmap]
+        #         so.save!
+        #         action_count += 1
+        #         action = 'Restored'
+        #         Rails.logger.debug("*** Pair Restored: #{so.inspect}")
+        #         # matched_weights[:action_desc] = 'Reactivate'
+        #       when :'-'
+        #         Rails.logger.debug("*** Deactivate")
+        #         so = SubjectOutcome.find(rec[COL_DB_ID])
+        #         so.active = false
+        #         so.save!
+        #         action_count += 1
+        #         action = 'Removed'
+        #         Rails.logger.debug("*** Pair Removed: #{so.inspect}")
+        #         # matched_weights[:action_desc] = 'Deactivate'
+        #       when :'+'
+        #         Rails.logger.debug("*** Add")
+        #         so = SubjectOutcome.new
+        #         so.active = true
+        #         so.lo_code = matched_new_rec[:'LO Code:']
+        #         so.description = matched_new_rec[:'Learning Outcome']
+        #         so.marking_period = matched_new_rec[:mp_bitmap]
+        #         so.subject_id = matched_new_rec[:subject_id].to_i
+        #         Rails.logger.debug("*** add: #{so.inspect}")
+        #         so.save!
+        #         action_count += 1
+        #         action = 'Added'
+        #         Rails.logger.debug("*** Pair Added: #{so.inspect}")
+        #       end # case matched_weights[PARAM_ACTION]
+        #     end # if lo_subject_to_process?
+        #   end # @pairs_matched.each_with_index
+        #   # raise "Successful Test cancelled" if action_count > 0
+        # end # transaction
         @stage = 9
       elsif @skip_subject
           Rails.logger.debug("***")
@@ -468,89 +544,132 @@ class SubjectOutcomesController < ApplicationController
     end
 
     step = 8
-    respond_to do |format|
-      Rails.logger.debug("@stage: #{@stage}")
-      if @errors.count > 0
-        flash[:alert] += (@errors[:base].present?) ? @errors[:base] : 'Errors'
-      end
-      if @process_by_subject.blank?
-        if @stage == 9
-          @stage = 10
-          # format.html { render :action => "lo_matching_update" }
-        end
-      else
-        # get current subject
-        Rails.logger.debug("*** current subject @process_by_subject_id: #{@process_by_subject_id}")
-        current_subject_ix = 0
-        @subjects.each_with_index do |subj, ix|
-          if subj.id == @process_by_subject_id
-            current_subject_ix = ix
-            break
-          end
-        end
-        Rails.logger.debug("*** @subjects.length: #{@subjects.length}")
-        Rails.logger.debug("*** current_subject_ix: #{current_subject_ix}")
-        if @stage == 9
-          if current_subject_ix < @subjects.length
-            # process_by_subject increment to next subject after update
-            @process_by_subject = @subjects[current_subject_ix+1]
-            @process_by_subject_id = @process_by_subject.id
-            @selections = Hash.new
-            @selection_params = Hash.new
-            Rails.logger.debug("***")
-            Rails.logger.debug("*** Running at @match_level #{@match_level}")
-            Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
-            Rails.logger.debug("***")
-          else
-            # last subject was processed, go to report
-            @process_by_subject = nil
-            @stage = 10 # will set matching by lo_code for performance
-          end
-        end
 
-        if @stage == 10
-          @errors = Hash.new
-          @selections = Hash.new
-          @selection_params = Hash.new
-          @match_level = MAX_MATCH_LEVEL
-          lo_matching_at_level(true)
-          Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-          # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
-          # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
-          format.html { render :action => "lo_matching_update" }
-        else
-          # clear out selections from prior subject submit
-          # @selections = Hash.new
-          # @selection_params = Hash.new
-          # continue generate pairs for subject
-          @errors = Hash.new
-          @match_level = DEFAULT_MATCH_LEVEL
-          lo_matching_at_level(false)
-          Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-          # tighten @match_level until allow save or dont loosen level
-          # if @deactivate_count > 0 || @reactivate_count > 0
-          if @loosen_level && (!@allow_save || @errors.count > 0)
-            until @match_level <= 0
-              @match_level -= 1
-              Rails.logger.debug("***")
-              Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
-              Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
-              Rails.logger.debug("***")
-              action_count = 0
-              # @errors = Hash.new
-              lo_matching_at_level(false)
-              Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-              break if (@allow_save && @errors.count == 0) || !@loosen_level
-            end
-          end # loosen level (and not done yet)
-          Rails.logger.debug("*** format.html")
-          Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
-          # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
-          # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
-          format.html
-        end
+    Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show_next.inspect}")
+
+    ##### todo skip updates if chosen #####
+    ##### todo update the database from selections #####
+    ##### todo get next subject to present to user #####
+
+    if @subject_to_show_next.present?
+      step = '3a'
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      # we are processing one subject, so we are not looping through subjects
+      # pull the new learning outcomes to process from the @new_rec_ids_by_subject
+      @new_rec_ids_by_subject[@subject_to_show_next.id].each do |rec_id|
+        @new_los_to_present << @all_new_los[rec_id]
+      end
+      step = '3b'
+      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      # pull the old learning outcomes to process from the @old_db_ids_by_subject
+      @old_db_ids_by_subject[@subject_to_show_next.id].each do |db_id|
+        @old_los_to_present << @all_old_los[db_id]
+      end
+
+      lo_set_matches(@new_los_to_present, @old_los_to_present, @old_db_ids_by_subject, @all_old_los)
+
+    else
+      # all processing done, skip to report
+      @stage = 10
+    end
+
+    respond_to do |format|
+      Rails.logger.debug("*** @stage = #{@stage}")
+      # if @stage == 1 || @any_errors
+      if @stage < 10
+        format.html
+      else
+        format.html { render :action => "lo_matching_update" }
       end
     end
+
+
+
+
+
+    # respond_to do |format|
+    #   Rails.logger.debug("@stage: #{@stage}")
+    #   if @errors.count > 0
+    #     flash[:alert] += (@errors[:base].present?) ? @errors[:base] : 'Errors'
+    #   end
+    #   if @process_by_subject.blank?
+    #     if @stage == 9
+    #       @stage = 10
+    #       # format.html { render :action => "lo_matching_update" }
+    #     end
+    #   else
+    #     # get current subject
+    #     Rails.logger.debug("*** current subject @process_by_subject_id: #{@process_by_subject_id}")
+    #     current_subject_ix = 0
+    #     @subjects.each_with_index do |subj, ix|
+    #       if subj.id == @process_by_subject_id
+    #         current_subject_ix = ix
+    #         break
+    #       end
+    #     end
+    #     Rails.logger.debug("*** @subjects.length: #{@subjects.length}")
+    #     Rails.logger.debug("*** current_subject_ix: #{current_subject_ix}")
+    #     if @stage == 9
+    #       if current_subject_ix < @subjects.length
+    #         # process_by_subject increment to next subject after update
+    #         @process_by_subject = @subjects[current_subject_ix+1]
+    #         @process_by_subject_id = @process_by_subject.id
+    #         @selections = Hash.new
+    #         @selection_params = Hash.new
+    #         Rails.logger.debug("***")
+    #         Rails.logger.debug("*** Running at @match_level #{@match_level}")
+    #         Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
+    #         Rails.logger.debug("***")
+    #       else
+    #         # last subject was processed, go to report
+    #         @process_by_subject = nil
+    #         @stage = 10 # will set matching by lo_code for performance
+    #       end
+    #     end
+
+    #     if @stage == 10
+    #       @errors = Hash.new
+    #       @selections = Hash.new
+    #       @selection_params = Hash.new
+    #       @match_level = MAX_MATCH_LEVEL
+    #       lo_matching_at_level(true)
+    #       Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+    #       # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+    #       # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
+    #       format.html { render :action => "lo_matching_update" }
+    #     else
+    #       # clear out selections from prior subject submit
+    #       # @selections = Hash.new
+    #       # @selection_params = Hash.new
+    #       # continue generate pairs for subject
+    #       @errors = Hash.new
+    #       @match_level = DEFAULT_MATCH_LEVEL
+    #       lo_matching_at_level(false)
+    #       Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+    #       # tighten @match_level until allow save or dont loosen level
+    #       # if @deactivate_count > 0 || @reactivate_count > 0
+    #       if @loosen_level && (!@allow_save || @errors.count > 0)
+    #         until @match_level <= 0
+    #           @match_level -= 1
+    #           Rails.logger.debug("***")
+    #           Rails.logger.debug("*** Reducing @match_level to #{@match_level}")
+    #           Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
+    #           Rails.logger.debug("***")
+    #           action_count = 0
+    #           # @errors = Hash.new
+    #           lo_matching_at_level(false)
+    #           Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
+    #           break if (@allow_save && @errors.count == 0) || !@loosen_level
+    #         end
+    #       end # loosen level (and not done yet)
+    #       Rails.logger.debug("*** format.html")
+    #       Rails.logger.debug("*** for subject: #{@process_by_subject.name}") if @process_by_subject.present?
+    #       # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
+    #       # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
+    #       format.html
+    #     end
+    #   end
+    # end
 
   end
 

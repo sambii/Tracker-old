@@ -40,9 +40,7 @@
                       = 'New Learning Outcomes'
                       %input{type: 'hidden', name: "school_id", value: @school.id}
                       - if @match_subject.present?
-                        %input{type: 'hidden', name: "match_subject_id", value: @match_subject.id}
-                      - if @present_by_subject.present?
-                        %input{type: 'hidden', name: "process_subject_id", value: @present_by_subject.id}
+                        %input{type: 'hidden', name: "subject_id", value: @subject_to_show_next.id}
                   %tr
                     %th{title: 'New Marking Period'}= 'New MP'
                     %th= 'New Code'
@@ -63,9 +61,9 @@
                         %td.text-center
                           - if exact_match.present?
                             %span=exact_match[:descr]
-                            - # %input{type: 'hidden', name: "selections[#{new_rec_id}]", value: exact_match[:key]}
+                            %input{type: 'hidden', name: "selections[#{new_rec_id}]", value: exact_match[:db_id]}
                           - else
-                            = select_tag("selections[#{new_rec_id}]", options_for_select([[],[]] + new_rec[:matches].map{|k,v| [v[:descr], v[:key]]}))
+                            = select_tag("selections[#{new_rec_id}]", options_for_select([[],[]] + new_rec[:matches].map{|k,v| [v[:descr], v[:db_id]]}))
                           - if new_rec[:error].present?
                             %span{class: "#{error_class}"}=new_rec[:error]
             .col-sm-6

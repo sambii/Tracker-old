@@ -171,9 +171,9 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('select#selections_0')
       select('A-AT.2.01', from: "selections_0")
       page.should have_css('#save_matches')
-      # find('#save_matches').click
-      # save_and_open_page
-      # page.should have_content('Learning Outcomes Updated Matching Report')
+      find('#save_matches').click
+      save_and_open_page
+      page.should have_content('Learning Outcomes Updated Matching Report')
       # page.should have_css('#count_errors', text: '0')
       # page.should have_css('#count_updates', text: '0')
       # page.should have_css('#count_adds', text: '0')
