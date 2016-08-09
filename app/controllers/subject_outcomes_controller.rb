@@ -194,130 +194,50 @@ class SubjectOutcomesController < ApplicationController
 
       # hash to determine if subject should be processed or matched (by subject id)
       @subj_to_proc = Hash.new({})
-      @new_los_to_process = Array.new
-      @old_los_to_process = Array.new
-      @process_by_subject = nil
-      @process_by_subject_id = nil
+
+      # array of old and new records to present to the user
+      @new_los_to_present = Array.new
+      @old_los_to_present = Array.new
+      @present_by_subject = nil
       @subject_to_show_next = nil
 
-      # preset processing/matching needs for each subject
+      @count_errors = 0
+      @count_updates = 0
+      @count_adds = 0
+      @count_deactivates = 0
+
+      # get starting subject to present to user
       if @match_subject.present?
-        lo_matches_for_subject(@match_subject)
-        @subject_to_show_next = @match_subject
+        lo_process_subject(@match_subject)
       else
         @subjects.each do |subj|
-          lo_matches_for_subject(subj)
-          if !@subj_to_proc[subj.id][:add_only]
-            Rails.logger.debug("*** DONT PROCESS ALL #{@subj_to_proc[subj.id]} - #{subj.inspect}")
-            # This is a subject that must be matched, set up processing by subject
-            @process_by_subject = @subjects.first
-            @process_by_subject_id = @process_by_subject.id
-          end
+          lo_process_subject(subj)
         end
-        @subject_to_show_next = @process_by_subject
-        Rails.logger.debug("*** DONT PROCESS ALL FINAL SUBJECT #{@subject_to_show_next.inspect}")
+        @present_by_subject = @subject_to_show_next
       end
 
+      Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show_next.inspect}")
       if @subject_to_show_next.present?
         step = '3a'
         Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # we are processing one subject, so we are not looping through subjects
         # pull the new learning outcomes to process from the @new_rec_ids_by_subject
         @new_rec_ids_by_subject[@subject_to_show_next.id].each do |rec_id|
-          @new_los_to_process << @all_new_los[rec_id]
+          @new_los_to_present << @all_new_los[rec_id]
         end
         step = '3b'
         Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # pull the old learning outcomes to process from the @old_db_ids_by_subject
         @old_db_ids_by_subject[@subject_to_show_next.id].each do |db_id|
-          @old_los_to_process << @all_old_los[db_id]
+          @old_los_to_present << @all_old_los[db_id]
         end
+
+        lo_set_matches(@new_los_to_present, @old_los_to_present, @old_db_ids_by_subject, @all_old_los)
+
       else
-        step = '3c'
-        Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-        # we are processing all subjects, and there are no errors, so we can process them all at once.
-        @subjects.each do |subj|
-          # append LOs for subjects that must be processed
-          if @subj_to_proc[subj.id][:process]
-            # pull the new learning outcomes to process from the @new_rec_ids_by_subject
-            Rails.logger.debug("*** @subj_to_proc[#{subj.id}]: #{@subj_to_proc[subj.id].inspect} = #{@new_rec_ids_by_subject[subj.id].inspect}")
-            @new_rec_ids_by_subject[subj.id].each do |rec_id|
-              @new_los_to_process << @all_new_los[rec_id]
-            end
-            # pull the old learning outcomes to process from the @old_db_ids_by_subject
-            @old_db_ids_by_subject[subj.id].each do |rec_id|
-              @old_los_to_process << @all_old_los[rec_id]
-            end
-          end # @subj_to_process
-        end # @subjects
+        # all processing done, skip to report
+        @stage = 10
       end
-
-      # @old_los_to_process = @all_old_los.clone
-      # @new_los_to_process = @all_new_los.clone.sort_by{ |h| h[:lo_code]}
-
-      step = 4
-      Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-      lo_set_matches(@new_los_to_process, @old_los_to_process, @old_db_ids_by_subject, @all_old_los)
-
-      Rails.logger.debug("*** @old_los_to_process:")
-      @old_los_to_process.each do |rec|
-        Rails.logger.debug("*** old rec to process: #{rec.inspect}")
-      end
-      Rails.logger.debug("*** @new_los_to_process:")
-      @new_los_to_process.each do |rec|
-        Rails.logger.debug("*** new rec to process: #{rec.inspect}")
-      end
-
-      @stage = 4
-      if !@allow_save
-        # if cannot update all records without matching, then start matching process on first subject (but only if not matching a single subject).
-        # if @match_subject.blank?
-        #   @process_by_subject = @subjects.first
-        #   @process_by_subject_id = @process_by_subject.id
-        # else
-        #   @process_by_subject = nil
-        #   @process_by_subject_id = nil
-        # end
-        Rails.logger.debug("***")
-        Rails.logger.debug("*** Running at @match_level #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-        Rails.logger.debug("***")
-        @errors = Hash.new
-        # lo_matching_at_level(true)
-        # Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-        # # tighten @match_level until no deactivates or reactivates
-        # if !@allow_save && @loosen_level
-        #   until @match_level <= 0
-        #     @match_level -= 1
-        #     Rails.logger.debug("***")
-        #     Rails.logger.debug("*** Reducing @match_level to #{@match_level} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-        #     Rails.logger.debug("***")
-        #     action_count = 0
-        #     @errors = Hash.new
-        #     lo_matching_at_level(true)
-        #     Rails.logger.debug("*** @stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @skip_subject: #{@skip_subject}")
-        #     break if @allow_save || !@loosen_level
-        #   end
-        # end
-        @allow_save_all = false
-      else
-        # can update all at once, don't process by subject and enable save_all button.
-        @process_by_subject = nil
-        @allow_save_all = true
-      end
-
-      @any_errors = @errors.count > 0 || @error_list.count > 0 || @error_list2.length > 0
-      if !@any_errors && !first_display
-
-        # stage 5
-        @stage = 5
-      end
-
-      Rails.logger.debug("*** Final Stage: #{@stage}")
-
-      Rails.logger.debug("*** @errors: #{@errors.inspect}")
-
-      @rollback = false
-
 
     rescue => e
       if @errors[:filename] == "Info: First Display"
@@ -332,16 +252,15 @@ class SubjectOutcomesController < ApplicationController
       end
     end
 
-
-    # Rails.logger.debug("*** @new_recs_to_process: #{@new_recs_to_process.inspect}")
-    # Rails.logger.debug("*** @old_los_by_lo: #{@old_los_by_lo.inspect}")
-
     respond_to do |format|
+      Rails.logger.debug("*** @stage = #{@stage}")
       # if @stage == 1 || @any_errors
       if @stage == 1
         format.html
-      else
+      elsif @stage < 10
         format.html { render :action => "lo_matching" }
+      else
+        format.html { render :action => "lo_matching_update" }
       end
     end
 

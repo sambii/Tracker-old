@@ -25,58 +25,35 @@
         %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
           %thead.table-title
             %tr
-              %th{colspan: 12}
-                = @match_subject.present? ? "Processed Only #{@match_subject.name}" : "Processing All Subjects"
-            %tr
-              %th= 'New Course'
-              %th= 'New Grade'
-              %th= 'New Marking Period'
-              %th= 'New LO Code'
-              %th= 'New Description'
-              %th= 'Match'
-              %th= 'Old Subject'
-              %th= 'Old Marking Period'
-              %th= 'Old LO Code'
-              %th= 'Old Description'
+              %th= 'Subject'
+              %th= 'Updated Marking Period'
+              %th= 'Updated LO Code'
+              %th= 'Updated Description'
           %tbody.tbody-body
-            - prior_new_rec_num = 0
-            - prior_matched_rec_id = -1
-            - highlight_class = ''
-            - @pairs_filtered.each_with_index do |set, ix|
-              - rx = set[0]
-              - ry = set[1]
-              - match = set[2]
-              - # set up alternate old record highlighting
-              - if prior_matched_rec_id != ry[:matching_rec_id]
-                - prior_matched_rec_id = ry[:matching_rec_id]
-                - highlight_class = (highlight_class == 'on' ? '' : 'on')
-                - break_class = 'break'
-              - else
-                - break_class = ''
-              - pair_subject_id = rx[SubjectOutcomesHelper::COL_SUBJECT_ID]
-              - pair_subject_id = ry[SubjectOutcomesHelper::COL_SUBJECT_ID] if !pair_subject_id.present?
-              - pair_subject_id_i = Integer(pair_subject_id) rescue -1
-
-              - prior_old_rec_num = match[SubjectOutcomesHelper::COL_DB_ID]
-              - prior_old_code = rx[SubjectOutcomesHelper::DB_OUTCOME_CODE]
-              - new_rec_id = ry[SubjectOutcomesHelper::COL_REC_ID]
-              - lo_name = rx[:lo_code].present? ? rx[:lo_code] : (ry[:lo_code].present? ? ry[:lo_code] : ry[SubjectOutcomesHelper::COL_REC_ID])
-              - if new_rec_id.present?
-                %tr{ class: "#{highlight_class} #{break_class}", data: {displayed_pair: "pair_#{pair_subject_id}_#{new_rec_id}_#{prior_old_rec_num}"}, title: match[:action_desc]}
-                  - deact_class = (rx[:active] == false ? 'deactivated ' : '')
-                  - error_class = (match[:error].present? ? 'ui-error' : '')
-                  %td.new_course=ry[SubjectOutcomesHelper::COL_COURSE]
-                  %td.new_grade=ry[SubjectOutcomesHelper::COL_GRADE]
-                  %td.new_mp=ry[SubjectOutcomesHelper::COL_MP_BITMAP]
-                  %td.new_lo_code=ry[SubjectOutcomesHelper::COL_OUTCOME_CODE]
-                  %td.new_lo_desc=ry[SubjectOutcomesHelper::COL_OUTCOME_NAME]
-                  %td.text-center
-                    - if match[:error].present?
-                      %span{class: "#{error_class}"}=match[:error]
-                  %td{class: "old_subject #{deact_class}"}=rx[:subject_name]
-                  %td{class: "old_mp #{deact_class}"}=rx[:mp]
-                  %td{class: "old_lo_code #{deact_class}"}=rx[:lo_code]
-                  %td{class: "old_lo_desc #{deact_class}"}=rx[:desc]
+            - @old_los_to_present.each do |old_rec|
+              - subject_id = old_rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
+              - subject_id_i = Integer(subject_id) rescue -1
+              - hide_subject_class = @present_by_subject.present? ? (@present_by_subject.id != subject_id_i ? 'display-none' : '') : ''
+              - if hide_subject_class.blank?
+                %tr.break
+                  - deact_class = ( (old_rec[:active] == false) ? 'deactivated ' : '')
+                  - error_class = (old_rec[:error].present? ? 'ui-error' : '')
+                  %td.subject_name=old_rec[:subject_name]
+                  %td{class: "mp #{deact_class}"}=old_rec[:mp]
+                  %td{class: "lo_code #{deact_class}"}=old_rec[:lo_code]
+                  %td{class: "lo_desc #{deact_class}"}=old_rec[:desc]
+        .row.text-center
+          %span="Number of Errors: "
+          %span#count_errors=@count_errors
+        .row.text-center
+          %span="Number of Updates: "
+          %span#count_updates=@count_updates
+        .row.text-center
+          %span="Number of Adds: "
+          %span#count_adds=@count_adds
+        .row.text-center
+          %span="Number of Deactivates: "
+          %span#count_deactivates=@count_deactivates
 .col-sm-1
 
 

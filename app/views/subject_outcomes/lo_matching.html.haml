@@ -27,7 +27,7 @@
   .col-sm-10
     .block.block-alt-style.full
       .block-title.text-center
-        %h3= 'Learning Outcomes Matching Process of ' + (@match_subject.present? ? "Only #{@match_subject.name}" : (@process_by_subject.present? ? "#{@process_by_subject.name} of All Subjects" : "All Subjects"))
+        %h3= 'Learning Outcomes Matching Process of ' + (@match_subject.present? ? "Only #{@match_subject.name}" : (@present_by_subject.present? ? "#{@present_by_subject.name} of All Subjects" : "All Subjects"))
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
           - valid_update = true
@@ -41,17 +41,17 @@
                       %input{type: 'hidden', name: "school_id", value: @school.id}
                       - if @match_subject.present?
                         %input{type: 'hidden', name: "match_subject_id", value: @match_subject.id}
-                      - if @process_by_subject.present?
-                        %input{type: 'hidden', name: "process_subject_id", value: @process_by_subject.id}
+                      - if @present_by_subject.present?
+                        %input{type: 'hidden', name: "process_subject_id", value: @present_by_subject.id}
                   %tr
                     %th{title: 'New Marking Period'}= 'New MP'
                     %th= 'New Code'
                     %th= 'New Description'
                     %th= 'Match'
                 %tbody.tbody-body
-                  - @new_los_to_process.each do |new_rec|
+                  - @new_los_to_present.each do |new_rec|
                     - subject_id = new_rec[:subject_id]
-                    - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != subject_id ? 'display-none' : '') : ''
+                    - hide_subject_class = @present_by_subject.present? ? (@present_by_subject.id != subject_id ? 'display-none' : '') : ''
                     - new_rec_id = new_rec[:rec_id]
                     - exact_match = new_rec[:exact_match]
                     - if hide_subject_class.blank?
@@ -63,7 +63,7 @@
                         %td.text-center
                           - if exact_match.present?
                             %span=exact_match[:descr]
-                            %input{type: 'hidden', name: "selections[#{new_rec_id}]", value: exact_match[:key]}
+                            - # %input{type: 'hidden', name: "selections[#{new_rec_id}]", value: exact_match[:key]}
                           - else
                             = select_tag("selections[#{new_rec_id}]", options_for_select([[],[]] + new_rec[:matches].map{|k,v| [v[:descr], v[:key]]}))
                           - if new_rec[:error].present?
@@ -77,18 +77,18 @@
                       %input{type: 'hidden', name: "school_id", value: @school.id}
                       - if @match_subject.present?
                         %input{type: 'hidden', name: "match_subject_id", value: @match_subject.id}
-                      - if @process_by_subject.present?
-                        %input{type: 'hidden', name: "process_subject_id", value: @process_by_subject.id}
+                      - if @present_by_subject.present?
+                        %input{type: 'hidden', name: "process_subject_id", value: @present_by_subject.id}
                   %tr
                     %th{title: 'Identifier for this Learning Outcome for Matching to a New Learning Outcome'}= 'Match ID'
                     %th{title: 'Old Marking Period'}= 'Old MP'
                     %th= 'Old Code'
                     %th= 'Old Description'
                 %tbody.tbody-body
-                  - @old_los_to_process.each do |old_rec|
+                  - @old_los_to_present.each do |old_rec|
                     - subject_id = old_rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
                     - subject_id_i = Integer(subject_id) rescue -1
-                    - hide_subject_class = @process_by_subject.present? ? (@process_by_subject.id != subject_id_i ? 'display-none' : '') : ''
+                    - hide_subject_class = @present_by_subject.present? ? (@present_by_subject.id != subject_id_i ? 'display-none' : '') : ''
                     - if hide_subject_class.blank?
                       %tr.break
                         - deact_class = ( (old_rec[:active] == false || old_rec[:exact_match].present?) ? 'deactivated ' : '')
@@ -113,11 +113,11 @@
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"
-            - if valid_update && !@allow_save_all && @dup_error_count == 0
+            - if !@allow_save_all && @errors.count == 0
               %button#save_matches.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'set_matches'}='Save Matches'
-            - if @allow_save_all && @dup_error_count == 0
+            - if @allow_save_all && @errors.count == 0
               %button#save_all.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
-            - if @process_by_subject.present?
+            - if @present_by_subject.present?
               %button#skip_subject.btn.btn-primary.cancel{type: "submit", title: 'Skip This Subject', name: 'submit_action', value: 'skip'}='Skip'
             - else
               %button#cancel.btn.btn-primary.cancel{type: "submit", title: 'Cancel Update for this Subject', name: 'submit_action', value: 'cancel'}='Cancel'

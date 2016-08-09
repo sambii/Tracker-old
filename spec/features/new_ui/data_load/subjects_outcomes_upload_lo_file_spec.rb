@@ -61,8 +61,9 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     end
     it { bulk_upload_all_same }
     it { bulk_upload_art_same }
-    it { bulk_upload_advisory_add }
-    it { bulk_upload_art_mismatches }
+    it { bulk_upload_art_add }
+    it { bulk_upload_art_2_change }
+    it { bulk_upload_art_2_add_delete }
     it { bulk_upload_all_mismatches }
   end
 
@@ -101,13 +102,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      sleep 20
-      save_and_open_page
-      # if no errors and not requiring subject by subject matching, then save button should be showing
-      page.should have_css("#save_all")
-      page.should have_content('Match Old LOs to New LOs')
-      page.should have_button("SAVE ALL")
-      find('#save_all').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_all_matching
 
@@ -123,17 +122,17 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      # if no errors, then save button should be showing
-      page.should have_css("#save_all")
-      page.should have_content('Match Old LOs to New LOs')
-      page.should have_button("SAVE ALL")
-      find('#save_all').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_art_matching
 
 
   # test for single subject bulk upload of Learning Outcomes into Model School
-  def bulk_upload_advisory_add
+  def bulk_upload_art_add
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -141,19 +140,18 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within("#ask-filename") do
         page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
-        select('Advisory 1', from: "subject_id")
+        select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      # if no errors, then save button should be showing
-      page.should have_css("#save_all")
-      page.should have_content('Match Old LOs to New LOs')
-      page.should have_button("SAVE ALL")
-      find('#save_all').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_art_matching
 
-  # test for single subject bulk upload of Learning Outcomes into Model School
-  def bulk_upload_art_mismatches
+  def bulk_upload_art_2_change
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -166,10 +164,51 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Match Old LOs to New LOs')
-      # errors - save button should be showing
+      # 'Save Matches' button should be showing
+      page.should have_button("Save Matches")
       page.should_not have_css("#save_all")
-      page.should_not have_button("SAVE ALL")
-      # find('#save_all').click
+      # click the select box to match AT.2.01 to AT.2.01
+      page.should have_css('select#selections_0')
+      select('A-AT.2.01', from: "selections_0")
+      page.should have_css('#save_matches')
+      # find('#save_matches').click
+      # save_and_open_page
+      # page.should have_content('Learning Outcomes Updated Matching Report')
+      # page.should have_css('#count_errors', text: '0')
+      # page.should have_css('#count_updates', text: '0')
+      # page.should have_css('#count_adds', text: '0')
+      # page.should have_css('#count_deactivates', text: '0')
+    end # within #page-content
+  end # def bulk_upload_art_matching
+
+
+  def bulk_upload_art_2_add_delete
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      page.should have_content('Upload Curriculum / LOs File')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Art 2', from: "subject_id")
+      end
+      find('#upload').click
+      page.should have_content('Match Old LOs to New LOs')
+      # 'Save Matches' button should be showing
+      page.should have_button("Save Matches")
+      page.should_not have_css("#save_all")
+      # don't click the select box to match AT.2.01 to AT.2.01
+      page.should have_css('select#selections_0')
+      # select('A-AT.2.01', from: "selections_0")
+      page.should have_css('#save_matches')
+      # find('#save_matches').click
+      # save_and_open_page
+      # page.should have_content('Learning Outcomes Updated Matching Report')
+      # page.should have_css('#count_errors', text: '0')
+      # page.should have_css('#count_updates', text: '0')
+      # page.should have_css('#count_adds', text: '0')
+      # page.should have_css('#count_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -187,14 +226,17 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-      sleep 20
-      save_and_open_page
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_art_1.name} of All Subjects")
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of #{@subj_art_2.name} of All Subjects")
       end
+
+      page.should have_css('select#selections_5')
+
+      false.should == true
+
       # confirm current subject los are displayed and others are not
       within('form table') do
         page.should_not have_content("AD.1.01")

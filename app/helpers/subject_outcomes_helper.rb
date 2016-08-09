@@ -535,6 +535,93 @@ module SubjectOutcomesHelper
     return
   end
 
+
+  def lo_update_subject(subj)
+    # update subject new records and deactivate extra old records
+    new_rec_ids = @new_rec_ids_by_subject[subj.id].present? ? @new_rec_ids_by_subject[subj.id] : []
+    subj_errors_count = 0
+    new_rec_ids.each do |rec_id|
+      new_rec = @all_new_los[rec_id]
+      Rails.logger.debug("*** New rec to update: #{new_rec.inspect}")
+      if new_rec[:exact_match].present?
+        db_id = new_rec[:exact_match][:db_id]
+        old_rec = @all_old_los[db_id]
+        Rails.logger.debug("*** matching Old rec: #{db_id} - #{old_rec.inspect}")
+        if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
+          # do updates for this exact match
+          so = SubjectOutcome.find(db_id)
+          so.active = true
+          so.lo_code = new_rec[:lo_code]
+          # description update not necessary - they are the same
+          # so.description = new_rec[:desc]
+          so.marking_period = new_rec[:mp]
+          so.save
+          if so.errors.count > 0
+            subj_errors_count += 1
+            Rails.logger.error("*** Error updating : #{so.inspect}, #{so.errors.full_messages}")
+            old_rec[:error] = so.errors.full_messages
+            @count_errors += 1
+          else
+            old_rec[:up_to_date] = true
+            Rails.logger.debug("*** Updated to : #{so.inspect}")
+            @count_updates += 1
+          end
+        else
+          old_rec[:up_to_date] = true
+          Rails.logger.debug("*** No Update - are identical")
+        end
+      else
+        # should be none in :add_only mode
+      end
+    end
+    # Deactivate all old records that are not :up_to_date
+    if subj_errors_count == 0
+      old_db_ids = @old_db_ids_by_subject[subj.id].present? ? @old_db_ids_by_subject[subj.id] : []
+      old_db_ids.each do |db_id|
+        old_rec = @all_old_los[db_id]
+        if (old_rec[:up_to_date].blank? || old_rec[:up_to_date] == false) && old_rec[:active] == true
+          db_id = old_rec[:db_id]
+          so = SubjectOutcome.find(db_id)
+          Rails.logger.debug("*** Before Deactivation : #{so.inspect}")
+          so.active = false
+          so.save
+          if so.errors.count > 0
+            subj_errors_count += 1
+            Rails.logger.error("*** Error updating : #{so.inspect}, #{so.errors.full_messages}")
+            old_rec[:error] = so.errors.full_messages
+            @count_errors += 1
+          else
+            old_rec[:up_to_date] = true
+            Rails.logger.debug("*** Deactivated : #{so.inspect}")
+            @count_deactivates += 1
+          end
+        end
+      end
+    end
+    if subj_errors_count > 0
+      @subj_to_proc[subj.id][:error] = true
+    end
+  end
+
+  def lo_process_subject(subj)
+    lo_matches_for_subject(subj)
+    if @subj_to_proc[subj.id][:process] && !@subj_to_proc[subj.id][:add_only]
+      Rails.logger.debug("*** DONT PROCESS ALL #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+      # This is a subject that must be matched, set up first presenting subject if not done already
+      if @subject_to_show_next.blank?
+        @subject_to_show_next = subj
+      end
+    elsif @subj_to_proc[subj.id][:process]
+      # update this subject now and be done with it
+      lo_update_subject(subj)
+      # This is a subject that has errors, set up first presenting subject if not done already
+      if @subj_to_proc[subj.id][:error].present? && @subject_to_show_next.blank
+        @subject_to_show_next = subj
+      end
+    end
+  end
+
+
   # def lo_get_matches_for_new
   #   # add matches to new records to @pairs_matched
   #   # find any matching database records for each new record (at @match_level)
