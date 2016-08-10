@@ -103,10 +103,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Learning Outcomes Updated Matching Report')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '0')
-      page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_all_matching
 
@@ -123,10 +123,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Learning Outcomes Updated Matching Report')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '0')
-      page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -144,10 +144,15 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Art 1')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_updates', text: '4')
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '4')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -172,12 +177,16 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       select('A-AT.2.01', from: "selections_0")
       page.should have_css('#save_matches')
       find('#save_matches').click
-      save_and_open_page
       page.should have_content('Learning Outcomes Updated Matching Report')
-      # page.should have_css('#count_errors', text: '0')
-      # page.should have_css('#count_updates', text: '0')
-      # page.should have_css('#count_adds', text: '0')
-      # page.should have_css('#count_deactivates', text: '0')
+      page.should have_css("#prior_subj", text: 'Art 2')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '4')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '4')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
   end # def bulk_upload_art_matching
 

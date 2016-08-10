@@ -39,8 +39,18 @@
                     %th{colspan: 12}
                       = 'New Learning Outcomes'
                       %input{type: 'hidden', name: "school_id", value: @school.id}
-                      - if @match_subject.present?
-                        %input{type: 'hidden', name: "subject_id", value: @subject_to_show_next.id}
+                      - if @subject_to_show.present?
+                        %input{type: 'hidden', name: "subject_id", value: @subject_to_show.id}
+                      - if @present_by_subject.present?
+                        %input{type: 'hidden', name: "present_by_subject_id", value: @present_by_subject.id}
+                      - if @total_errors.present?
+                        %input{type: 'hidden', name: "total_errors", value: @total_errors}
+                      - if @total_updates.present?
+                        %input{type: 'hidden', name: "total_updates", value: @total_updates}
+                      - if @total_adds.present?
+                        %input{type: 'hidden', name: "total_adds", value: @total_adds}
+                      - if @total_deactivates.present?
+                        %input{type: 'hidden', name: "total_deactivates", value: @total_deactivates}
                   %tr
                     %th{title: 'New Marking Period'}= 'New MP'
                     %th= 'New Code'
@@ -119,6 +129,27 @@
               %button#skip_subject.btn.btn-primary.cancel{type: "submit", title: 'Skip This Subject', name: 'submit_action', value: 'skip'}='Skip'
             - else
               %button#cancel.btn.btn-primary.cancel{type: "submit", title: 'Cancel Update for this Subject', name: 'submit_action', value: 'cancel'}='Cancel'
+          - if @prior_subject.present?
+            - # this is not the first page, so show totals so far
+            .row.text-center
+              %span#prior_subj=@prior_subject.name
+              %span=" counts: Errors - "
+              %span#count_errors=@count_errors
+              %span=", Updates - "
+              %span#count_updates=@count_updates
+              %span=", Adds - "
+              %span#count_adds=@count_adds
+              %span=", Deactivates - "
+              %span#count_deactivates=@count_deactivates
+            .row.text-center
+              %span="total counts: Errors - "
+              %span#total_errors=@total_errors
+              %span=", Updates - "
+              %span#total_updates=@total_updates
+              %span=", Adds - "
+              %span#total_adds=@total_adds
+              %span=", Deactivates - "
+              %span#total_deactivates=@total_deactivates
 .col-sm-1
 
 

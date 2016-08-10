@@ -42,18 +42,27 @@
                   %td{class: "mp #{deact_class}"}=old_rec[:mp]
                   %td{class: "lo_code #{deact_class}"}=old_rec[:lo_code]
                   %td{class: "lo_desc #{deact_class}"}=old_rec[:desc]
+        - if @prior_subject.present?
+          - # this is not the first page, so show totals so far
+          .row.text-center
+            %span#prior_subj=@prior_subject.name
+            %span=" counts: Errors - "
+            %span#count_errors=@count_errors
+            %span=", Updates - "
+            %span#count_updates=@count_updates
+            %span=", Adds - "
+            %span#count_adds=@count_adds
+            %span=", Deactivates - "
+            %span#count_deactivates=@count_deactivates
         .row.text-center
-          %span="Number of Errors: "
-          %span#count_errors=@count_errors
-        .row.text-center
-          %span="Number of Updates: "
-          %span#count_updates=@count_updates
-        .row.text-center
-          %span="Number of Adds: "
-          %span#count_adds=@count_adds
-        .row.text-center
-          %span="Number of Deactivates: "
-          %span#count_deactivates=@count_deactivates
+          %span="Grand total counts: Errors - "
+          %span#total_errors=@total_errors
+          %span=", Updates - "
+          %span#total_updates=@total_updates
+          %span=", Adds - "
+          %span#total_adds=@total_adds
+          %span=", Deactivates - "
+          %span#total_deactivates=@total_deactivates
 .col-sm-1
 
 

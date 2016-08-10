@@ -387,6 +387,29 @@ module SubjectOutcomesHelper
     return {old_db_ids_by_subject: old_db_ids_by_subject, all_old_los: all_old_los}
   end
 
+  def lo_get_old_los_for_subj(subj)
+    # update old records in all_old_los for this subject
+    @old_db_ids_by_subject[subj.id].each do |db_id|
+      old_rec = @all_old_los[db_id]
+      if old_rec.present?
+        updated_old_rec = SubjectOutcome.includes(:subject).find(db_id)
+        Rails.logger.debug("*** Update old rec: original: #{old_rec.inspect} updated_old_rec: #{updated_old_rec.inspect}")
+        if updated_old_rec.errors.count == 0 && updated_old_rec.present?
+          old_rec[:lo_code] = updated_old_rec[:lo_code]
+          old_rec[:desc] = updated_old_rec[:description]
+          old_rec[:mp] = updated_old_rec[:marking_period]
+          old_rec[:active] = updated_old_rec[:active]
+        else
+          old_rec[:error] = old_rec[:error].present? ? old_rec[:error]+', Update error' : 'Update error'
+          @count_errors += 1
+        end
+        Rails.logger.debug("*** Updated old rec: #{old_rec.inspect}")
+      else
+        @count_errors += 1
+      end
+    end
+  end
+
   def lo_get_all_new_los(records)
     new_rec_ids_by_subject = Hash.new([])
     all_new_los = Hash.new
@@ -582,17 +605,41 @@ module SubjectOutcomesHelper
           old_rec[:error] = so.errors.full_messages
           @count_errors += 1
         else
+          new_rec[:up_to_date] = true
           old_rec[:up_to_date] = true
           Rails.logger.debug("*** Updated to : #{so.inspect}")
           @count_updates += 1
         end
       else
+        new_rec[:up_to_date] = true
         old_rec[:up_to_date] = true
         Rails.logger.debug("*** already up to date : #{so.inspect}")
       end
     else
+      new_rec[:error] = true
       old_rec[:error] = true
       Rails.logger.debug("*** error : #{so.inspect}")
+    end
+  end
+
+  def lo_add(new_rec)
+    Rails.logger.debug("*** add new rec")
+    # this new record is to be added
+    so = SubjectOutcome.new
+    so.active = true
+    so.subject_id = new_rec[:subject_id]
+    so.lo_code = new_rec[:lo_code]
+    so.description = new_rec[:desc]
+    so.marking_period = new_rec[:mp]
+    so.save
+    if so.errors.count > 0
+      Rails.logger.error("*** Error adding : #{so.inspect}, #{so.errors.full_messages}")
+      new_rec[:error] = so.errors.full_messages
+      @count_errors += 1
+    else
+      new_rec[:up_to_date] = true
+      Rails.logger.debug("*** Added : #{so.inspect}")
+      @count_adds += 1
     end
   end
 
@@ -623,20 +670,20 @@ module SubjectOutcomesHelper
     end
   end
 
-  def lo_process_subject(subj)
+  def lo_setup_subject(subj)
     lo_matches_for_subject(subj)
     if @subj_to_proc[subj.id][:process] && !@subj_to_proc[subj.id][:add_only]
       Rails.logger.debug("*** DONT PROCESS ALL #{@subj_to_proc[subj.id]} - #{subj.inspect}")
       # This is a subject that must be matched, set up first presenting subject if not done already
-      if @subject_to_show_next.blank?
-        @subject_to_show_next = subj
+      if @subject_to_show.blank?
+        @subject_to_show = subj
       end
     elsif @subj_to_proc[subj.id][:process]
-      # update this subject now and be done with it
-      lo_update_subject(subj)
+      # # update this subject now and be done with it
+      # lo_update_subject(subj)
       # This is a subject that has errors, set up first presenting subject if not done already
-      if @subj_to_proc[subj.id][:error].present? && @subject_to_show_next.blank
-        @subject_to_show_next = subj
+      if @subj_to_proc[subj.id][:error].present? && @subject_to_show.blank?
+        @subject_to_show = subj
       end
     end
   end
