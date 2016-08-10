@@ -118,6 +118,7 @@ class SubjectOutcomesController < ApplicationController
       @subject_ids = Hash.new
       @subject_names = Hash.new
       @subjects.each do |s|
+        # do all subjects if @subject_id not present, otherwise do the selected subject
         @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
         @subject_names[s.name] = s
       end
@@ -204,6 +205,7 @@ class SubjectOutcomesController < ApplicationController
       # get starting subject to present to user
       if @match_subject.present?
         lo_setup_subject(@match_subject, false)
+        @subject_to_show = @match_subject # always show match subject if subject has been chosen
       else
         @subjects.each do |subj|
           lo_setup_subject(subj, true)
@@ -212,7 +214,7 @@ class SubjectOutcomesController < ApplicationController
       end
       Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
       Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
-      @no_update = @subj_to_proc[@subject_to_show.id][:skip]
+      @no_update = @subject_to_show.present? ? @subj_to_proc[@subject_to_show.id][:skip] : true
       Rails.logger.debug("*** @no_update #{@no_update.inspect}")
 
       @prior_subject = nil
@@ -316,7 +318,8 @@ class SubjectOutcomesController < ApplicationController
       @subject_ids = Hash.new
       @subject_names = Hash.new
       @subjects.each do |s|
-        @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
+        # @subject_ids[s.id] = s if !@subject_id.present? || (@subject_id.present? && @subject_id == s.id) # IDs of all subjects to process
+        @subject_ids[s.id] = s if @process_by_subject.present? || (@match_subject.present? && @match_subject.id == s.id) # IDs of single or all subjects to process
         @subject_names[s.name] = s
       end
 
@@ -434,6 +437,7 @@ class SubjectOutcomesController < ApplicationController
       if @match_subject.present?
         # present it again if errors???
         lo_setup_subject(@match_subject, false)
+        @subject_to_show = @match_subject # always show match subject if subject has been chosen
       else
         @subjects.each do |subj|
           lo_setup_subject(subj, true)

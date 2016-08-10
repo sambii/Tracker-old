@@ -127,8 +127,7 @@
               %button#save_all.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
             - if @present_by_subject.present?
               %button#skip_subject.btn.btn-primary.cancel{type: "submit", title: 'Skip This Subject', name: 'submit_action', value: 'skip'}='Skip'
-            - else
-              %button#cancel.btn.btn-primary.cancel{type: "submit", title: 'Cancel Update for this Subject', name: 'submit_action', value: 'cancel'}='Cancel'
+            %button#cancel.btn.btn-primary.cancel{type: "submit", title: 'Cancel Update for this Subject', name: 'submit_action', value: 'cancel'}='Cancel'
           - if @prior_subject.present?
             - # this is not the first page, so show totals so far
             .row.text-center

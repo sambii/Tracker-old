@@ -122,6 +122,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
+      page.should_not have_css('#save_matches')
+      find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css('#total_errors', text: '0')
       page.should have_css('#total_updates', text: '0')

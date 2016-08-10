@@ -411,6 +411,7 @@ module SubjectOutcomesHelper
   end
 
   def lo_get_all_new_los(records)
+    Rails.logger.debug("*** i@subject_ids: #{@subject_ids.inspect}")
     new_rec_ids_by_subject = Hash.new([])
     all_new_los = Hash.new
     records.each do |rec|
@@ -437,11 +438,11 @@ module SubjectOutcomesHelper
           exact_match: nil,
           matches: Hash.new
         }
-        # Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
+        Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
         new_rec_ids_by_subject[subject_id] = new_rec_ids_by_subject[subject_id].present? ? new_rec_ids_by_subject[subject_id] << new_rec[:rec_id] : [new_rec[:rec_id]]
-        # Rails.logger.debug("*** new_rec_ids_by_subject[#{subject_id}]: #{new_rec_ids_by_subject[subject_id]}")
+        Rails.logger.debug("*** new_rec_ids_by_subject[#{subject_id}]: #{new_rec_ids_by_subject[subject_id]}")
         all_new_los[new_rec[:rec_id]] = new_rec
-        # Rails.logger.debug("*** all_new_los[#{new_rec[:rec_id]}]: #{all_new_los[new_rec[:rec_id]].inspect}")
+        Rails.logger.debug("*** all_new_los[#{new_rec[:rec_id]}]: #{all_new_los[new_rec[:rec_id]].inspect}")
       end
     end
     return {new_rec_ids_by_subject: new_rec_ids_by_subject, all_new_los: all_new_los}
@@ -716,7 +717,7 @@ module SubjectOutcomesHelper
         lo_update_subject(subj)
       end
       # This is a subject that has errors, set up first presenting subject if not done already
-      if auto_process && @subject_to_show.blank?
+      if !auto_process && @subject_to_show.blank?
         @subject_to_show = subj
       end
     end
