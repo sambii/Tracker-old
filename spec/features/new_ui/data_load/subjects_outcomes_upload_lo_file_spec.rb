@@ -133,6 +133,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
   # test for single subject bulk upload of Learning Outcomes into Model School
   def bulk_upload_art_add
+    #
+    # first cancel add, to confirm no update occurs
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -143,17 +145,80 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      end
+      page.should have_css('select#selections_4')
+      find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '4')
+      page.should have_css('#count_updates', text: '0')
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '0')
       page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '4')
+      page.should have_css('#total_updates', text: '0')
       page.should have_css('#total_adds', text: '0')
       page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
+
+    # update the add
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Art 1', from: "subject_id")
+      end
+      find('#upload').click
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      end
+      page.should have_css('select#selections_4')
+      find('#save_matches').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Art 1')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '1')
+      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_adds', text: '1')
+      page.should have_css('#total_deactivates', text: '0')
+    end # within #page-content
+
+    # confirm nothing to change
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Art 1', from: "subject_id")
+      end
+      find('#upload').click
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      end
+      page.should_not have_css('select#selections_4')
+      page.should_not have_css('#save_matches')
+      find('#cancel').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Art 1')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '0')
+    end # within #page-content
+
   end # def bulk_upload_art_matching
 
   def bulk_upload_art_2_change

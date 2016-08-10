@@ -200,18 +200,20 @@ class SubjectOutcomesController < ApplicationController
       @present_by_subject = nil
       @subject_to_show = nil
 
+      Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
       # get starting subject to present to user
       if @match_subject.present?
-        lo_setup_subject(@match_subject)
+        lo_setup_subject(@match_subject, false)
       else
         @subjects.each do |subj|
-          lo_setup_subject(subj)
+          lo_setup_subject(subj, true)
         end
         @present_by_subject = @subject_to_show
       end
-      Rails.logger.debug("*** @subject_to_show #{@subject_to_show}")
-      Rails.logger.debug("*** @match_subject #{@match_subject}")
-      Rails.logger.debug("*** @present_by_subject #{@present_by_subject}")
+      Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
+      Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
+      @no_update = @subj_to_proc[@subject_to_show.id][:skip]
+      Rails.logger.debug("*** @no_update #{@no_update.inspect}")
 
       @prior_subject = nil
       @count_errors = 0
@@ -431,11 +433,11 @@ class SubjectOutcomesController < ApplicationController
       # get starting subject to present to user
       if @match_subject.present?
         # present it again if errors???
-        lo_setup_subject(@match_subject)
+        lo_setup_subject(@match_subject, false)
       else
-        # @subjects.each do |subj|
-        #   lo_setup_subject(subj)
-        # end
+        @subjects.each do |subj|
+          lo_setup_subject(subj, true)
+        end
         @present_by_subject = @subject_to_show
       end
 

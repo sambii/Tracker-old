@@ -121,7 +121,7 @@
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"
-            - if !@allow_save_all && @errors.count == 0
+            - if !@allow_save_all && @errors.count == 0 && !@no_update
               %button#save_matches.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'set_matches'}='Save Matches'
             - if @allow_save_all && @errors.count == 0
               %button#save_all.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'

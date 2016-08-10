@@ -467,13 +467,15 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** old_db_ids: #{old_db_ids.inspect}")
     Rails.logger.debug("*** new_rec_ids: #{new_rec_ids.inspect}")
     # subj_flags = @subj_to_proc[subj.id].present? ? @subj_to_proc[subj.id] : {}
-    subj_flags = {}
+    subj_flags = {process: true}  # assume automatically processing possible unless reset
+        
     new_rec_ids.each do |rec_id|
       new_rec = @all_new_los[rec_id]
       if new_rec[:error].present? # was an error in the duplicates checking
         dup_error_count += 1
         subj_flags[:error] = true
-        subj_flags[:process] = true
+        # there is an error, cannot automatically process
+        subj_flags[:process] = false
       end
       desc_new = (new_rec[:desc].present?) ? new_rec[:desc].strip().split.join('\n') : ''
       old_db_ids.each do |db_id|
@@ -481,6 +483,8 @@ module SubjectOutcomesHelper
         desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
         if !new_rec[:error].blank?
           subj_flags[:error] = true
+          # there is an error, cannot automatically process
+          subj_flags[:process] = false
         end
         # if new_rec[:error].blank? && desc_new == desc_old
         if desc_new == desc_old
@@ -500,11 +504,9 @@ module SubjectOutcomesHelper
           if !old_rec[:active]
             subj_flags[:reactivate] = true
           end
-          if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
-            subj_flags[:process] = true
-          end
         end
       end
+      Rails.logger.debug("*** matched new_rec: #{new_rec.inspect}")
     end
     if exact_count == old_db_ids.count
       # no changes to old records
@@ -516,8 +518,8 @@ module SubjectOutcomesHelper
       else
         # ? not possible
       end
-    else
-      subj_flags[:process] = true
+    # else
+    #   subj_flags[:process] = true
     end
     db_deact_count = 0
     db_active_count = 0
@@ -530,8 +532,22 @@ module SubjectOutcomesHelper
       end
     end
     # flag subject as add only if all new learning outcomes have exact matches in the database (active or deactivated)
-    subj_flags[:add_only] = true if db_active_count == exact_active_count && db_deact_count >= exact_deact_count
+    if db_active_count == exact_active_count && db_deact_count >= exact_deact_count
+      subj_flags[:add_only] = true
+    else
+      new_rec_ids.each do |rec_id|
+        new_rec = @all_new_los[rec_id]
+        subj_flags[:process] = false if new_rec[:exact_match].blank?
+      end
+      old_db_ids.each do |db_id|
+        old_rec = @all_old_los[db_id]
+        subj_flags[:process] = false if old_rec[:exact_match].blank?
+      end
+    end
+
+
     Rails.logger.debug("*** subj_flags[:add_only]: #{subj_flags[:add_only]}")
+    Rails.logger.debug("*** subj_flags.inspect: #{subj_flags.inspect}")
     Rails.logger.debug("*** #{db_active_count == exact_active_count} - db_active_count: #{db_active_count} ?=? exact_active_count: #{exact_active_count}")
     Rails.logger.debug("*** #{db_deact_count == exact_deact_count} - db_deact_count: #{db_deact_count} ?>=? exact_deact_count: #{exact_deact_count}")
     @subj_to_proc[subj.id] = subj_flags
@@ -567,6 +583,9 @@ module SubjectOutcomesHelper
 
 
   def lo_update_subject(subj)
+    Rails.logger.debug("***")
+    Rails.logger.debug("*** lo_update_subject *********************************")
+    Rails.logger.debug("***")
     # update subject new records and deactivate extra old records
     new_rec_ids = @new_rec_ids_by_subject[subj.id].present? ? @new_rec_ids_by_subject[subj.id] : []
     subj_errors_count = 0
@@ -592,6 +611,9 @@ module SubjectOutcomesHelper
   end
 
   def lo_update(new_rec, old_rec)
+    Rails.logger.debug("***")
+    Rails.logger.debug("*** lo_update *********************************")
+    Rails.logger.debug("***")
     if new_rec[:error].blank?
       if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:desc] != old_rec[:desc] || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
         so = SubjectOutcome.find(old_rec[:db_id])
@@ -623,6 +645,9 @@ module SubjectOutcomesHelper
   end
 
   def lo_add(new_rec)
+    Rails.logger.debug("***")
+    Rails.logger.debug("*** lo_add *********************************")
+    Rails.logger.debug("***")
     Rails.logger.debug("*** add new rec")
     # this new record is to be added
     so = SubjectOutcome.new
@@ -644,6 +669,9 @@ module SubjectOutcomesHelper
   end
 
   def lo_deact_rest_old_recs(subj)
+    Rails.logger.debug("***")
+    Rails.logger.debug("*** lo_deact_rest_old_recs *********************************")
+    Rails.logger.debug("***")
     # Deactivate all old records that are not :up_to_date
     Rails.logger.debug("*** subj: #{subj} - #{subj.inspect}")
     old_db_ids = @old_db_ids_by_subject[subj.id].present? ? @old_db_ids_by_subject[subj.id] : []
@@ -670,19 +698,25 @@ module SubjectOutcomesHelper
     end
   end
 
-  def lo_setup_subject(subj)
+  def lo_setup_subject(subj, auto_update)
     lo_matches_for_subject(subj)
-    if @subj_to_proc[subj.id][:process] && !@subj_to_proc[subj.id][:add_only]
-      Rails.logger.debug("*** DONT PROCESS ALL #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+    auto_process = @subj_to_proc[subj.id][:process]
+    if auto_process && !@subj_to_proc[subj.id][:add_only]
+      Rails.logger.debug("*** DONT AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
       # This is a subject that must be matched, set up first presenting subject if not done already
-      if @subject_to_show.blank?
+      if @subject_to_show.blank? || !auto_update
         @subject_to_show = subj
       end
-    elsif @subj_to_proc[subj.id][:process]
-      # # update this subject now and be done with it
-      # lo_update_subject(subj)
+    # elsif @subj_to_proc[subj.id][:process]
+    elsif @subj_to_proc[subj.id][:add_only]
+      Rails.logger.debug("*** Auto Update possible #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+      if auto_update
+        Rails.logger.debug("*** AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+        # update this subject now and be done with it
+        lo_update_subject(subj)
+      end
       # This is a subject that has errors, set up first presenting subject if not done already
-      if @subj_to_proc[subj.id][:error].present? && @subject_to_show.blank?
+      if auto_process && @subject_to_show.blank?
         @subject_to_show = subj
       end
     end
