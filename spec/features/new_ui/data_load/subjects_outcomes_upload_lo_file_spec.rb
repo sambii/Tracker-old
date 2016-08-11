@@ -303,7 +303,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
 
-      save_and_open_page
+      # Should automatically process Art 1, and then display Art 2 for Manual Matching
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
@@ -311,716 +311,108 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content("Learning Outcomes Matching Process of #{@subj_art_2.name} of All Subjects")
       end
 
-      page.should have_css('select#selections_5')
+      page.should have_css("tr[data-new-rec-id='5'] select#selections_5")
+      page.should have_css("tr[data-new-rec-id='6'] input[type='hidden'][name='selections[6]']")
+      page.should have_css("tr[data-new-rec-id='7'] input[type='hidden'][name='selections[7]']")
+      page.should have_css("tr[data-new-rec-id='8'] input[type='hidden'][name='selections[8]']")
 
-      false.should == true
+      page.should have_css("tr[data-old-db-id='5'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='5'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='6'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='7'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='8'] td.old_lo_desc.gray-out")
 
-      # confirm current subject los are displayed and others are not
-      within('form table') do
-        page.should_not have_content("AD.1.01")
-        page.should_not have_content("MA.1.12")
-      end
-
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_0_#{@so_at_1_01.id}']") do
-        page.should have_content("AT.1.01")
-        page.should have_content("==")
-        page.should have_css("input#selections_0_#{@so_at_1_01.id}")
-        find("input#selections_0_#{@so_at_1_01.id}").should be_checked
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_1_#{@so_at_1_02.id}']") do
-        page.should have_content("AT.1.02")
-        page.should have_content("==")
-        page.should have_css("input#selections_1_#{@so_at_1_02.id}")
-        find("input#selections_1_#{@so_at_1_02.id}").should be_checked
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_2_#{@so_at_1_03.id}']") do
-        page.should have_content("AT.1.03")
-        page.should have_content("==")
-        page.should have_css("input#selections_2_#{@so_at_1_03.id}")
-        find("input#selections_2_#{@so_at_1_03.id}").should be_checked
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_1.id}_3_#{@so_at_1_04.id}']") do
-        page.should have_content("AT.1.04")
-        page.should have_content("==")
-        page.should have_css("input#selections_3_#{@so_at_1_04.id}")
-        find("input#selections_3_#{@so_at_1_04.id}").should be_checked
-      end
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}_2_']")
-
-      Rails.logger.debug("++++++ Test T1")
-
-      sleep 20
-
-      find('#save_matches').click
-
-      # sleep 20
-      save_and_open_page
-
-      # Art 2 with two preselected identical pairs
-      page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
-      end
-      # confirm current subject los are displayed and others are not
-      within('form table') do
-        page.should_not have_content("AT.1.01")
-        page.should_not have_content("MA.1.12")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_#{@so_at_2_01.id}']") do
-        page.should have_css("td.new_lo_desc", text: "AT.2.01 Changed")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[4]']")
-        page.should have_css("input#selections_4_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
-        find("input#selections_4_#{@so_at_2_01.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_-1']") do
-        page.should have_css("td.new_lo_desc", text: "AT.2.01 Changed")
-        page.should have_content("+")
-        page.should have_css("input[name='selections[4]']")
-        page.should have_css("input#selections_4_-1", value: '-1')
-        find("input#selections_4_-1").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "")
-      end
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@so_at_2_01.id}]']")
-      #   page.should have_css("input#selections__#{@so_at_2_01.id}")
-      #   find("input#selections__#{@so_at_2_01.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
-      # end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_5_#{@so_at_2_02.id}']") do
-        page.should have_css("td.new_lo_desc", text: "AT.2.02 Original")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[5]']")
-        page.should have_css("input#selections_5_#{@so_at_2_02.id}")
-        find("input#selections_5_#{@so_at_2_02.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "AT.2.02 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_6_#{@so_at_2_03.id}']") do
-        page.should have_css("td.new_lo_desc", text: "AT.2.03 Original")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[6]']")
-        page.should have_css("input#selections_6_#{@so_at_2_03.id}")
-        find("input#selections_6_#{@so_at_2_03.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "AT.2.03 Original")
-      end
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@so_at_2_04.id}]']")
-      #   page.should have_css("input#selections__#{@so_at_2_04.id}")
-      #   find("input#selections__#{@so_at_2_04.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
-      # end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
-        page.should have_css("td.new_lo_code", text: "AT 2.04")
-        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
-        page.should have_content("~=")
-        page.should have_css("input")
-        page.should have_css("input#selections_7_#{@so_at_2_04.id}[name='selections[7]']", value: @so_at_2_04.id)
-        find("input#selections_7_#{@so_at_2_04.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "AT.2.04 Original")
-      end
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_03.id}']")
-      page.should_not have_css("input#selections_7_#{@so_at_2_03.id}[name='selections[7]']", value: @so_at_2_03.id)
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_02.id}']")
-      page.should_not have_css("input#selections_7_#{@so_at_2_02.id}[name='selections[7]']", value: @so_at_2_02.id)
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_01.id}']") do
-        page.should have_css("td.new_lo_code", text: "AT 2.04")
-        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[7]']")
-        page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
-        find("input#selections_7_#{@so_at_2_01.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "AT.2.01 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_-1']") do
-        page.should have_css("td.new_lo_desc", text: "AT.2.04 Original")
-        page.should have_content("+")
-        page.should have_css("input[name='selections[7]']")
-        page.should have_css("input#selections_7_-1", value: '-1')
-        find("input#selections_7_-1").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "")
-      end
-
-      # select matches plus deactivate one of the matches - for error
-      find("input#selections_4_#{@so_at_2_01.id}").click
-      # # find("input#selections__#{@so_at_2_04.id}").click
-      # find("input#selections_7_#{@so_at_2_04.id}").click
-
-      Rails.logger.debug("++++++ Test T2")
-
-      find('#save_matches').click
-
-      # sleep 20
-      # save_and_open_page
-
-      page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
-      end
-      # confirm current subject los are displayed and others are not
-      within('form table') do
-        page.should_not have_content("AT.1.01")
-        page.should_not have_content("MA.1.12")
-      end
-      find("input#selections_4_#{@so_at_2_01.id}").should be_checked
-      page.should have_css("input#selections_4_-#{@so_at_2_01.id}") # unselect
-      page.should_not have_css("input#selections__#{@so_at_2_01.id}")
-      find("input#selections_5_#{@so_at_2_02.id}").should be_checked
-      find("input#selections_6_#{@so_at_2_03.id}").should be_checked
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
-      #   page.should have_content("-")
-      #   find("input#selections__#{@so_at_2_04.id}").should_not be_checked
-      #   # page.should have_css('span.ui-error')
-      # end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
-        page.should have_content("~=")
-        find("input#selections_7_#{@so_at_2_04.id}").should_not be_checked
-        # page.should have_css('span.ui-error')
-      end
-      # page.should have_css("input#selections_7_#{@so_at_2_03.id}")
-      # page.should have_css("input#selections_7_#{@so_at_2_02.id}")
-      # page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
-      # page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "-1")
-      page.should have_css("input#selections_7_-1", value: "-1")
-
-      # unselect the first match to confirm unselect works
-      find("input#selections_4_-#{@so_at_2_01.id}").click
-
-      Rails.logger.debug("++++++ Test T3")
-
-      find('#save_matches').click
-
-      # sleep 20
-      # save_and_open_page
-
-      # confirm page is back to original
-      page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
-      end
-      # confirm current subject los are displayed and others are not
-      within('form table') do
-        page.should_not have_content("AT.1.01")
-        page.should_not have_content("MA.1.12")
-      end
-      find("input#selections_4_#{@so_at_2_01.id}").should_not be_checked
-      # page.should have_css("input#selections__#{@so_at_2_01.id}")
-      find("input#selections_5_#{@so_at_2_02.id}").should be_checked
-      find("input#selections_6_#{@so_at_2_03.id}").should be_checked
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_04.id}']") do
-      #   find("input#selections__#{@so_at_2_04.id}").should_not be_checked
-      #   page.should_not have_css('span.ui-error')
-      # end
-      within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
-        find("input#selections_7_#{@so_at_2_04.id}").should_not be_checked
-        page.should_not have_css('span.ui-error')
-      end
-      page.should_not have_css("input#selections_7_#{@so_at_2_03.id}")
-      page.should_not have_css("input#selections_7_#{@so_at_2_02.id}")
-      # page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "#{@so_at_2_01.id}")
-      # page.should have_css("input#selections_7_#{@so_at_2_01.id}", value: "-1")
-
-      # Try deactivating one and selecting another (should leave first item unmatched, and no update)
-      # deactivate the first match
-      # find("input#selections__#{@so_at_2_01.id}").click
-      # select fourth new LO selection
-
-      find("input#selections_4_#{@so_at_2_01.id}").click
-      find("input#selections_7_#{@so_at_2_04.id}").click
-
-      Rails.logger.debug("++++++ Test T4")
-
-      find('#save_matches').click
-
-      # # sleep 20
-      # save_and_open_page
-
-      # # page has deselection of first db rec, with all corresponding new records, fourth selected with unselect
-      # page.should have_content('Match Old LOs to New LOs')
-      # within('thead.table-title') do
-      #   page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
-      # end
-      # # confirm current subject los are displayed and others are not
-      # within('form table') do
-      #   page.should_not have_content("AT.1.01")
-      #   page.should_not have_content("MA.1.12")
-      # end
-      # find("input#selections_4_#{@so_at_2_01.id}").should_not be_checked
-      # # find("input#selections_4_#{@so_at_2_02.id}").should_not be_checked
-      # # find("input#selections_4_#{@so_at_2_03.id}").should_not be_checked
-      # # find("input#selections_4_#{@so_at_2_04.id}").should_not be_checked
-      # find("input#selections__#{@so_at_2_01.id}").should be_checked
-      # find("input#selections_5_#{@so_at_2_02.id}").should be_checked
-      # find("input#selections_6_#{@so_at_2_03.id}").should be_checked
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
-      #   find("input#selections_7_#{@so_at_2_04.id}").should be_checked
-      #   page.should have_content("~=")
-      #   page.should_not have_css('span.ui-error')
-      # end
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_-#{@so_at_2_04.id}']") do
-      #   find("input#selections_7_-#{@so_at_2_04.id}").should_not be_checked
-      #   page.should have_content("x=")
-      #   page.should_not have_css('span.ui-error')
-      # end
-      # page.should_not have_css("input#selections_7_#{@so_at_2_03.id}")
-      # page.should_not have_css("input#selections_7_#{@so_at_2_02.id}")
-      # page.should_not have_css("input#selections_7_#{@so_at_2_01.id}")
-
-      # # reselect the first match noting that there is a deactivation
-      # find("input#selections_4_#{@so_at_2_01.id}").click
-
-      # Rails.logger.debug("++++++ Test T5")
-
-      # find('#save_matches').click
-
-      # # sleep 20
-      # save_and_open_page
-
-
-      # # page has deselection of first db rec and selection of first for errors
-      # page.should have_content('Match Old LOs to New LOs')
-      # within('thead.table-title') do
-      #   page.should have_content("Processing #{@subj_art_2.name} of All Subjects")
-      # end
-      # # confirm current subject los are displayed and others are not
-      # within('form table') do
-      #   page.should_not have_content("AT.1.01")
-      #   page.should_not have_content("MA.1.12")
-      # end
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_4_#{@so_at_2_01.id}']") do
-      #   find("input#selections_4_#{@so_at_2_01.id}").should_not be_checked
-      #   page.should have_content("~=")
-      #   page.should have_css('span.ui-error')
-      # end
-      # # page.should have_css("input#selections_4_#{@so_at_2_02.id}")
-      # # page.should have_css("input#selections_4_#{@so_at_2_03.id}")
-      # # page.should have_css("input#selections_4_#{@so_at_2_04.id}")
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}__#{@so_at_2_01.id}']") do
-      #   find("input#selections__#{@so_at_2_01.id}").should_not be_checked
-      #   page.should have_content("-")
-      #   page.should have_css('span.ui-error')
-      # end
-      # find("input#selections_5_#{@so_at_2_02.id}").should be_checked
-      # find("input#selections_6_#{@so_at_2_03.id}").should be_checked
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_#{@so_at_2_04.id}']") do
-      #   find("input#selections_7_#{@so_at_2_04.id}").should be_checked
-      #   page.should have_content("~=")
-      #   page.should_not have_css('span.ui-error')
-      # end
-      # within("tr[data-displayed-pair='pair_#{@subj_art_2.id}_7_-#{@so_at_2_04.id}']") do
-      #   find("input#selections_7_-#{@so_at_2_04.id}").should_not be_checked
-      #   page.should have_content("x=")
-      #   page.should_not have_css('span.ui-error')
-      # end
-      # page.should_not have_css("input#selections_7_#{@so_at_2_03.id}")
-      # page.should_not have_css("input#selections_7_#{@so_at_2_02.id}")
-      # page.should_not have_css("input#selections_7_#{@so_at_2_01.id}")
-
-      # # reselect the first match without a deactivation
-      # find("input#selections_4_#{@so_at_2_01.id}").click
-
-      # Rails.logger.debug("++++++ Test T6")
-
-      # find('#save_matches').click
-
-      # sleep 20
-      # save_and_open_page
-
-      # Capstone 3s1 with all preselected identical pairs
-      page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_capstone_3s1.name} of All Subjects")
-      end
-      # confirm current subject los are displayed and others are not
-      within('form table') do
-        page.should_not have_content("AT.1.01")
-        page.should_not have_content("MA.1.12")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}_8_#{@cp_3_01.id}']") do
-        page.should have_css("td.new_lo_desc", text: "CP.3.01 Original")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[8]']")
-        page.should have_css("input#selections_8_#{@cp_3_01.id}")
-        find("input#selections_8_#{@cp_3_01.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.01 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}_9_#{@cp_3_02.id}']") do
-        page.should have_css("td.new_lo_desc", text: "CP.3.02 Original")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[9]']")
-        page.should have_css("input#selections_9_#{@cp_3_02.id}")
-        find("input#selections_9_#{@cp_3_02.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.02 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}_10_#{@cp_3_03.id}']") do
-        page.should have_css("td.new_lo_desc", text: "CP.3.03 Original")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[10]']")
-        page.should have_css("input#selections_10_#{@cp_3_03.id}")
-        find("input#selections_10_#{@cp_3_03.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.03 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}_11_#{@cp_3_04.id}']") do
-        page.should have_css("td.new_lo_desc", text: "CP.3.04 Original")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[11]']")
-        page.should have_css("input#selections_11_#{@cp_3_04.id}")
-        find("input#selections_11_#{@cp_3_04.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.04 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_05.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_05.id}]']")
-        page.should have_css("input#selections__#{@cp_3_05.id}")
-        find("input#selections__#{@cp_3_05.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.05 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_06.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_06.id}]']")
-        page.should have_css("input#selections__#{@cp_3_06.id}")
-        find("input#selections__#{@cp_3_06.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.06 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_07.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_07.id}]']")
-        page.should have_css("input#selections__#{@cp_3_07.id}")
-        find("input#selections__#{@cp_3_07.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.07 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_08.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_08.id}]']")
-        page.should have_css("input#selections__#{@cp_3_08.id}")
-        find("input#selections__#{@cp_3_08.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.08 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_09.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_09.id}]']")
-        page.should have_css("input#selections__#{@cp_3_09.id}")
-        find("input#selections__#{@cp_3_09.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.09 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_10.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_10.id}]']")
-        page.should have_css("input#selections__#{@cp_3_10.id}")
-        find("input#selections__#{@cp_3_10.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.10 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_11.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_11.id}]']")
-        page.should have_css("input#selections__#{@cp_3_11.id}")
-        find("input#selections__#{@cp_3_11.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.11 Original")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_capstone_3s1.id}__#{@cp_3_12.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@cp_3_12.id}]']")
-        page.should have_css("input#selections__#{@cp_3_12.id}")
-        find("input#selections__#{@cp_3_12.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "CP.3.12 Original")
-      end
-
-      # find("input#selections__#{@cp_3_05.id}").click
-      # find("input#selections__#{@cp_3_06.id}").click
-      # find("input#selections__#{@cp_3_07.id}").click
-      # find("input#selections__#{@cp_3_08.id}").click
-      # find("input#selections__#{@cp_3_09.id}").click
-      # find("input#selections__#{@cp_3_10.id}").click
-      # find("input#selections__#{@cp_3_11.id}").click
-      # find("input#selections__#{@cp_3_12.id}").click
-
-      Rails.logger.debug("++++++ Test T7")
+      select('E-AT.2.01', from: "selections_5")
 
       find('#skip_subject').click
-      # sleep 20
-      save_and_open_page
 
-      # skip past Capstones 3.2 and move on to Math
+      # Skip Art 2, now move on to Capstones 3.2
 
-      # Math 1 with all preselected identical pairs
+      assert_equal("/subject_outcomes/lo_matching", current_path)
       page.should have_content('Match Old LOs to New LOs')
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_math_1.name} of All Subjects")
-      end
-      # confirm current subject los are displayed and others are not
-      within('form table') do
-        page.should_not have_content("AT.1.01")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_12_21']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_12_#{@ma_1_01.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will be changed significantly.")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[12]']")
-        page.should have_css("input#selections_12_#{@ma_1_01.id}")
-        find("input#selections_12_#{@ma_1_01.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.")
-      end
-      # page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__21']")
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_01.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@ma_1_01.id}]']")
-      #   page.should have_css("input#selections__#{@ma_1_01.id}")
-      #   find("input#selections__#{@ma_1_01.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.")
-      # end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__22']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_02.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@ma_1_02.id}]']")
-        page.should have_css("input#selections__#{@ma_1_02.id}")
-        find("input#selections__#{@ma_1_02.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.")
-      end
-      # page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__23']")
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_03.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@ma_1_03.id}]']")
-      #   page.should have_css("input#selections__#{@ma_1_03.id}")
-      #   find("input#selections__#{@ma_1_03.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
-      # end
-
-      # exact match on description should be checked
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_28']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_#{@ma_1_08.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[18]']")
-        page.should have_css("input#selections_18_#{@ma_1_08.id}")
-        find("input#selections_18_#{@ma_1_08.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of #{@subj_capstone_3s1.name} of All Subjects")
       end
 
-      # exact match on description should not have any other options
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_24']")
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_#{@ma_1_04.id}']")
+      page.should have_css("tr[data-new-rec-id='9'] input[type='hidden'][name='selections[9]']")
+      page.should have_css("tr[data-new-rec-id='10'] input[type='hidden'][name='selections[10]']")
+      page.should have_css("tr[data-new-rec-id='11'] input[type='hidden'][name='selections[11]']")
+      page.should have_css("tr[data-new-rec-id='12'] input[type='hidden'][name='selections[12]']")
 
-      # page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__24']")
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_04.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@ma_1_04.id}]']")
-      #   page.should have_css("input#selections__#{@ma_1_04.id}")
-      #   find("input#selections__#{@ma_1_04.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
-      # end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_15_25']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_15_#{@ma_1_05.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[15]']")
-        page.should have_css("input#selections_15_#{@ma_1_05.id}")
-        find("input#selections_15_#{@ma_1_05.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_16_26']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_16_#{@ma_1_06.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[16]']")
-        page.should have_css("input#selections_16_#{@ma_1_06.id}")
-        find("input#selections_16_#{@ma_1_06.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_17_27']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_17_#{@ma_1_07.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[17]']")
-        page.should have_css("input#selections_17_#{@ma_1_07.id}")
-        find("input#selections_17_#{@ma_1_07.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_24']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_#{@ma_1_04.id}']") do
-        page.should have_css("td.new_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[14]']")
-        page.should have_css("input#selections_14_#{@ma_1_04.id}")
-        find("input#selections_14_#{@ma_1_04.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
-      end
-      # exact match on description should not have any other options
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_28']")
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_#{@ma_1_08.id}']")
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_#{@ma_1_08.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
-      #   page.should have_content("~=")
-      #   page.should have_css("input[name='selections[14]']")
-      #   page.should have_css("input#selections_14_#{@ma_1_08.id}")
-      #   find("input#selections_14_#{@ma_1_08.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
-      # end
-      # exact match on description should be checked
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__28']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_08.id}']") do
-        page.should have_css("td.new_lo_desc", text: "")
-        page.should have_content("-")
-        page.should have_css("input[name='selections[-#{@ma_1_08.id}]']")
-        page.should have_css("input#selections__#{@ma_1_08.id}")
-        find("input#selections__#{@ma_1_08.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_19_29']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_19_#{@ma_1_09.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will have a description that is very similar to 10.")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[19]']")
-        page.should have_css("input#selections_19_#{@ma_1_09.id}")
-        find("input#selections_19_#{@ma_1_09.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will have a description that is very similar to 10.")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_20_30']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_20_#{@ma_1_10.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will have a description that is very similar to 09.")
-        page.should have_content("==")
-        page.should have_css("input[name='selections[20]']")
-        page.should have_css("input#selections_20_#{@ma_1_10.id}")
-        find("input#selections_20_#{@ma_1_10.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will have a description that is very similar to 09.")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_21_31']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_21_#{@ma_1_11.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[21]']")
-        page.should have_css("input#selections_21_#{@ma_1_11.id}")
-        find("input#selections_21_#{@ma_1_11.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.")
-      end
-      # page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__31']")
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_11.id}']") do
-      #   page.should have_css("td.new_lo_desc", text: "")
-      #   page.should have_content("-")
-      #   page.should have_css("input[name='selections[-#{@ma_1_11.id}]']")
-      #   page.should have_css("input#selections__#{@ma_1_11.id}")
-      #   find("input#selections__#{@ma_1_11.id}").should_not be_checked
-      #   page.should have_css("td.old_lo_desc", text: "Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.")
-      # end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_22_32']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_22_#{@ma_1_12.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will be reactivated. Apply determinants and their properties in real-world situations.")
-        page.should have_content("==^")
-        page.should have_css("input[name='selections[22]']")
-        page.should have_css("input#selections_22_#{@ma_1_12.id}")
-        find("input#selections_22_#{@ma_1_12.id}").should be_checked
-        page.should have_css("td.old_lo_desc", text: "Will be reactivated. Apply determinants and their properties in real-world situations.")
-      end
-      page.should have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}_13_23']")
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_13_#{@ma_1_03.id}']") do
-        page.should have_css("td.new_lo_desc", text: "Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
-        page.should have_content("~=")
-        page.should have_css("input[name='selections[13]']")
-        page.should have_css("input#selections_13_#{@ma_1_03.id}")
-        find("input#selections_13_#{@ma_1_03.id}").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
-      end
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_13_-1']") do
-        page.should have_css("td.new_lo_desc", text: "Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
-        page.should have_content("+")
-        page.should have_css("input[name='selections[13]']")
-        page.should have_css("input#selections_13_-1", value: '-1')
-        find("input#selections_13_-1").should_not be_checked
-        page.should have_css("td.old_lo_desc", text: "")
-      end
-
-
-      # select first record (not exact), to confirm unselect displays
-      find("input#selections_12_#{@ma_1_01.id}").click
-      # select old record three times (two assigns and one deactivate) to confirm errors
-      find("input#selections_18_#{@ma_1_08.id}").click
-      find("input#selections_14_#{@ma_1_08.id}").click
-      # find("input#selections__#{@ma_1_08.id}").click
-
-      sleep 20
+      page.should have_css("tr[data-old-db-id='9'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='10'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='11'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='12'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='13'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='13'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='14'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='14'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='15'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='15'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='16'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='16'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='17'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='17'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='18'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='18'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='19'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='19'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='20'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='20'] td.old_lo_desc.gray-out")
 
       find('#save_matches').click
-      # sleep 20
-      save_and_open_page
 
-      within('thead.table-title') do
-        page.should have_content("Processing #{@subj_math_1.name} of All Subjects")
-      end
-      find("input#selections_12_#{@ma_1_01.id}").should be_checked
-      find("input#selections_12_-#{@ma_1_01.id}").should_not be_checked
-      page.should_not have_css("input#selections__#{@ma_1_01.id}")
-      # find("input#selections__#{@ma_1_02.id}").should_not be_checked
-      # find("input#selections__#{@ma_1_03.id}").should_not be_checked
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_18_#{@ma_1_08.id}']") do
-        find("input#selections_18_#{@ma_1_08.id}").should_not be_checked
-        page.should have_css('span.ui-error')
-      end
-      # find("input#selections_18_#{@ma_1_04.id}").should_not be_checked
-      find("input#selections__#{@ma_1_04.id}").should_not be_checked
-      find("input#selections_15_#{@ma_1_05.id}").should be_checked
-      find("input#selections_16_#{@ma_1_06.id}").should be_checked
-      find("input#selections_17_#{@ma_1_07.id}").should be_checked
-      # find("input#selections_14_#{@ma_1_04.id}").should_not be_checked
-      within("tr[data-displayed-pair='pair_#{@subj_math_1.id}_14_#{@ma_1_08.id}']") do
-        find("input#selections_14_#{@ma_1_08.id}").should_not be_checked
-        page.should have_css('span.ui-error')
-      end
-      # find("input#selections_14_#{@ma_1_08.id}").should_not be_checked
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_08.id}']") do
-      #   find("input#selections__#{@ma_1_08.id}").should_not be_checked
-      #   page.should have_css('span.ui-error')
-      # end
-      find("input#selections_19_#{@ma_1_09.id}").should be_checked
-      find("input#selections_20_#{@ma_1_10.id}").should be_checked
-      find("input#selections_21_#{@ma_1_11.id}").should_not be_checked
-      # find("input#selections__#{@ma_1_11.id}").should_not be_checked
-      find("input#selections_22_#{@ma_1_12.id}").should be_checked
-      find("input#selections_13_#{@ma_1_03.id}").should_not be_checked
+      # updated Capstones 3.2, now move on to Math 1
 
-      # click radio buttons to correctly update last subject (except delete MA.1.02)
-      # should only show selections with their unselects, plus the delete MA.1.02
-      # should display the report
-      # find("input#selections__#{@ma_1_02.id}").click
-      find("input#selections_18_#{@ma_1_04.id}").click
-      find("input#selections_14_#{@ma_1_08.id}").click
-      find("input#selections_21_#{@ma_1_11.id}").click
-      find("input#selections_13_#{@ma_1_03.id}").click
+      assert_equal("/subject_outcomes/lo_matching", current_path)
+      page.should have_content('Match Old LOs to New LOs')
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of #{@subj_math_1.name} of All Subjects")
+      end
+
+      page.should have_css("tr[data-new-rec-id='13'] select#selections_13")
+      page.should have_css("tr[data-new-rec-id='14'] input[type='hidden'][name='selections[14]']")
+      page.should have_css("tr[data-new-rec-id='15'] input[type='hidden'][name='selections[15]']")
+      page.should have_css("tr[data-new-rec-id='16'] input[type='hidden'][name='selections[16]']")
+      page.should have_css("tr[data-new-rec-id='17'] input[type='hidden'][name='selections[17]']")
+      page.should have_css("tr[data-new-rec-id='18'] input[type='hidden'][name='selections[18]']")
+      page.should have_css("tr[data-new-rec-id='19'] input[type='hidden'][name='selections[19]']")
+      page.should have_css("tr[data-new-rec-id='20'] input[type='hidden'][name='selections[20]']")
+      page.should have_css("tr[data-new-rec-id='21'] input[type='hidden'][name='selections[21]']")
+      page.should have_css("tr[data-new-rec-id='22'] select#selections_22")
+      page.should have_css("tr[data-new-rec-id='23'] input[type='hidden'][name='selections[23]']")
+
+      page.should have_css("tr[data-old-db-id='21'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='21'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='22'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='22'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='23'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='24'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='25'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='26'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='27'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='28'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='29'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='30'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='31'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='31'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='32'] td.old_lo_desc.inactive")
+
+      select('V-MA.1.01', from: "selections_13")
+      select('BF-MA.1.11', from: "selections_22")
 
       find('#save_matches').click
-      # sleep 20
-      save_and_open_page
 
-      # Confirm Report is properly generated
-
-      # this is the report page
-      within('thead.table-title') do
-        page.should have_content("Processing All Subjects")
-      end
-
-      # MA.1.02 has been deactivated
-      # within("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_02.id}']") do
-      #   page.should have_css('td.old_lo_code.deactivated')
-      #   page.should have_css('td.old_lo_desc.deactivated')
-      # end
-      page.should_not have_css("tr[data-displayed-pair='pair_#{@subj_math_1.id}__#{@ma_1_02.id}']")
-
-      # sleep 20
-      # save_and_open_page
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Math 1')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '8')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '1')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '8')
+      page.should have_css('#total_adds', text: '1')
+      page.should have_css('#total_deactivates', text: '9')
 
 
     end # within #page-content

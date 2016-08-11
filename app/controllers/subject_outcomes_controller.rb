@@ -134,7 +134,7 @@ class SubjectOutcomesController < ApplicationController
       # create hash of new LO records from uploaded csv file
       recs_from_upload = lo_get_file_from_upload(params)
       @records = recs_from_upload[:records]
-      # Rails.logger.debug("*** @records: #{@records.inspect}")
+      Rails.logger.debug("*** @records: #{@records.inspect}")
       @new_los_by_rec_clean = recs_from_upload[:new_los_by_rec]
       # Rails.logger.debug("*** @new_los_by_rec_clean: #{@new_los_by_rec_clean.inspect}")
       @new_los_by_lo_code_clean = recs_from_upload[:new_los_by_lo_code]
@@ -264,6 +264,9 @@ class SubjectOutcomesController < ApplicationController
     @total_adds = @count_adds
     @total_deactivates = @count_deactivates
 
+    @old_los_to_present.each{|rec| Rails.logger.debug("*** present old rec: #{rec}")}
+    @new_los_to_present.each{|rec| Rails.logger.debug("*** present new rec: #{rec}")}
+
     respond_to do |format|
       Rails.logger.debug("*** @stage = #{@stage}")
       # if @stage == 1 || @any_errors
@@ -329,6 +332,8 @@ class SubjectOutcomesController < ApplicationController
       recs_from_hidden = lo_get_file_from_hidden(params)
       @records_clean = recs_from_hidden[:records]
       @records = @records_clean.clone
+      Rails.logger.debug("*** recs from hidden returned:")
+      @records.each{|rec| Rails.logger.debug("*** rec: #{rec}")}
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
       @new_los_by_rec_clean = recs_from_hidden[:los_by_rec]
       @new_los_by_lo_code_clean = recs_from_hidden[:new_los_by_lo_code]
@@ -380,21 +385,23 @@ class SubjectOutcomesController < ApplicationController
       step = 5
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
 
+      Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
+
+      go_to_next = false
       @action = params["submit_action"]
       if @action == "set_matches"
-        #
-        # update the database from selections for this subject #####
-        #
         Rails.logger.debug("*** Will update the database from selections for this subject #####")
         Rails.logger.debug("*** @all_old_los: #{@all_old_los.inspect}")
         params['selections'].each do |new_rec_id,old_db_id|
-          Rails.logger.debug("*** Selection: #{new_rec_id} => #{old_db_id}")
-          new_rec = @all_new_los[new_rec_id]
+          new_rec_id_num = Integer(new_rec_id) rescue 0
+          Rails.logger.debug("*** new_rec_id: #{new_rec_id.inspect} => #{new_rec_id_num}")
+          new_rec = @all_new_los[(new_rec_id_num)]
           Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
           if old_db_id.present?
-            db_id = Integer(old_db_id) rescue 0
             # new record assigned to an old record
-            old_rec = @all_old_los[db_id]
+            old_db_id_num = Integer(old_db_id) rescue 0
+            Rails.logger.debug("*** old_db_id: #{old_db_id.inspect} => #{old_db_id_num}")
+            old_rec = @all_old_los[old_db_id_num]
             Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
             new_rec[:error] = new_rec[:error].present? ? new_rec[:error] + 'Mismatched subject' : 'Mismatched subject' if old_rec[:subject_id] != new_rec[:subject_id]
             Rails.logger.debug("*** lo_update old_rec: #{old_rec}")
@@ -410,38 +417,46 @@ class SubjectOutcomesController < ApplicationController
 
         # update database records in @all_old_los
         lo_get_old_los_for_subj(@match_subject)
+
+        go_to_next = true
       elsif @action == "save_all"
-        #
         Rails.logger.debug("*** Will update the database from selections for all subjects #####")
-        # update the database from selections for all subjects #####
-        #
         @stage = 10
       elsif @action == "skip"
         Rails.logger.debug("*** Will Skip Learning Outcomes for subject: #{@match_subject}")
-        #
-        # Skip this subject #####
-        #
+        go_to_next = true
       elsif @action == "cancel"
         Rails.logger.debug("*** Will cancel update for this subject and go to report")
-        #
-        # Cancel update for this subject and go to report #####
-        #
         @stage = 10
       end
       Rails.logger.debug("*** params[:submit_action]: #{params[:submit_action]}")
 
-      ##### todo get next subject to present to user #####
-      # get starting subject to present to user
-      if @match_subject.present?
-        # present it again if errors???
-        lo_setup_subject(@match_subject, false)
-        @subject_to_show = @match_subject # always show match subject if subject has been chosen
-      else
+      if go_to_next
+        ##### get next subject to present to user #####
+        Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
+        do_subject_setup = false
         @subjects.each do |subj|
-          lo_setup_subject(subj, true)
+          if subj.id == @match_subject.id
+            # we found the last subject processed in the subjects array
+            # set up the rest of the subjects
+            do_subject_setup = true
+            next
+          end
+
+          if do_subject_setup
+            lo_setup_subject(subj, true)
+          end
         end
         @present_by_subject = @subject_to_show
+        Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
+        Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
+        @no_update = @subject_to_show.present? ? @subj_to_proc[@subject_to_show.id][:skip] : true
+        Rails.logger.debug("*** @no_update #{@no_update.inspect}")
+
+        Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
       end
+
+
 
       step = 7
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @action == 'skip': #{@action == 'skip'}")

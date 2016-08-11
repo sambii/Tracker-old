@@ -27,7 +27,7 @@
   .col-sm-10
     .block.block-alt-style.full
       .block-title.text-center
-        %h3= 'Learning Outcomes Matching Process of ' + (@match_subject.present? ? "Only #{@match_subject.name}" : (@present_by_subject.present? ? "#{@present_by_subject.name} of All Subjects" : "All Subjects"))
+        %h3= 'Learning Outcomes Matching Process of ' + (!@present_by_subject.present? ? "Only #{@match_subject.name}" : (@present_by_subject.present? ? "#{@present_by_subject.name} of All Subjects" : "All Subjects"))
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
           - valid_update = true
@@ -63,7 +63,7 @@
                     - new_rec_id = new_rec[:rec_id]
                     - exact_match = new_rec[:exact_match]
                     - if hide_subject_class.blank?
-                      %tr.break
+                      %tr.break{data: {new_rec_id: "#{new_rec[:rec_id]}"}}
                         - error_class = (new_rec[:error].present? ? 'ui-error' : '')
                         %td.new_mp=new_rec[:mp]
                         %td.new_lo_code=new_rec[:lo_code]
@@ -98,8 +98,13 @@
                     - subject_id_i = Integer(subject_id) rescue -1
                     - hide_subject_class = @present_by_subject.present? ? (@present_by_subject.id != subject_id_i ? 'display-none' : '') : ''
                     - if hide_subject_class.blank?
-                      %tr.break
-                        - deact_class = ( (old_rec[:active] == false || old_rec[:exact_match].present?) ? 'deactivated ' : '')
+                      %tr.break{data: {old_db_id: "#{old_rec[:db_id]}"}}
+                        - if (old_rec[:active] == false)
+                          - deact_class = 'inactive '
+                        - elsif (old_rec[:exact_match].present?)
+                          - deact_class = 'gray-out '
+                        - else
+                          - deact_class = ''
                         - error_class = (old_rec[:error].present? ? 'ui-error' : '')
                         %td{class: "match_id #{deact_class}"}=old_rec[:match_id]
                         %td{class: "old_mp #{deact_class}"}=old_rec[:mp]
@@ -107,8 +112,8 @@
                         %td{class: "old_lo_desc #{deact_class}"}=old_rec[:desc]
           .row
             - @records.each_with_index do |rec, ix|
-              - pair_subject_id = rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
-              - new_rec_id = rec[SubjectOutcomesHelper::COL_REC_ID]
+              - pair_subject_id = rec[:subject_id]
+              - new_rec_id = rec[:rec_id]
               %span{data: {hidden_pair: "pair_#{pair_subject_id}_#{}_#{new_rec_id}"}}
                 %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::PARAM_ACTION}]]", value: rec[SubjectOutcomesHelper::PARAM_ACTION]}
                 %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_REC_ID}]", value: new_rec_id}
@@ -118,6 +123,8 @@
                 %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_MP_BITMAP}]", value: rec[SubjectOutcomesHelper::COL_MP_BITMAP]}
                 %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_OUTCOME_CODE}]", value: rec[SubjectOutcomesHelper::COL_OUTCOME_CODE]}
                 %input{type: 'hidden', name: "r[#{ix}][#{SubjectOutcomesHelper::COL_OUTCOME_NAME}]", value: rec[SubjectOutcomesHelper::COL_OUTCOME_NAME]}
+          .row.text-center
+            %h4='Note: When save is done, all unmatched new records will be added, and all unmatched old records will be deactivated.'
           .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"

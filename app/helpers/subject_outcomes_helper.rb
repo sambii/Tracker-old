@@ -291,25 +291,19 @@ module SubjectOutcomesHelper
     params['r'].each do |p|
       seq = p[0]
       pnew = p[1]
-      # Rails.logger.debug("*** pnew: #{pnew.inspect}")
-      # recreate upload records (with only fields needed)
-      if pnew.length > 0 && pnew[COL_REC_ID] && pnew[COL_OUTCOME_CODE]
-        rec  = Hash.new
-        rec[:rec_id] = pnew[COL_REC_ID]
-        rec[:subject_id] = pnew[COL_SUBJECT_ID]
-        rec[:course] = pnew[COL_COURSE]
-        rec[:grade] = pnew[COL_GRADE]
-        rec[:mp] = pnew[COL_MP_BITMAP]
-        # rec[:subject_name] = pnew[:subject_name]
-        rec[:lo_code] = pnew[COL_OUTCOME_CODE]
-        rec[:desc] = pnew[COL_OUTCOME_NAME]
-        rec[:error] =  pnew[:error]
-        # :exact_match=>{:key=>"BC", :descr=>"BC-MA.1.09", :val=>4, :db_id=>29, :rec_id=>28}
-        records << rec
-        # Rails.logger.debug("*** Recreated record: #{rec.inspect}")
-        new_los_by_rec[pnew[COL_REC_ID]] = rec
-        new_los_by_lo_code[pnew[COL_OUTCOME_CODE]] = rec
-      end
+      Rails.logger.debug("*** pnew: #{pnew.inspect}")
+      rec = Hash.new
+      rec[:rec_id] = Integer(pnew[:rec_id]) rescue 0
+      rec[:subject_id] = Integer(pnew[:subject_id]) rescue 0
+      rec[:'Course'] = pnew['Course']
+      rec[:'Grade'] = pnew['Grade']
+      rec[:'mp_bitmap'] = pnew['mp_bitmap']
+      rec[:'LO Code:'] = pnew['LO Code:']
+      rec[:'Learning Outcome'] = pnew['Learning Outcome']
+      rec[:error] =  nil
+      records << rec
+      new_los_by_rec[pnew[:rec_id]] = rec
+      new_los_by_lo_code[pnew[:lo_code]] = rec
     end
     return {records: records, los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code}
   end
@@ -415,7 +409,7 @@ module SubjectOutcomesHelper
     new_rec_ids_by_subject = Hash.new([])
     all_new_los = Hash.new
     records.each do |rec|
-      # Rails.logger.debug("*** lo_get_all_new_los rec: #{rec.inspect}")
+      Rails.logger.debug("*** lo_get_all_new_los rec: #{rec.inspect}")
       subject_id = Integer(rec[:subject_id]) rescue 0
       subject_name = @subject_ids[subject_id].name
       # fix for two different formats coming in:
@@ -438,7 +432,7 @@ module SubjectOutcomesHelper
           exact_match: nil,
           matches: Hash.new
         }
-        # Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
+        Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
         new_rec_ids_by_subject[subject_id] = new_rec_ids_by_subject[subject_id].present? ? new_rec_ids_by_subject[subject_id] << new_rec[:rec_id] : [new_rec[:rec_id]]
         # Rails.logger.debug("*** new_rec_ids_by_subject[#{subject_id}]: #{new_rec_ids_by_subject[subject_id]}")
         all_new_los[new_rec[:rec_id]] = new_rec
@@ -501,7 +495,7 @@ module SubjectOutcomesHelper
           end
         end
       end
-      Rails.logger.debug("*** after matching new_rec: #{new_rec.inspect}")
+      # Rails.logger.debug("*** after matching new_rec: #{new_rec.inspect}")
     end
     if exact_count == old_db_ids.count
       # no changes to old records
