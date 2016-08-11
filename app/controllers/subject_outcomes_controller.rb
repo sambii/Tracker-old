@@ -76,6 +76,12 @@ class SubjectOutcomesController < ApplicationController
       @inactive_old_count = 0
       action_count = 0
 
+      # array of old and new records to present to the user
+      @new_los_to_present = Array.new
+      @old_los_to_present = Array.new
+      @present_by_subject = nil
+      @subject_to_show = nil
+
       # get the model school
       @school = lo_get_model_school(params)
       # get the subjects for the model school
@@ -188,18 +194,18 @@ class SubjectOutcomesController < ApplicationController
       step = 3
       Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # @errors = Hash.new
-      clear_matching_counts
 
       step = 4
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # hash to determine if subject should be processed or matched (by subject id)
       @subj_to_proc = Hash.new({})
 
-      # array of old and new records to present to the user
-      @new_los_to_present = Array.new
-      @old_los_to_present = Array.new
-      @present_by_subject = nil
-      @subject_to_show = nil
+
+      @prior_subject = nil
+      @count_errors = 0
+      @count_updates = 0
+      @count_adds = 0
+      @count_deactivates = 0
 
       Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
       # get starting subject to present to user
@@ -216,13 +222,6 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
       @no_update = @subject_to_show.present? ? @subj_to_proc[@subject_to_show.id][:skip] : true
       Rails.logger.debug("*** @no_update #{@no_update.inspect}")
-
-      @prior_subject = nil
-      @count_errors = 0
-      @count_updates = 0
-      @count_adds = 0
-      @count_deactivates = 0
-
 
       Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
       if @subject_to_show.present?
@@ -255,7 +254,7 @@ class SubjectOutcomesController < ApplicationController
         msg_str = "ERROR: lo_matching Exception at @stage: #{@stage}, step #{step}, item #{action_count+1} - #{e.message}"
         @errors[:base] = append_with_comma(@errors[:base], msg_str)
         Rails.logger.error(msg_str)
-        flash.now[:alert] = msg_str
+        flash[:alert] = msg_str
         @stage = 5
       end
     end
@@ -356,7 +355,6 @@ class SubjectOutcomesController < ApplicationController
       step = 3
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # @errors = Hash.new
-      clear_matching_counts
 
       step = 4
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")

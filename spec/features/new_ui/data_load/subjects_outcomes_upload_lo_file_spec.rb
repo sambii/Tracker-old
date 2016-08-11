@@ -303,6 +303,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
 
+      save_and_open_page
+
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
       within('h3') do
@@ -1049,6 +1051,10 @@ describe "Subject Outcomes Bulk Upload LOs Invalid School", js:true do
   # test methods
 
   def cannot_see_bulk_upload_los
+    visit schools_path()
+    assert_equal("/schools", current_path)
+    page.should_not have_css("a[href='/subject_outcomes/upload_lo_file']")
+
     visit upload_lo_file_subject_outcomes_path()
     assert_equal("/subject_outcomes/upload_lo_file", current_path)
     # page.should have_content('Upload Learning Outcomes from Curriculum')
