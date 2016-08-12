@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.028 Aug 12, 2016
+- Bulk LO merge new layout.
 PARLO Tracker version v2.01.027 July 28, 2016
 - School Year rollover performance and loop tuning
 PARLO Tracker version v2.01.026 July 27, 2016
