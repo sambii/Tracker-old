@@ -22,6 +22,11 @@
  * Misc UI styles
  */
 
+.float-none {
+  float: none;
+}
+/* note bootstrap pull-left and pull-right */
+
 /* link colors */
 
 /* start to darken links */
@@ -875,4 +880,21 @@ select.select2-styles {
     border-top: none;
     float: right;
   }
+}
+
+@media print {
+  .page-break-before {
+    page-break-before: always;
+    float: none !important;
+    display: block !important;
+  }
+  .page-break-after {
+    page-break-after: always;
+    float: none !important;
+    display: block !important;
+  }
+  .print-page-full-width {
+    width: 99% !important;
+  }
+
 }

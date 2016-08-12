@@ -22,7 +22,15 @@
   .row 'You are not allowed to Bulk Upload Learning Outcomes'
 - if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
   .row 'This school is not configured for Bulk Uploading Learning Outcomes'
-.row{class: (@school.acronym == 'MOD' && can?(:switch, School) && can?(:upload_lo_file, SubjectOutcome) && @school.has_flag?(School::GRADE_IN_SUBJECT_NAME) ? '' : 'display-none')}
+- sum_los_to_print = @new_los_to_present.count + @old_los_to_present.count
+- Rails.logger.debug("*** sum_los_to_print: #{sum_los_to_print.inspect}")
+- print_eject_class = ''
+- print_full_width_class = ''
+- if sum_los_to_print > 8
+  - print_eject_class = 'page-break-before'
+  - print_full_width_class = 'print-page-full-width'
+- Rails.logger.debug("*** print_eject_class: #{print_eject_class}")
+.row{class: (@school.acronym == 'MOD' && can?(:switch, School) && can?(:upload_lo_file, SubjectOutcome) && @school.has_flag?(School::GRADE_IN_SUBJECT_NAME) ? "" : "display-none")}
   .col-sm-1
   .col-sm-10
     .block.block-alt-style.full
@@ -32,7 +40,7 @@
         = form_tag(lo_matching_subject_outcomes_path) do
           - valid_update = true
           .row
-            .col-sm-6
+            .col-sm-6{class: " #{print_full_width_class}"}
               %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
                 %thead.table-title
                   %tr
@@ -76,7 +84,7 @@
                             = select_tag("selections[#{new_rec_id}]", options_for_select([[],[]] + new_rec[:matches].map{|k,v| [v[:descr], v[:db_id]]}))
                           - if new_rec[:error].present?
                             %span{class: "#{error_class}"}=new_rec[:error]
-            .col-sm-6
+            .col-sm-6{class: "#{print_eject_class} #{print_full_width_class}"}
               %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
                 %thead.table-title
                   %tr
