@@ -360,6 +360,16 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("tr[data-old-db-id='20'] td.old_lo_desc")
       page.should_not have_css("tr[data-old-db-id='20'] td.old_lo_desc.gray-out")
 
+      page.should have_css("#prior_subj", text: 'Art 2')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_adds', text: '1')
+      page.should have_css('#total_deactivates', text: '0')
+
       find('#save_matches').click
 
       # updated Capstones 3.2, now move on to Math 1
@@ -398,6 +408,16 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should_not have_css("tr[data-old-db-id='31'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='32'] td.old_lo_desc.inactive")
 
+      page.should have_css("#prior_subj", text: 'Capstone 3s1')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '8')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_adds', text: '1')
+      page.should have_css('#total_deactivates', text: '8')
+
       select('V-MA.1.01', from: "selections_13")
       select('BF-MA.1.11', from: "selections_22")
 
@@ -414,8 +434,65 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#total_adds', text: '1')
       page.should have_css('#total_deactivates', text: '9')
 
+    end # within #page-content
+
+    #
+    # run again and confirm updates were previously done
+    #
+    #
+    visit upload_lo_file_subject_outcomes_path
+    # hide the sidebar for better printing during debugging
+    find('li#head-sidebar-toggle a').click
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+      end
+      find('#upload').click
+
+      # Should automatically process Art 1, and then display Art 2 for Manual Matching
+
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Match Old LOs to New LOs')
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of #{@subj_art_2.name} of All Subjects")
+      end
+
+      page.should have_css("tr[data-new-rec-id='5'] select#selections_5")
+      page.should have_css("tr[data-new-rec-id='6'] input[type='hidden'][name='selections[6]']")
+      page.should have_css("tr[data-new-rec-id='7'] input[type='hidden'][name='selections[7]']")
+      page.should have_css("tr[data-new-rec-id='8'] input[type='hidden'][name='selections[8]']")
+
+      page.should have_css("tr[data-old-db-id='5'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='5'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='6'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='7'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='8'] td.old_lo_desc.gray-out")
+
+      select('F-AT.2.01', from: "selections_5")
+
+      find('#save_matches').click
+
+      sleep 20
+      save_and_open_page
+
+      # Skip Art 2, now should go to ending report (all updates are done)
+
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Art 2')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '4')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '4')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '0')
 
     end # within #page-content
+
   end # def bulk_upload_all_matching
 
 

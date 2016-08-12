@@ -387,7 +387,7 @@ module SubjectOutcomesHelper
       old_rec = @all_old_los[db_id]
       if old_rec.present?
         updated_old_rec = SubjectOutcome.includes(:subject).find(db_id)
-        Rails.logger.debug("*** Update old rec: original: #{old_rec.inspect} updated_old_rec: #{updated_old_rec.inspect}")
+        # Rails.logger.debug("*** Update old rec: original: #{old_rec.inspect} updated_old_rec: #{updated_old_rec.inspect}")
         if updated_old_rec.errors.count == 0 && updated_old_rec.present?
           old_rec[:lo_code] = updated_old_rec[:lo_code]
           old_rec[:desc] = updated_old_rec[:description]
@@ -395,11 +395,15 @@ module SubjectOutcomesHelper
           old_rec[:active] = updated_old_rec[:active]
         else
           old_rec[:error] = old_rec[:error].present? ? old_rec[:error]+', Update error' : 'Update error'
+          Rails.logger.error("*** count_errors increased - get old rec: original: #{old_rec.inspect} updated_old_rec: #{updated_old_rec.inspect}, errors: #{updated_old_rec.errors.full_messages}")
           @count_errors += 1
+          @error_details[db_id] = so.errors.full_messages
         end
-        Rails.logger.debug("*** Updated old rec: #{old_rec.inspect}")
+        # Rails.logger.debug("*** Updated old rec: #{old_rec.inspect}")
       else
+          Rails.logger.error("*** count_errors increased - get old rec: db_id: #{db_id},  missing old rec")
         @count_errors += 1
+        @error_details[db_id] = "Missing record to update: #{db_id}"
       end
     end
   end
@@ -409,7 +413,7 @@ module SubjectOutcomesHelper
     new_rec_ids_by_subject = Hash.new([])
     all_new_los = Hash.new
     records.each do |rec|
-      Rails.logger.debug("*** lo_get_all_new_los rec: #{rec.inspect}")
+      # Rails.logger.debug("*** lo_get_all_new_los rec: #{rec.inspect}")
       subject_id = Integer(rec[:subject_id]) rescue 0
       subject_name = @subject_ids[subject_id].name
       # fix for two different formats coming in:
@@ -432,7 +436,7 @@ module SubjectOutcomesHelper
           exact_match: nil,
           matches: Hash.new
         }
-        Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
+        # Rails.logger.debug("*** insert new rec: #{new_rec.inspect}")
         new_rec_ids_by_subject[subject_id] = new_rec_ids_by_subject[subject_id].present? ? new_rec_ids_by_subject[subject_id] << new_rec[:rec_id] : [new_rec[:rec_id]]
         # Rails.logger.debug("*** new_rec_ids_by_subject[#{subject_id}]: #{new_rec_ids_by_subject[subject_id]}")
         all_new_los[new_rec[:rec_id]] = new_rec
@@ -455,7 +459,7 @@ module SubjectOutcomesHelper
     Rails.logger.debug("*** new_rec_ids: #{new_rec_ids.inspect}")
     # subj_flags = @subj_to_proc[subj.id].present? ? @subj_to_proc[subj.id] : {}
     subj_flags = {process: true}  # assume automatically processing possible unless reset
-        
+
     new_rec_ids.each do |rec_id|
       new_rec = @all_new_los[rec_id]
       # Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
@@ -610,9 +614,10 @@ module SubjectOutcomesHelper
         so.marking_period = new_rec[:mp]
         so.save
         if so.errors.count > 0
-          Rails.logger.error("*** lo_update **** Error updating : #{so.inspect}, #{so.errors.full_messages}")
+          Rails.logger.error("*** count_errors increased - lo_update **** Error updating : #{so.inspect}, #{so.errors.full_messages}")
           old_rec[:error] = so.errors.full_messages
           @count_errors += 1
+          @error_details[old_rec[:db_id]] = "#{new_rec[:subject_id]}-#{new_rec[:subject_name]}, new LO code: #{new_rec[:lo_code]} Error: #{so.errors.full_messages.join}"
         else
           new_rec[:up_to_date] = true
           old_rec[:up_to_date] = true
@@ -639,9 +644,10 @@ module SubjectOutcomesHelper
     so.marking_period = new_rec[:mp]
     so.save
     if so.errors.count > 0
-      Rails.logger.error("*** lo_add **** Error adding : #{so.inspect}, #{so.errors.full_messages}")
+      Rails.logger.error("*** lo_add **** count_errors increased - Error adding : #{so.inspect}, #{so.errors.full_messages}")
       new_rec[:error] = so.errors.full_messages
       @count_errors += 1
+      @error_details["nr_#{count_errors}"] = so.errors.full_messages
     else
       new_rec[:up_to_date] = true
       Rails.logger.debug("*** lo_add **** Added : #{so.inspect}")
@@ -664,9 +670,10 @@ module SubjectOutcomesHelper
         so.save
         if so.errors.count > 0
           subj_errors_count += 1
-          Rails.logger.error("*** lo_deact_rest_old_recs **** Error updating : #{so.inspect}, #{so.errors.full_messages}")
+          Rails.logger.error("*** count_errors increased - lo_deact_rest_old_recs **** Error updating : #{so.inspect}, #{so.errors.full_messages}")
           old_rec[:error] = so.errors.full_messages
           @count_errors += 1
+          @error_details[db_id] = so.errors.full_messages
         else
           old_rec[:up_to_date] = true
           Rails.logger.debug("*** lo_deact_rest_old_recs **** Deactivated : #{so.inspect}")

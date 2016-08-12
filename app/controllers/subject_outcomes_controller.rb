@@ -72,6 +72,7 @@ class SubjectOutcomesController < ApplicationController
       @deactivations = Array.new
       @selected_pairs = Hash.new
       @selected_new_rec_ids = Array.new
+      @error_details = Hash.new
 
       @inactive_old_count = 0
       action_count = 0
@@ -134,7 +135,7 @@ class SubjectOutcomesController < ApplicationController
       # create hash of new LO records from uploaded csv file
       recs_from_upload = lo_get_file_from_upload(params)
       @records = recs_from_upload[:records]
-      Rails.logger.debug("*** @records: #{@records.inspect}")
+      # Rails.logger.debug("*** @records: #{@records.inspect}")
       @new_los_by_rec_clean = recs_from_upload[:new_los_by_rec]
       # Rails.logger.debug("*** @new_los_by_rec_clean: #{@new_los_by_rec_clean.inspect}")
       @new_los_by_lo_code_clean = recs_from_upload[:new_los_by_lo_code]
@@ -164,7 +165,7 @@ class SubjectOutcomesController < ApplicationController
       @records = dup_lo_descs_checked[:records]
       @records_clean = @records.clone
       Rails.logger.debug("*** records count: #{@records.count}")
-      @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
+      # @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
       # Rails.logger.debug("*** rec 0: #{@records[0]}")
       # Rails.logger.debug("*** rec 1: #{@records[1]}")
       # Rails.logger.debug("*** rec 2: #{@records[2]}")
@@ -222,6 +223,8 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
       @no_update = @subject_to_show.present? ? @subj_to_proc[@subject_to_show.id][:skip] : true
       Rails.logger.debug("*** @no_update #{@no_update.inspect}")
+      Rails.logger.debug("*** @allow_save_all #{@allow_save_all}")
+      Rails.logger.debug("*** @errors.count #{@errors.count}")
 
       Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
       if @subject_to_show.present?
@@ -267,6 +270,7 @@ class SubjectOutcomesController < ApplicationController
     @old_los_to_present.each{|rec| Rails.logger.debug("*** present old rec: #{rec}")}
     @new_los_to_present.each{|rec| Rails.logger.debug("*** present new rec: #{rec}")}
 
+    flash[:alert] = flash[:alert].present? ? flash[:alert] + @errors[:base] : @errors[:base] if @errors[:base]
     respond_to do |format|
       Rails.logger.debug("*** @stage = #{@stage}")
       # if @stage == 1 || @any_errors
@@ -297,6 +301,7 @@ class SubjectOutcomesController < ApplicationController
       # @selected_new_rec_ids = Array.new
       # @selected_db_ids = Array.new
       # @deactivations = Array.new
+      @error_details = Hash.new
 
       @inactive_old_count = 0
 
