@@ -16,7 +16,7 @@ class SubjectOutcome < ActiveRecord::Base
   validate :unique_lo_code_per_subject
 
   def unique_lo_code_per_subject
-    matches = SubjectOutcome.where(subject_id: self.subject_id, lo_code: self.lo_code, description: self.description)
+    matches = SubjectOutcome.where(subject_id: self.subject_id, lo_code: self.lo_code, description: self.description, active: true)
     if (matches.length == 1 && matches.first.id != self.id) || matches.length > 1
       errors.add(:name, "Learning Outcome Code and Description are not unique for this Subject")
     end

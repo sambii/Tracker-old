@@ -185,9 +185,9 @@ module SubjectOutcomesHelper
                 error_list[iyall+2] = ['-1', '']
               end
               # add the duplicate LO Description message to this row, if not there already
-              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Dup LO Desc') if !(records[ix][COL_ERROR] ||= '').include?('Dup LO Desc')
+              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Description') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Description')
               # add the duplicate LO Description message to the later row, if not there already
-              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Dup LO Desc') if !(records[iyall][COL_ERROR] ||= '').include?('Dup LO Desc')
+              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Duplicate Description') if !(records[iyall][COL_ERROR] ||= '').include?('Duplicate Description')
             end
           end
         end
@@ -469,11 +469,11 @@ module SubjectOutcomesHelper
         # there is an error, cannot automatically process
         subj_flags[:process] = false
       end
-      desc_new = (new_rec[:desc].present?) ? new_rec[:desc].strip().split.join('\n') : ''
+      desc_new = (new_rec[:desc].present?) ? new_rec[:desc].gsub(/\s+/, ' ').strip() : ''
       old_db_ids.each do |db_id|
         old_rec = @all_old_los[db_id]
         # Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
-        desc_old = (old_rec[:desc].present?) ? old_rec[:desc].strip().split.join('\n') : ''
+        desc_old = (old_rec[:desc].present?) ? old_rec[:desc].gsub(/\s+/, ' ').strip() : ''
         if !new_rec[:error].blank?
           subj_flags[:error] = true
           # there is an error, cannot automatically process
@@ -481,21 +481,25 @@ module SubjectOutcomesHelper
         end
         # if new_rec[:error].blank? && desc_new == desc_old
         if desc_new == desc_old
-          exact_count += 1
-          if old_rec[:active]
-            exact_active_count += 1
+          if new_rec[:exact_match] && new_rec[:exact_match][:old_rec_active]
+            # We already have an exact match that is active, dont select any others
           else
-            exact_deact_count += 1
-          end
-          matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: MAX_DESC_LEVEL, db_id: old_rec[:db_id], rec_id: new_rec[:rec_id]}
-          new_rec[:exact_match] = matching_h
-          old_rec[:exact_match] = matching_h
-          new_rec[:matches] = nil
-          if new_rec[:lo_code] != old_rec[:lo_code]
-            subj_flags[:code_change] = true
-          end
-          if !old_rec[:active]
-            subj_flags[:reactivate] = true
+            exact_count += 1
+            if old_rec[:active]
+              exact_active_count += 1
+            else
+              exact_deact_count += 1
+            end
+            matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: MAX_DESC_LEVEL, db_id: old_rec[:db_id], rec_id: new_rec[:rec_id], old_rec_active: old_rec[:active]}
+            new_rec[:exact_match] = matching_h
+            old_rec[:exact_match] = matching_h
+            new_rec[:matches] = nil
+            if new_rec[:lo_code] != old_rec[:lo_code]
+              subj_flags[:code_change] = true
+            end
+            if !old_rec[:active]
+              subj_flags[:reactivate] = true
+            end
           end
         end
       end

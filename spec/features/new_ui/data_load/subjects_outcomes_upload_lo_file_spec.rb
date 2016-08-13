@@ -61,7 +61,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     end
     it { bulk_upload_all_same }
     it { bulk_upload_art_same }
-    it { bulk_upload_art_add }
+    it { bulk_upload_art_add_swap }
     it { bulk_upload_art_2_change }
     it { bulk_upload_art_2_add_delete }
     it { bulk_upload_all_mismatches }
@@ -134,7 +134,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
 
   # test for single subject bulk upload of Learning Outcomes into Model School
-  def bulk_upload_art_add
+  def bulk_upload_art_add_swap
     #
     # first cancel add, to confirm no update occurs
     visit upload_lo_file_subject_outcomes_path
@@ -164,7 +164,64 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
 
-    # update the add
+    # next deactivate lo 3 and 4, leaving duplicate deactivated records
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_art1_deacts.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Art 1', from: "subject_id")
+      end
+      find('#upload').click
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      end
+      find('#save_matches').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Art 1')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '2')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '2')
+    end # within #page-content
+
+    #
+    # reinstate 3 and 4 (with first matching record IDs as active)
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_initial.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Art 1', from: "subject_id")
+      end
+      find('#upload').click
+      within('h3') do
+        page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      end
+      find('#save_matches').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Art 1')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '2')
+      page.should have_css('#count_adds', text: '0')
+      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '2')
+      page.should have_css('#total_adds', text: '0')
+      page.should have_css('#total_deactivates', text: '0')
+    end # within #page-content
+
+    # update the add and swap 3 and 4
+    # note: cannot reproduce the duplicate record error, because the record reactivated is the last matching one.
+    # error occurs when active record is not the last one, so the inactive record is chosen, leaving two active producing duplicate error.
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -183,13 +240,13 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '0')
+      page.should have_css('#count_updates', text: '2')
       page.should have_css('#count_adds', text: '1')
-      page.should have_css('#count_deactivates', text: '0')
+      page.should have_css('#count_deactivates', text: '2')
       page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_updates', text: '2')
       page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '0')
+      page.should have_css('#total_deactivates', text: '2')
     end # within #page-content
 
     # confirm nothing to change
@@ -229,6 +286,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
       page.should have_content('Upload Curriculum / LOs File')
+      sleep 20
       within("#ask-filename") do
         page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")

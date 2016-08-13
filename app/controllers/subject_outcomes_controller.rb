@@ -302,6 +302,7 @@ class SubjectOutcomesController < ApplicationController
       # @selected_db_ids = Array.new
       # @deactivations = Array.new
       @error_details = Hash.new
+      flash[:alert] = nil
 
       @inactive_old_count = 0
 

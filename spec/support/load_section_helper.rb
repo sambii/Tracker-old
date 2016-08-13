@@ -236,7 +236,9 @@ module LoadSectionHelper
     # @subj_art_1 = FactoryGirl.create :subject, name: 'Art 1', subject_manager: @model_subject_manager, school: model_school
     @so_at_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.01', description: 'AT.1.01 Original', marking_period: '1&2' # note 'Year Long' doesn't work in factory loading because coding is not at model level, but in the controller.
     @so_at_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.02', description: 'AT.1.02 Original', marking_period: '1&2' # note 'Year Long' doesn't work in factory loading because coding is not at model level, but in the controller.
+    @so_at_1_03_d = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.03', description: 'AT.1.03 Original', marking_period: '1&2', active: false
     @so_at_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.03', description: 'AT.1.03 Original', marking_period: '1&2'
+    @so_at_1_04_d = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.04', description: 'AT.1.04 Original', marking_period: '1&2', active: false
     @so_at_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_1, lo_code: 'AT.1.04', description: 'AT.1.04 Original', marking_period: '1&2'
 
     # @subj_art_2 = FactoryGirl.create :subject, name: 'Art 2', subject_manager: @model_subject_manager, school: model_school
