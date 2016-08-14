@@ -122,7 +122,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      page.should_not have_css('#save_matches')
+      page.should have_css('#save_matches')
       find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css('#total_errors', text: '0')
@@ -242,11 +242,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#count_errors', text: '0')
       page.should have_css('#count_updates', text: '2')
       page.should have_css('#count_adds', text: '1')
-      page.should have_css('#count_deactivates', text: '2')
+      page.should have_css('#count_deactivates', text: '0')
       page.should have_css('#total_errors', text: '0')
       page.should have_css('#total_updates', text: '2')
       page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '2')
+      page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
 
     # confirm nothing to change
@@ -374,63 +374,27 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("tr[data-new-rec-id='7'] input[type='hidden'][name='selections[7]']")
       page.should have_css("tr[data-new-rec-id='8'] input[type='hidden'][name='selections[8]']")
 
-      page.should have_css("tr[data-old-db-id='5'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='5'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='6'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='7'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='7'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='7'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='8'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='9'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='10'] td.old_lo_desc.gray-out")
+
+      page.should have_css("#prior_subj", text: 'Automatically Updated Subjects')
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '2')
+      page.should have_css('#count_adds', text: '1')
+      page.should have_css('#count_deactivates', text: '8')
+      page.should have_css('#total_errors', text: '0')
+      page.should have_css('#total_updates', text: '2')
+      page.should have_css('#total_adds', text: '1')
+      page.should have_css('#total_deactivates', text: '8')
 
       select('E-AT.2.01', from: "selections_5")
 
       find('#skip_subject').click
 
-      # Skip Art 2, now move on to Capstones 3.2
-
-      assert_equal("/subject_outcomes/lo_matching", current_path)
-      page.should have_content('Match Old LOs to New LOs')
-      within('h3') do
-        page.should have_content("Learning Outcomes Matching Process of #{@subj_capstone_3s1.name} of All Subjects")
-      end
-
-      page.should have_css("tr[data-new-rec-id='9'] input[type='hidden'][name='selections[9]']")
-      page.should have_css("tr[data-new-rec-id='10'] input[type='hidden'][name='selections[10]']")
-      page.should have_css("tr[data-new-rec-id='11'] input[type='hidden'][name='selections[11]']")
-      page.should have_css("tr[data-new-rec-id='12'] input[type='hidden'][name='selections[12]']")
-
-      page.should have_css("tr[data-old-db-id='9'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='10'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='11'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='12'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='13'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='13'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='14'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='14'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='15'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='15'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='16'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='16'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='17'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='17'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='18'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='18'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='19'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='19'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='20'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='20'] td.old_lo_desc.gray-out")
-
-      page.should have_css("#prior_subj", text: 'Art 2')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '0')
-      page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '0')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '0')
-      page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '0')
-
-      find('#save_matches').click
-
-      # updated Capstones 3.2, now move on to Math 1
+      # Skip Capstones 3.2, now move on to Math 1
 
       assert_equal("/subject_outcomes/lo_matching", current_path)
       page.should have_content('Match Old LOs to New LOs')
@@ -450,34 +414,34 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("tr[data-new-rec-id='22'] select#selections_22")
       page.should have_css("tr[data-new-rec-id='23'] input[type='hidden'][name='selections[23]']")
 
-      page.should have_css("tr[data-old-db-id='21'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='21'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='22'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='22'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='23'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='24'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='23'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='23'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='24'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='24'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='25'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='26'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='27'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='28'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='29'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='30'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='31'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='31'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='32'] td.old_lo_desc.inactive")
+      page.should have_css("tr[data-old-db-id='31'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='32'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='33'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='33'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='34'] td.old_lo_desc.inactive")
 
-      page.should have_css("#prior_subj", text: 'Capstone 3s1')
+      page.should have_css("#prior_subj", text: 'Art 2')
       page.should have_css('#count_errors', text: '0')
       page.should have_css('#count_updates', text: '0')
       page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '8')
+      page.should have_css('#count_deactivates', text: '0')
       page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '0')
+      page.should have_css('#total_updates', text: '2')
       page.should have_css('#total_adds', text: '1')
       page.should have_css('#total_deactivates', text: '8')
 
-      select('V-MA.1.01', from: "selections_13")
-      select('BF-MA.1.11', from: "selections_22")
+      select('N-MA.1.01', from: "selections_13")
+      select('X-MA.1.11', from: "selections_22")
 
       find('#save_matches').click
 
@@ -488,7 +452,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '1')
       page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '8')
+      page.should have_css('#total_updates', text: '10')
       page.should have_css('#total_adds', text: '1')
       page.should have_css('#total_deactivates', text: '9')
 
@@ -510,7 +474,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
 
-      # Should automatically process Art 1, and then display Art 2 for Manual Matching
+      # Should go to Art 2 for Manual Matching
 
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Match Old LOs to New LOs')
@@ -523,18 +487,15 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("tr[data-new-rec-id='7'] input[type='hidden'][name='selections[7]']")
       page.should have_css("tr[data-new-rec-id='8'] input[type='hidden'][name='selections[8]']")
 
-      page.should have_css("tr[data-old-db-id='5'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='5'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='6'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='7'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='7'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='7'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='8'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='9'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='10'] td.old_lo_desc.gray-out")
 
       select('F-AT.2.01', from: "selections_5")
 
       find('#save_matches').click
-
-      sleep 20
-      save_and_open_page
 
       # Skip Art 2, now should go to ending report (all updates are done)
 

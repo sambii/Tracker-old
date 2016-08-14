@@ -35,7 +35,10 @@
   .col-sm-10
     .block.block-alt-style.full
       .block-title.text-center
-        %h3= 'Learning Outcomes Matching Process of ' + (!@present_by_subject.present? ? "Only #{@match_subject.name}" : (@present_by_subject.present? ? "#{@present_by_subject.name} of All Subjects" : "All Subjects"))
+        - if @present_by_subject.present?
+          %h3= "Learning Outcomes Matching Process of #{@present_by_subject.name} of All Subjects"
+        - if @match_subject.present?
+          %h3= "Learning Outcomes Matching Process of Only #{@match_subject.name}"
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
           - valid_update = true
@@ -147,10 +150,9 @@
             - if @present_by_subject.present?
               %button#skip_subject.btn.btn-primary.cancel{type: "submit", title: 'Skip This Subject', name: 'submit_action', value: 'skip'}='Skip'
             %button#cancel.btn.btn-primary.cancel{type: "submit", title: 'Cancel Update for this Subject', name: 'submit_action', value: 'cancel'}='Cancel'
-          - if @prior_subject.present?
-            - # this is not the first page, so show totals so far
+          - if @prior_subject_name.present?
             .row.text-center
-              %span#prior_subj=@prior_subject.name
+              %span#prior_subj=@prior_subject_name
               %span=" counts: Errors - "
               %span#count_errors=@count_errors
               %span=", Updates - "

@@ -225,6 +225,16 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** @no_update #{@no_update.inspect}")
       Rails.logger.debug("*** @allow_save_all #{@allow_save_all}")
       Rails.logger.debug("*** @errors.count #{@errors.count}")
+      Rails.logger.debug("*** @count_errors #{@count_errors}")
+      Rails.logger.debug("*** @count_updates #{@count_updates}")
+      Rails.logger.debug("*** @count_adds #{@count_adds}")
+      Rails.logger.debug("*** @count_deactivates #{@count_deactivates}")
+
+      @prior_subject_name = 'Automatically Updated Subjects'
+      @total_errors = @count_errors
+      @total_updates = @count_updates
+      @total_adds = @count_adds
+      @total_deactivates = @count_deactivates
 
       Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
       if @subject_to_show.present?
@@ -262,11 +272,6 @@ class SubjectOutcomesController < ApplicationController
       end
     end
 
-    @total_errors = @count_errors
-    @total_updates = @count_updates
-    @total_adds = @count_adds
-    @total_deactivates = @count_deactivates
-
     @old_los_to_present.each{|rec| Rails.logger.debug("*** present old rec: #{rec}")}
     @new_los_to_present.each{|rec| Rails.logger.debug("*** present new rec: #{rec}")}
 
@@ -296,7 +301,7 @@ class SubjectOutcomesController < ApplicationController
       @records = Array.new
       @errors = Hash.new
       # @selections = Hash.new
-      # @selection_params = Hash.new
+      @selection_params = params['selections'].present? ? params['selections'] : Hash.new
       # @selected_pairs = Hash.new
       # @selected_new_rec_ids = Array.new
       # @selected_db_ids = Array.new
@@ -339,7 +344,7 @@ class SubjectOutcomesController < ApplicationController
       @records_clean = recs_from_hidden[:records]
       @records = @records_clean.clone
       Rails.logger.debug("*** recs from hidden returned:")
-      @records.each{|rec| Rails.logger.debug("*** rec: #{rec}")}
+      # @records.each{|rec| Rails.logger.debug("*** rec: #{rec}")}
       # @new_recs_to_process = lo_get_new_recs_to_process(@records)
       @new_los_by_rec_clean = recs_from_hidden[:los_by_rec]
       @new_los_by_lo_code_clean = recs_from_hidden[:new_los_by_lo_code]
@@ -397,25 +402,37 @@ class SubjectOutcomesController < ApplicationController
       @action = params["submit_action"]
       if @action == "set_matches"
         Rails.logger.debug("*** Will update the database from selections for this subject #####")
-        Rails.logger.debug("*** @all_old_los: #{@all_old_los.inspect}")
-        params['selections'].each do |new_rec_id,old_db_id|
-          new_rec_id_num = Integer(new_rec_id) rescue 0
-          Rails.logger.debug("*** new_rec_id: #{new_rec_id.inspect} => #{new_rec_id_num}")
-          new_rec = @all_new_los[(new_rec_id_num)]
-          Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
-          if old_db_id.present?
-            # new record assigned to an old record
-            old_db_id_num = Integer(old_db_id) rescue 0
-            Rails.logger.debug("*** old_db_id: #{old_db_id.inspect} => #{old_db_id_num}")
-            old_rec = @all_old_los[old_db_id_num]
-            Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
-            new_rec[:error] = new_rec[:error].present? ? new_rec[:error] + 'Mismatched subject' : 'Mismatched subject' if old_rec[:subject_id] != new_rec[:subject_id]
-            Rails.logger.debug("*** lo_update old_rec: #{old_rec}")
-            lo_update(new_rec, old_rec)
-          else # old_db_id.present?
-            lo_add(new_rec)
-          end # old_db_id.present?
-        end # params['selections'].each
+
+        # ensure all new records have a selection parameter
+        Rails.logger.debug("*** @selection_params.count: #{@selection_params.count}")
+        Rails.logger.debug("*** @new_rec_ids_by_subject[@match_subject.id].count: #{@new_rec_ids_by_subject[@match_subject.id].count}")
+        @errors[:base] = append_with_comma(@errors[:base], "invalid update parameter count #{@selection_params.count} != #{@new_rec_ids_by_subject[@match_subject.id].count}") if @selection_params.count != @new_rec_ids_by_subject[@match_subject.id].count
+
+        # check for duplicate database assignments
+        counts_h = Hash.new(0)
+        @selection_params.each{ |k,v| counts_h[(Integer(v) rescue 0)] += 1}
+        Rails.logger.debug("*** counts_h: #{counts_h.inspect}")
+        @errors[:base] = append_with_comma(@errors[:base], "duplicate old record match #{counts_h.select{|k,v| v>0}.inspect}") if counts_h.count < @selection_params.count
+        if @errors.count == 0
+          @selection_params.each do |new_rec_id,old_db_id|
+            new_rec_id_num = Integer(new_rec_id) rescue 0
+            Rails.logger.debug("*** new_rec_id: #{new_rec_id.inspect} => #{new_rec_id_num}")
+            new_rec = @all_new_los[(new_rec_id_num)]
+            Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
+            if old_db_id.present?
+              # new record assigned to an old record
+              old_db_id_num = Integer(old_db_id) rescue 0
+              Rails.logger.debug("*** old_db_id: #{old_db_id.inspect} => #{old_db_id_num}")
+              old_rec = @all_old_los[old_db_id_num]
+              Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
+              new_rec[:error] = new_rec[:error].present? ? new_rec[:error] + 'Mismatched subject' : 'Mismatched subject' if old_rec[:subject_id] != new_rec[:subject_id]
+              Rails.logger.debug("*** lo_update old_rec: #{old_rec}")
+              lo_update(new_rec, old_rec)
+            else # old_db_id.present?
+              lo_add(new_rec)
+            end # old_db_id.present?
+          end # params['selections'].each
+        end # @errors.count == 0
 
         Rails.logger.debug("*** lo_deact_rest_old_recs")
         lo_deact_rest_old_recs(@match_subject) if @count_errors == 0
@@ -450,7 +467,7 @@ class SubjectOutcomesController < ApplicationController
           end
 
           if do_subject_setup
-            lo_setup_subject(subj, true)
+            lo_setup_subject(subj, false) # did auto update already in lo_upload
           end
         end
         @present_by_subject = @subject_to_show
@@ -462,53 +479,52 @@ class SubjectOutcomesController < ApplicationController
         Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
       end
 
-
-
       step = 7
-      Rails.logger.debug("*** lo_matching Stage: #{@stage}, step: #{step}, @allow_save: #{@allow_save}, @action == 'skip': #{@action == 'skip'}")
+
+      Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
+
+      ##### todo get next subject to present to user #####
+
+      if @present_by_subject.present?
+        step = '3a'
+        Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+        # we are processing one subject, so we are not looping through subjects
+        # pull the new learning outcomes to process from the @new_rec_ids_by_subject
+        @new_rec_ids_by_subject[@subject_to_show.id].each do |rec_id|
+          @new_los_to_present << @all_new_los[rec_id]
+        end
+        step = '3b'
+        Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+        # pull the old learning outcomes to process from the @old_db_ids_by_subject
+        @old_db_ids_by_subject[@subject_to_show.id].each do |db_id|
+          @old_los_to_present << @all_old_los[db_id]
+        end
+
+        lo_set_matches(@new_los_to_present, @old_los_to_present, @old_db_ids_by_subject, @all_old_los)
+
+      else
+        # all processing done, skip to report
+        @stage = 10
+      end
+
 
     rescue => e
       item_at = "*** lo_matching Stage: #{@stage}, step #{step} - item #{action_count+1}"
       item_at = "LO Code: #{current_pair[2][[:lo_code]]}, Action: #{current_pair[2][[:action]]}" if current_pair.present?
       msg_str = "ERROR: lo_matching Exception at #{item_at} - #{e.message}"
       @errors[:base] = append_with_comma(@errors[:base], msg_str)
-      Rails.logger.error(msg_str)
-      flash[:alert] = msg_str
+      Rails.logger.error(@errors[:base])
+      flash[:alert] = @errors[:base]
       @stage = 5
-    end
-
-    step = 8
-
-    Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
-
-    ##### todo get next subject to present to user #####
-
-    if @present_by_subject.present?
-      step = '3a'
-      Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-      # we are processing one subject, so we are not looping through subjects
-      # pull the new learning outcomes to process from the @new_rec_ids_by_subject
-      @new_rec_ids_by_subject[@subject_to_show.id].each do |rec_id|
-        @new_los_to_present << @all_new_los[rec_id]
-      end
-      step = '3b'
-      Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-      # pull the old learning outcomes to process from the @old_db_ids_by_subject
-      @old_db_ids_by_subject[@subject_to_show.id].each do |db_id|
-        @old_los_to_present << @all_old_los[db_id]
-      end
-
-      lo_set_matches(@new_los_to_present, @old_los_to_present, @old_db_ids_by_subject, @all_old_los)
-
-    else
-      # all processing done, skip to report
-      @stage = 10
     end
 
     Rails.logger.debug("*** @total_errors: #{@total_errors.inspect} += @count_errors: #{@count_errors.inspect}")
     Rails.logger.debug("*** @total_updates: #{@total_updates.inspect} += @count_updates: #{@count_updates.inspect}")
     Rails.logger.debug("*** @total_adds: #{@total_adds.inspect} += @count_adds: #{@count_adds.inspect}")
     Rails.logger.debug("*** @total_deactivates: #{@total_deactivates.inspect} += @count_deactivates: #{@count_deactivates.inspect}")
+
+
+    @prior_subject_name = @prior_subject.name
     @total_errors += @count_errors
     @total_updates += @count_updates
     @total_adds += @count_adds

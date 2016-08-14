@@ -184,6 +184,8 @@ module SubjectOutcomesHelper
                 end
                 error_list[iyall+2] = ['-1', '']
               end
+              Rails.logger.debug("*** dup description added for #{ix}, #{records[ix].inspect}")
+              Rails.logger.debug("*** dup description added for #{iyall}, #{records[iyall].inspect}")
               # add the duplicate LO Description message to this row, if not there already
               records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Description') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Description')
               # add the duplicate LO Description message to the later row, if not there already
@@ -291,7 +293,7 @@ module SubjectOutcomesHelper
     params['r'].each do |p|
       seq = p[0]
       pnew = p[1]
-      Rails.logger.debug("*** pnew: #{pnew.inspect}")
+      # Rails.logger.debug("*** pnew: #{pnew.inspect}")
       rec = Hash.new
       rec[:rec_id] = Integer(pnew[:rec_id]) rescue 0
       rec[:subject_id] = Integer(pnew[:subject_id]) rescue 0
@@ -484,42 +486,33 @@ module SubjectOutcomesHelper
           if new_rec[:exact_match] && new_rec[:exact_match][:old_rec_active]
             # We already have an exact match that is active, dont select any others
           else
-            exact_count += 1
-            if old_rec[:active]
-              exact_active_count += 1
-            else
-              exact_deact_count += 1
-            end
             matching_h = {key: old_rec[:match_id], descr: "#{old_rec[:match_id]}-#{old_rec[:lo_code]}", val: MAX_DESC_LEVEL, db_id: old_rec[:db_id], rec_id: new_rec[:rec_id], old_rec_active: old_rec[:active]}
             new_rec[:exact_match] = matching_h
             old_rec[:exact_match] = matching_h
             new_rec[:matches] = nil
-            if new_rec[:lo_code] != old_rec[:lo_code]
-              subj_flags[:code_change] = true
-            end
-            if !old_rec[:active]
-              subj_flags[:reactivate] = true
-            end
           end
         end
       end
       # Rails.logger.debug("*** after matching new_rec: #{new_rec.inspect}")
     end
-    if exact_count == old_db_ids.count
-      # no changes to old records
-      if new_rec_ids.count > exact_count
-        # all new records must be adds
-        # subj_flags[:only_adds] = true
-      elsif new_rec_ids.count == exact_count
-        subj_flags[:skip] = true
-      else
-        # ? not possible
-      end
-    # else
-    #   subj_flags[:process] = true
-    end
+
+    Rails.logger.debug("*** pre check subj_flags.inspect: #{subj_flags.inspect}")
+
     db_deact_count = 0
     db_active_count = 0
+    new_rec_ids.each do |rec_id|
+      new_rec = @all_new_los[rec_id]
+      # Rails.logger.debug("*** new_rec[:exact_match]: #{new_rec[:exact_match].inspect}, #{new_rec.inspect}")
+      # subj_flags[:process] = false if new_rec[:exact_match].blank?
+      if new_rec[:exact_match].present?
+        if new_rec[:exact_match][:old_rec_active]
+          exact_active_count += 1
+        else
+          exact_deact_count += 1
+        end
+        exact_count += 1
+      end
+    end
     old_db_ids.each do |db_id|
       old_rec = @all_old_los[db_id]
       if old_rec[:active]
@@ -527,22 +520,13 @@ module SubjectOutcomesHelper
       else
         db_deact_count += 1
       end
+      # subj_flags[:process] = false if old_rec[:exact_match].blank?
     end
 
-    Rails.logger.debug("*** pre check subj_flags.inspect: #{subj_flags.inspect}")
-
-    # flag subject as add only if all new learning outcomes have exact matches in the database (active or deactivated)
-    if db_active_count == exact_active_count && db_deact_count >= exact_deact_count
-      subj_flags[:add_only] = true
-    else
-      new_rec_ids.each do |rec_id|
-        new_rec = @all_new_los[rec_id]
-        subj_flags[:process] = false if new_rec[:exact_match].blank?
-      end
-      old_db_ids.each do |db_id|
-        old_rec = @all_old_los[db_id]
-        subj_flags[:process] = false if old_rec[:exact_match].blank?
-      end
+    if new_rec_ids.count > exact_count && exact_active_count < db_active_count
+      # some new records are not exactly matched and there are some active database records that are not exactly matched
+      # we must present the matches to the user to choose (not automatically processable)
+      subj_flags[:process] = false
     end
 
     Rails.logger.debug("*** #{db_active_count == exact_active_count} - db_active_count: #{db_active_count} ?=? exact_active_count: #{exact_active_count}")
@@ -550,8 +534,12 @@ module SubjectOutcomesHelper
 
     Rails.logger.debug("*** subj_flags[:add_only]: #{subj_flags[:add_only]}")
     Rails.logger.debug("*** subj_flags.inspect: #{subj_flags.inspect}")
+    Rails.logger.debug("*** Subject: #{subj.id}-#{subj.name}")
+    Rails.logger.debug("*** Old Count: #{old_db_ids.count}")
+    Rails.logger.debug("*** New Count: #{new_rec_ids.count}")
+    Rails.logger.debug("*** exact_count: #{exact_count}")
+    Rails.logger.debug("*** subj_flags: #{subj_flags.inspect}")
     @subj_to_proc[subj.id] = subj_flags
-    Rails.logger.debug("*** Subject: #{subj.id}-#{subj.name}, Old Count: #{old_db_ids.count}, New Count: #{new_rec_ids.count}, exact_count: #{exact_count}, @subj_to_proc[subj.id]: #{subj_flags.inspect}")
   end
 
   def lo_set_matches(new_recs_in, old_recs_in, old_db_ids_by_subject, all_old_los)
@@ -583,7 +571,7 @@ module SubjectOutcomesHelper
 
 
   def lo_update_subject(subj)
-    Rails.logger.debug("*** lo_update_subject #{subj.id}-#{subj.name} *********************************")
+    Rails.logger.debug("*** lo_update_subject #{subj.id}-#{subj.name}")
     # update subject new records and deactivate extra old records
     new_rec_ids = @new_rec_ids_by_subject[subj.id].present? ? @new_rec_ids_by_subject[subj.id] : []
     subj_errors_count = 0
@@ -610,7 +598,13 @@ module SubjectOutcomesHelper
 
   def lo_update(new_rec, old_rec)
     if new_rec[:error].blank?
-      if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:desc] != old_rec[:desc] || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
+      if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:desc].gsub(/\r\n?/, "\n").strip() != old_rec[:desc].gsub(/\r\n?/, "\n").strip() || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
+        # Rails.logger.debug("*** diff in records")
+        # Rails.logger.debug("*** diff lo_code: #{new_rec[:lo_code]} != #{old_rec[:lo_code]}") if new_rec[:lo_code] != old_rec[:lo_code]
+        # Rails.logger.debug("*** diff desc: #{new_rec[:desc].inspect}") if new_rec[:desc].gsub(/\r\n?/, "\n").strip() != old_rec[:desc].gsub(/\r\n?/, "\n").strip()
+        # Rails.logger.debug("*** diff desc: #{old_rec[:desc].inspect}") if new_rec[:desc].gsub(/\r\n?/, "\n").strip() != old_rec[:desc].gsub(/\r\n?/, "\n").strip()
+        # Rails.logger.debug("*** diff mp: #{new_rec[:mp]} != #{old_rec[:mp]}") if new_rec[:mp] != old_rec[:mp]
+        # Rails.logger.debug("*** not active: #{old_rec[:active]}") if !old_rec[:active]
         so = SubjectOutcome.find(old_rec[:db_id])
         so.active = true
         so.lo_code = new_rec[:lo_code]
@@ -625,13 +619,13 @@ module SubjectOutcomesHelper
         else
           new_rec[:up_to_date] = true
           old_rec[:up_to_date] = true
-          Rails.logger.debug("*** lo_update **** Updated to : #{so.inspect}")
+          # Rails.logger.debug("*** lo_update **** Updated to : #{so.inspect}")
           @count_updates += 1
         end
       else
         new_rec[:up_to_date] = true
         old_rec[:up_to_date] = true
-        Rails.logger.debug("*** lo_update **** already up to date")
+        # Rails.logger.debug("*** lo_update **** already up to date")
       end
     else
       Rails.logger.debug("*** lo_update **** error: #{new_rec[:error]}")
@@ -654,7 +648,7 @@ module SubjectOutcomesHelper
       @error_details["nr_#{count_errors}"] = so.errors.full_messages
     else
       new_rec[:up_to_date] = true
-      Rails.logger.debug("*** lo_add **** Added : #{so.inspect}")
+      # Rails.logger.debug("*** lo_add **** Added : #{so.inspect}")
       @count_adds += 1
     end
   end
@@ -680,7 +674,7 @@ module SubjectOutcomesHelper
           @error_details[db_id] = so.errors.full_messages
         else
           old_rec[:up_to_date] = true
-          Rails.logger.debug("*** lo_deact_rest_old_recs **** Deactivated : #{so.inspect}")
+          # Rails.logger.debug("*** lo_deact_rest_old_recs **** Deactivated : #{so.inspect}")
           @count_deactivates += 1
         end
       end
@@ -692,7 +686,7 @@ module SubjectOutcomesHelper
     if !@subj_to_proc[subj.id][:process]
       Rails.logger.debug("*** lo_setup_subject - DONT AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
       # This is a subject that must be matched, set up first presenting subject if not done already
-      if @subject_to_show.blank? || !auto_update
+      if @subject_to_show.blank?
         @subject_to_show = subj
       end
     else
@@ -704,7 +698,7 @@ module SubjectOutcomesHelper
       else
         Rails.logger.debug("*** lo_setup_subject - no autoupdate, then display it (if first) #{subj} -> #{@subject_to_show.inspect}")
         # if no autoupdate, then display it (if first)
-        @subject_to_show = subj if @subject_to_show.blank?
+        # @subject_to_show = subj if @subject_to_show.blank?
       end
     end
   end
