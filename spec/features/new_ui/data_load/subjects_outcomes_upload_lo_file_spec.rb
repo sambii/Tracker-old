@@ -264,7 +264,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       page.should_not have_css('select#selections_4')
-      page.should_not have_css('#save_matches')
+      page.should have_css('#save_matches')
       find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
