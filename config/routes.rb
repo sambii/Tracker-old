@@ -36,6 +36,7 @@ Tracker2::Application.routes.draw do
   resources :schools do
     member do
       post 'new_year_rollover'
+      get 'dashboard'
     end
   end
   match "schools/:id/edit(/:template)" => "schools#edit", via: [:get], as: "edit_school"

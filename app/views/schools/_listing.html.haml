@@ -9,7 +9,7 @@
               %th= 'Acronym'
               %th= 'City / Town'
               %th= 'School Year'
-              %th{colspan: 4}= ''
+              %th{colspan: 5}= ''
           %tbody.tbody-body.alternate-highlight
             - @schools.each do |school|
               %tr{id: "school-#{school.id}"}
@@ -26,6 +26,10 @@
                   - if can? :switch, school
                     %a{href: school_path(school.id), title: "Make '#{school.acronym} - #{school.name}'' curent school"}
                       %i.fa.fa-lg.fa-building-o
+                %td.text-center
+                  - if can? :dashboard, school
+                    %a{href: dashboard_school_path(school.id), title: 'School Dashboard'}
+                      %i.fa.fa-lg.fa-dashboard
                 %td.text-center
                   - if can? :edit, school
                     %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_school_path(school.id, format: :js)}, title: 'Edit School'}

@@ -8,12 +8,14 @@ class SchoolsController < ApplicationController
 
   # RESTful Methods
   def show
+    @school = School.includes(:school_year).find(params[:id])
     template = "schools/show"
     template = "schools/reports/#{params[:report]}" if params[:report]
 
     if template == "schools/show"
-      @school = School.includes(students: {enrollments: {section: [:subject, teaching_assignments: :teacher]}}).find(params[:id])
-      set_school_context
+      # @school = School.includes(students: {enrollments: {section: [:subject, teaching_assignments: :teacher]}}).find(params[:id])
+      # @school = School.includes(:school_year).find(params[:id])
+      # set_school_context
     else
       for_subgroup_proficiencies
     end
@@ -232,6 +234,42 @@ class SchoolsController < ApplicationController
       end
     end
   end
+
+  # New UI - School Dashboard
+  def dashboard
+
+    current_sect_ids = []
+
+    # if (@current_user.system_administrator? || @current_user.researcher?)
+    #   @school = @current_school
+    # else
+    #   @school = get_current_school
+    # end
+    if @school.id.nil?
+      flash[:alert] = 'Missing School'
+    else
+      @school_year = SchoolYear.find(@school.school_year_id)
+      @school_ratings = @school.count_ratings
+
+      @subjects = Subject.where(school_id: @school.id)
+
+      # get subject ratings by various orders
+      @subject_ratings = Hash.new
+      @subjects.each do |s|
+        @current_sections = Section.where(school_year_id: @school.school_year_id, subject_id: s.id)
+        @subject_ratings[s.id] = s.count_ratings_plus(section_ids: @current_sections.pluck(:id), school_year_starts_at: @school_year.starts_at)
+      end
+      @by_date = @subject_ratings.sort_by{|k,v| v[:last_rating_date].to_time}.reverse
+      @by_lo_count = @subject_ratings.sort_by{|k,v| (v[:by_count_ratio])}
+
+      @recent10 = User.where('(teacher=? OR counselor=? OR school_administrator=?) AND current_sign_in_at IS NOT NULL AND school_id=?', true, true, true, @school.id).order(:last_name, :first_name).order('current_sign_in_at DESC').limit(10)
+    end
+
+    respond_to do |format|
+      format.html
+    end
+  end
+
 
   protected
 

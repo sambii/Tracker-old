@@ -246,8 +246,13 @@ crumb :upload_templates do
   parent :root
 end
 
-crumb :school_dashboard do
-  link 'School'
+crumb :school_view do |school|
+  link "View School-#{school.acronym}"
+  parent :root
+end
+
+crumb :school_dashboard do |school|
+  link "School-#{school.acronym}"
   parent :root
 end
 

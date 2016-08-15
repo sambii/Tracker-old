@@ -1,0 +1,32 @@
+
+.div.show-label-value
+  .row
+    %span.col-sm-5.control-label='Name:'
+    %span#school-name.col-sm-5.value=@school.name
+  .row
+    %span.col-sm-5.control-label='Acronym:'
+    %span#school-acronym.col-sm-5.value=@school.acronym
+  .row
+    %span.col-sm-5.control-label='City / Town:'
+    %span#school-city.col-sm-5.value=@school.city
+  .row
+    %span.col-sm-5.control-label='Marking Periods:'
+    %span#school-marking-periods.col-sm-5.value=@school.marking_periods
+  .div
+    %span.col-sm-5.control-label='Use Family Name):'
+    %span#school-use-family-name.col-sm-5.value=@school.has_flag?([School::USE_FAMILY_NAME])
+  %div
+    %span.col-sm-5.control-label='User Sort by:'
+    %span#school-sort-by.col-sm-5.value=@school.has_flag?([School::USER_BY_FIRST_LAST])
+  %div
+    %span.col-sm-5.control-label='Grade in Subject Name:'
+    %span#school-grade-in-subject.col-sm-5.value=@school.has_flag?([School::GRADE_IN_SUBJECT_NAME])
+  %div
+    %span.col-sm-5.control-label='Username from email:'
+    %span#username-from-email.col-sm-5.value=@school.has_flag?([School::USERNAME_FROM_EMAIL])
+  %div
+    %span.col-sm-5.control-label='Start Date:'
+    %span#school-year-start.col-sm-5.value="#{@school.school_year.start_mm}-#{@school.school_year.start_yyyy}"
+  %div
+    %span.col-sm-5.control-label='End Date:'
+    %span#school-year-end.col-sm-5.value="#{@school.school_year.end_mm}-#{@school.school_year.end_yyyy}"
