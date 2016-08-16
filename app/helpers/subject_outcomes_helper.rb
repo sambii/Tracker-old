@@ -51,7 +51,7 @@ module SubjectOutcomesHelper
 
         # strip leading a trailing spaces in lo_code and name
         csv_hash[COL_OUTCOME_CODE] = csv_hash[COL_OUTCOME_CODE].strip
-        csv_hash[COL_OUTCOME_NAME] = csv_hash[COL_OUTCOME_NAME].strip
+        csv_hash[COL_OUTCOME_NAME] = csv_hash[COL_OUTCOME_NAME].gsub(/\r\n?/, "\n")[0..255].strip
 
         # make sure marking period is filled with either marking period field or semester field.
         if csv_hash[COL_MARK_PER].blank?
@@ -306,7 +306,7 @@ module SubjectOutcomesHelper
       records << rec
       new_los_by_rec[pnew[:rec_id]] = rec
       new_los_by_lo_code[pnew[:lo_code]] = rec
-    end
+    end if  params['r'].present?
     return {records: records, los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code}
   end
 
@@ -350,6 +350,7 @@ module SubjectOutcomesHelper
         end
       end
     end  # end CSV.foreach
+    raise("Error - No Curriculum Records to upload.") if records.count == 0
     return {records: records, new_los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code}
   end
 
@@ -571,6 +572,7 @@ module SubjectOutcomesHelper
 
 
   def lo_update_subject(subj)
+    updates_done = false
     Rails.logger.debug("*** lo_update_subject #{subj.id}-#{subj.name}")
     # update subject new records and deactivate extra old records
     new_rec_ids = @new_rec_ids_by_subject[subj.id].present? ? @new_rec_ids_by_subject[subj.id] : []
@@ -582,21 +584,23 @@ module SubjectOutcomesHelper
         db_id = new_rec[:exact_match][:db_id]
         old_rec = @all_old_los[db_id]
         # Rails.logger.debug("*** matching Old rec: #{db_id} - #{old_rec.inspect}")
-        lo_update(new_rec, old_rec)
+        updates_done = true if lo_update(new_rec, old_rec)
       else
-        lo_add(new_rec)
+        updates_done = true if lo_add(new_rec)
       end
     end
     # Deactivate all old records that are not :up_to_date
     if subj_errors_count == 0
-      lo_deact_rest_old_recs(subj)
+      updates_done = true if lo_deact_rest_old_recs(subj)
     end
     if subj_errors_count > 0
       @subj_to_proc[subj.id][:error] = true
     end
+    return updates_done
   end
 
   def lo_update(new_rec, old_rec)
+    update_done = false
     if new_rec[:error].blank?
       if new_rec[:lo_code] != old_rec[:lo_code] || new_rec[:desc].gsub(/\r\n?/, "\n").strip() != old_rec[:desc].gsub(/\r\n?/, "\n").strip() || new_rec[:mp] != old_rec[:mp] || !old_rec[:active]
         # Rails.logger.debug("*** diff in records")
@@ -622,6 +626,7 @@ module SubjectOutcomesHelper
           # Rails.logger.debug("*** lo_update **** Updated to : #{so.inspect}")
           @count_updates += 1
         end
+        update_done = true
       else
         new_rec[:up_to_date] = true
         old_rec[:up_to_date] = true
@@ -630,6 +635,7 @@ module SubjectOutcomesHelper
     else
       Rails.logger.debug("*** lo_update **** error: #{new_rec[:error]}")
     end
+    return update_done
   end
 
   def lo_add(new_rec)
@@ -651,9 +657,11 @@ module SubjectOutcomesHelper
       # Rails.logger.debug("*** lo_add **** Added : #{so.inspect}")
       @count_adds += 1
     end
+    return true
   end
 
   def lo_deact_rest_old_recs(subj)
+    update_done = true
     # Deactivate all old records that are not :up_to_date
     # Rails.logger.debug("*** subj: #{subj} - #{subj.inspect}")
     old_db_ids = @old_db_ids_by_subject[subj.id].present? ? @old_db_ids_by_subject[subj.id] : []
@@ -677,8 +685,10 @@ module SubjectOutcomesHelper
           # Rails.logger.debug("*** lo_deact_rest_old_recs **** Deactivated : #{so.inspect}")
           @count_deactivates += 1
         end
+        update_done = true
       end
     end
+    return update_done
   end
 
   def lo_setup_subject(subj, auto_update)
@@ -694,7 +704,7 @@ module SubjectOutcomesHelper
       if auto_update
         Rails.logger.debug("*** lo_setup_subject - AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
         # update this subject now and be done with it
-        lo_update_subject(subj)
+        @count_updated_subjects += 1 if lo_update_subject(subj)
       else
         Rails.logger.debug("*** lo_setup_subject - no autoupdate, then display it (if first) #{subj} -> #{@subject_to_show.inspect}")
         # if no autoupdate, then display it (if first)

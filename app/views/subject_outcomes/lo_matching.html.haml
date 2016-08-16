@@ -23,13 +23,13 @@
 - if !@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
   .row 'This school is not configured for Bulk Uploading Learning Outcomes'
 - sum_los_to_print = @new_los_to_present.count + @old_los_to_present.count
-- Rails.logger.debug("*** sum_los_to_print: #{sum_los_to_print.inspect}")
 - print_eject_class = ''
 - print_full_width_class = ''
 - if sum_los_to_print > 8
   - print_eject_class = 'page-break-before'
   - print_full_width_class = 'print-page-full-width'
-- Rails.logger.debug("*** print_eject_class: #{print_eject_class}")
+%h3.text-center.ui-error='Note: When save is done, all unmatched new records will be added, and all unmatched old records will be deactivated.'
+
 .row{class: (@school.acronym == 'MOD' && can?(:switch, School) && can?(:upload_lo_file, SubjectOutcome) && @school.has_flag?(School::GRADE_IN_SUBJECT_NAME) ? "" : "display-none")}
   .col-sm-1
   .col-sm-10
@@ -37,7 +37,7 @@
       .block-title.text-center
         - if @present_by_subject.present?
           %h3= "Learning Outcomes Matching Process of #{@present_by_subject.name} of All Subjects"
-        - if @match_subject.present?
+        - elsif @match_subject.present?
           %h3= "Learning Outcomes Matching Process of Only #{@match_subject.name}"
       .block-content-full.rounded-title-container
         = form_tag(lo_matching_subject_outcomes_path) do
@@ -62,6 +62,8 @@
                         %input{type: 'hidden', name: "total_adds", value: @total_adds}
                       - if @total_deactivates.present?
                         %input{type: 'hidden', name: "total_deactivates", value: @total_deactivates}
+                      - if @count_updated_subjects.present?
+                        %input{type: 'hidden', name: "count_updated_subjects", value: @count_updated_subjects}
                   %tr
                     %th{title: 'New Marking Period'}= 'New MP'
                     %th= 'New Code'
@@ -141,10 +143,12 @@
               .row="#{k} - #{err}"
 
           .row.text-center
+            %h3.ui-error='Warning: Subject can only be reconciled once !'
+          .row.text-center
             .btn.btn.btn-default
               %a#upload-again{href: upload_lo_file_subject_outcomes_path, title: 'Upload Learning Outcomes'}= "UPLOAD"
             - if !@allow_save_all && @errors.count == 0 # && !@no_update
-              %button#save_matches.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'set_matches'}='Save Matches'
+              %button#save_matches.btn.btn-primary.cancel{type: "submit", title: 'Set Matches', name: 'submit_action', value: 'set_matches'}='Reconcile Subject'
             - if @allow_save_all && @errors.count == 0
               %button#save_all.btn.btn-primary.cancel{type: "submit", title: 'Save All LOs', name: 'submit_action', value: 'save_all'}='SAVE ALL'
             - if @present_by_subject.present?
@@ -153,23 +157,25 @@
           - if @prior_subject_name.present?
             .row.text-center
               %span#prior_subj=@prior_subject_name
-              %span=" counts: Errors - "
-              %span#count_errors=@count_errors
-              %span=", Updates - "
+              %span=" counts: Updates - "
               %span#count_updates=@count_updates
               %span=", Adds - "
               %span#count_adds=@count_adds
               %span=", Deactivates - "
               %span#count_deactivates=@count_deactivates
+              %span=", Errors - "
+              %span#count_errors=@count_errors
             .row.text-center
-              %span="total counts: Errors - "
-              %span#total_errors=@total_errors
+              %span=" counts: Subjects Updated - "
+              %span#count_updates=@count_updated_subjects
               %span=", Updates - "
               %span#total_updates=@total_updates
               %span=", Adds - "
               %span#total_adds=@total_adds
               %span=", Deactivates - "
               %span#total_deactivates=@total_deactivates
+              %span=", Errors - "
+              %span#total_errors=@total_errors
 .col-sm-1
 
 

@@ -179,6 +179,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       find('#save_matches').click
+      save_and_open_page
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
       page.should have_css('#count_errors', text: '0')
@@ -240,11 +241,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '2')
+      page.should have_css('#count_updates', text: '3')
       page.should have_css('#count_adds', text: '1')
       page.should have_css('#count_deactivates', text: '0')
       page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '2')
+      page.should have_css('#total_updates', text: '3')
       page.should have_css('#total_adds', text: '1')
       page.should have_css('#total_deactivates', text: '0')
     end # within #page-content
@@ -382,15 +383,17 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
       page.should have_css("#prior_subj", text: 'Automatically Updated Subjects')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '2')
+      page.should have_css('#count_updates', text: '3')
       page.should have_css('#count_adds', text: '1')
       page.should have_css('#count_deactivates', text: '8')
       page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '2')
+      page.should have_css('#total_updates', text: '3')
       page.should have_css('#total_adds', text: '1')
       page.should have_css('#total_deactivates', text: '8')
 
       select('E-AT.2.01', from: "selections_5")
+
+      false.should == true
 
       find('#skip_subject').click
 

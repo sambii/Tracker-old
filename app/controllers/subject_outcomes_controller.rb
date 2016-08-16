@@ -207,17 +207,20 @@ class SubjectOutcomesController < ApplicationController
       @count_updates = 0
       @count_adds = 0
       @count_deactivates = 0
+      @count_updated_subjects = 0
 
       Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
       # get starting subject to present to user
       if @match_subject.present?
         lo_setup_subject(@match_subject, false)
         @subject_to_show = @match_subject # always show match subject if subject has been chosen
+        @prior_subject_name = ''
       else
         @subjects.each do |subj|
           lo_setup_subject(subj, true)
         end
         @present_by_subject = @subject_to_show
+        @prior_subject_name = 'Automatically Updated Subjects'
       end
       Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
       Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
@@ -230,10 +233,10 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** @count_adds #{@count_adds}")
       Rails.logger.debug("*** @count_deactivates #{@count_deactivates}")
 
-      @prior_subject_name = 'Automatically Updated Subjects'
       @total_errors = @count_errors
       @total_updates = @count_updates
       @total_adds = @count_adds
+      @total_deactivates = @count_deactivates
       @total_deactivates = @count_deactivates
 
       Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
@@ -267,7 +270,7 @@ class SubjectOutcomesController < ApplicationController
         msg_str = "ERROR: lo_matching Exception at @stage: #{@stage}, step #{step}, item #{action_count+1} - #{e.message}"
         @errors[:base] = append_with_comma(@errors[:base], msg_str)
         Rails.logger.error(msg_str)
-        flash[:alert] = msg_str
+        flash[:alert] = msg_str[0...50]
         @stage = 5
       end
     end
@@ -275,7 +278,13 @@ class SubjectOutcomesController < ApplicationController
     @old_los_to_present.each{|rec| Rails.logger.debug("*** present old rec: #{rec}")}
     @new_los_to_present.each{|rec| Rails.logger.debug("*** present new rec: #{rec}")}
 
+    Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
+    Rails.logger.debug("*** @errors #{@errors.inspect}")
+
     flash[:alert] = flash[:alert].present? ? flash[:alert] + @errors[:base] : @errors[:base] if @errors[:base]
+    if @stage > 1 && @present_by_subject.present?
+      flash[:notify] = "#{@prior_subject_name} counts: Errors - #{@count_errors}, Updates - #{@count_updates}, Adds - #{@count_adds}, Deactivates - #{@count_deactivates}"
+    end
     respond_to do |format|
       Rails.logger.debug("*** @stage = #{@stage}")
       # if @stage == 1 || @any_errors
@@ -392,6 +401,9 @@ class SubjectOutcomesController < ApplicationController
       @total_updates = params['total_updates'].present? ? (Integer(params['total_updates']) rescue 0) : 0
       @total_adds =  params['total_adds'].present? ? (Integer(params['total_adds']) rescue 0) : 0
       @total_deactivates = params['total_deactivates'].present? ? (Integer(params['total_deactivates']) rescue 0) : 0
+      @count_updated_subjects = params['count_updated_subjects'].present? ? (Integer(params['count_updated_subjects']) rescue 0) : 0
+
+      Rails.logger.debug("*** @count_updated_subjects #{@count_updated_subjects.inspect}")
 
       step = 5
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
@@ -399,6 +411,7 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
 
       go_to_next = false
+      updates_done = false
       @action = params["submit_action"]
       if @action == "set_matches"
         Rails.logger.debug("*** Will update the database from selections for this subject #####")
@@ -410,43 +423,65 @@ class SubjectOutcomesController < ApplicationController
 
         # check for duplicate database assignments
         counts_h = Hash.new(0)
+        # Rails.logger.debug("*** @selection_params: #{@selection_params.inspect}")
         @selection_params.each{ |k,v| counts_h[(Integer(v) rescue 0)] += 1}
         Rails.logger.debug("*** counts_h: #{counts_h.inspect}")
-        @errors[:base] = append_with_comma(@errors[:base], "duplicate old record match #{counts_h.select{|k,v| v>0}.inspect}") if counts_h.count < @selection_params.count
+        # drop unmatched records from selection processing
+        counts_h[0] = 0
+        # Rails.logger.debug("*** counts_h: #{counts_h.inspect}")
+        dup_recs = counts_h.select{|k,v| v>1}.keys
+        Rails.logger.debug("*** dup_recs: #{dup_recs.inspect}")
         if @errors.count == 0
           @selection_params.each do |new_rec_id,old_db_id|
             new_rec_id_num = Integer(new_rec_id) rescue 0
             Rails.logger.debug("*** new_rec_id: #{new_rec_id.inspect} => #{new_rec_id_num}")
             new_rec = @all_new_los[(new_rec_id_num)]
-            Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
+            new_rec_error = new_rec[:error].present? ? new_rec[:error] : ''
+            # Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
             if old_db_id.present?
               # new record assigned to an old record
+              
               old_db_id_num = Integer(old_db_id) rescue 0
               Rails.logger.debug("*** old_db_id: #{old_db_id.inspect} => #{old_db_id_num}")
               old_rec = @all_old_los[old_db_id_num]
               Rails.logger.debug("*** old_rec: #{old_rec.inspect}")
-              new_rec[:error] = new_rec[:error].present? ? new_rec[:error] + 'Mismatched subject' : 'Mismatched subject' if old_rec[:subject_id] != new_rec[:subject_id]
-              Rails.logger.debug("*** lo_update old_rec: #{old_rec}")
-              lo_update(new_rec, old_rec)
+              new_rec_error += 'Mismatched subject' if old_rec[:subject_id] != new_rec[:subject_id]
+              if dup_recs.include?(old_db_id_num)
+                new_rec_error += "Duplicate Match #{old_rec[:match_id]}-#{old_rec[:lo_code]}"
+                Rails.logger.debug("*** duplicate match on #{new_rec_id}/#{old_rec} -  #{old_rec[:match_id]}-#{old_rec[:lo_code]}")
+              end
+              if counts_h.values.max < 2
+                Rails.logger.debug("*** lo_update old_rec: #{old_rec}")
+                updates_done = true if lo_update(new_rec, old_rec)
+              end
+              new_rec[:error] = new_rec_error if new_rec_error.present?
             else # old_db_id.present?
-              lo_add(new_rec)
+              if counts_h.values.max < 2
+                updates_done = true if lo_add(new_rec)
+              end
             end # old_db_id.present?
+            # Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
           end # params['selections'].each
         end # @errors.count == 0
 
         Rails.logger.debug("*** lo_deact_rest_old_recs")
-        lo_deact_rest_old_recs(@match_subject) if @count_errors == 0
+        if @count_errors == 0 && @errors.count == 0 && counts_h.values.max < 2
+          updates_done = true if lo_deact_rest_old_recs(@match_subject)
+        end
         Rails.logger.debug("*** lo_deact_rest_old_recs done")
 
         # update database records in @all_old_los
         lo_get_old_los_for_subj(@match_subject)
 
-        go_to_next = true
+        if updates_done
+          @count_updated_subjects += 1 
+          go_to_next = true
+        end
       elsif @action == "save_all"
         Rails.logger.debug("*** Will update the database from selections for all subjects #####")
         @stage = 10
       elsif @action == "skip"
-        Rails.logger.debug("*** Will Skip Learning Outcomes for subject: #{@match_subject}")
+        Rails.logger.debug("*** Will Skip Learning Outcomes for subject: #{@match_subject.id}-#{@match_subject.name}")
         go_to_next = true
       elsif @action == "cancel"
         Rails.logger.debug("*** Will cancel update for this subject and go to report")
@@ -454,30 +489,28 @@ class SubjectOutcomesController < ApplicationController
       end
       Rails.logger.debug("*** params[:submit_action]: #{params[:submit_action]}")
 
-      if go_to_next
-        ##### get next subject to present to user #####
-        Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
-        do_subject_setup = false
-        @subjects.each do |subj|
-          if subj.id == @match_subject.id
-            # we found the last subject processed in the subjects array
-            # set up the rest of the subjects
-            do_subject_setup = true
-            next
-          end
+      ##### get subject to present to user #####
+      Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
+      do_subject_setup = false
+      @subjects.each_with_index do |subj, ix|
+        if subj.id == @match_subject.id
+          # we found the subject just presented to the user
 
-          if do_subject_setup
-            lo_setup_subject(subj, false) # did auto update already in lo_upload
-          end
+          do_subject_setup = true
+          next if go_to_next
         end
-        @present_by_subject = @subject_to_show
-        Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
-        Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
-        @no_update = @subject_to_show.present? ? @subj_to_proc[@subject_to_show.id][:skip] : true
-        Rails.logger.debug("*** @no_update #{@no_update.inspect}")
 
-        Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
+        if do_subject_setup
+          lo_setup_subject(subj, false) # did auto update already in lo_upload
+        end
       end
+      @present_by_subject = @subject_to_show
+      Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
+      Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
+      @no_update = @subject_to_show.present? ? @subj_to_proc[@subject_to_show.id][:skip] : true
+      Rails.logger.debug("*** @no_update #{@no_update.inspect}")
+
+      Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
 
       step = 7
 
@@ -492,12 +525,14 @@ class SubjectOutcomesController < ApplicationController
         # pull the new learning outcomes to process from the @new_rec_ids_by_subject
         @new_rec_ids_by_subject[@subject_to_show.id].each do |rec_id|
           @new_los_to_present << @all_new_los[rec_id]
+          # Rails.logger.debug("*** new rec to present: #{@all_new_los[rec_id]}")
         end
         step = '3b'
         Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # pull the old learning outcomes to process from the @old_db_ids_by_subject
         @old_db_ids_by_subject[@subject_to_show.id].each do |db_id|
           @old_los_to_present << @all_old_los[db_id]
+          # Rails.logger.debug("*** old rec to present: #{@all_old_los[db_id]}")
         end
 
         lo_set_matches(@new_los_to_present, @old_los_to_present, @old_db_ids_by_subject, @all_old_los)
@@ -514,7 +549,7 @@ class SubjectOutcomesController < ApplicationController
       msg_str = "ERROR: lo_matching Exception at #{item_at} - #{e.message}"
       @errors[:base] = append_with_comma(@errors[:base], msg_str)
       Rails.logger.error(@errors[:base])
-      flash[:alert] = @errors[:base]
+      flash[:alert] = truncate(@errors[:base], length: 50)
       @stage = 5
     end
 
@@ -522,13 +557,19 @@ class SubjectOutcomesController < ApplicationController
     Rails.logger.debug("*** @total_updates: #{@total_updates.inspect} += @count_updates: #{@count_updates.inspect}")
     Rails.logger.debug("*** @total_adds: #{@total_adds.inspect} += @count_adds: #{@count_adds.inspect}")
     Rails.logger.debug("*** @total_deactivates: #{@total_deactivates.inspect} += @count_deactivates: #{@count_deactivates.inspect}")
+    Rails.logger.debug("*** @count_updated_subjects #{@count_updated_subjects.inspect}")
 
 
-    @prior_subject_name = @prior_subject.name
+    @prior_subject_name = @prior_subject.present? ? @prior_subject.name : ''
     @total_errors += @count_errors
     @total_updates += @count_updates
     @total_adds += @count_adds
     @total_deactivates += @count_deactivates
+
+    Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
+    Rails.logger.debug("*** @errors #{@errors.inspect}")
+
+    flash[:notify] = "#{@prior_subject_name} counts: Errors - #{@count_errors}, Updates - #{@count_updates}, Adds - #{@count_adds}, Deactivates - #{@count_deactivates}"
 
     respond_to do |format|
       Rails.logger.debug("*** lo_matching @stage = #{@stage}")
