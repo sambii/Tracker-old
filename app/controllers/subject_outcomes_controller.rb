@@ -280,6 +280,9 @@ class SubjectOutcomesController < ApplicationController
 
     Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
     Rails.logger.debug("*** @errors #{@errors.inspect}")
+    @subject_errors = (@subject_to_show.present? && @subj_to_proc[@subject_to_show.id][:error]) ? true : false
+    @subject_errors = true if @errors.count > 0
+    Rails.logger.debug("*** @subject_errors #{@subject_errors.inspect}")
 
     flash[:alert] = flash[:alert].present? ? flash[:alert] + @errors[:base] : @errors[:base] if @errors[:base]
     if @stage > 1 && @present_by_subject.present?
@@ -567,7 +570,9 @@ class SubjectOutcomesController < ApplicationController
     @total_deactivates += @count_deactivates
 
     Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
-    Rails.logger.debug("*** @errors #{@errors.inspect}")
+    @subject_errors = (@subject_to_show.present? && @subj_to_proc[@subject_to_show.id][:error]) ? true : false
+    @subject_errors = true if @errors.count > 0
+    Rails.logger.debug("*** @subject_errors #{@subject_errors.inspect}")
 
     flash[:notify] = "#{@prior_subject_name} counts: Errors - #{@count_errors}, Updates - #{@count_updates}, Adds - #{@count_adds}, Deactivates - #{@count_deactivates}"
 

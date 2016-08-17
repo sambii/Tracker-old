@@ -131,8 +131,15 @@ module SubjectOutcomesHelper
           records.drop(ix+1).each_with_index do |ry, iy|
             iyall = iy + ix + 1 # index of the later row being tested
             # if later record has not been matched already, check if a match to current
-            if rx[COL_OUTCOME_CODE] == ry[COL_OUTCOME_CODE] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
+            x_code = rx[COL_OUTCOME_CODE].present? ? rx[COL_OUTCOME_CODE] : rx[:lo_code]
+            y_code = ry[COL_OUTCOME_CODE].present? ? ry[COL_OUTCOME_CODE] : ry[:lo_code]
+            x_subject = rx[COL_SUBJECT].present? ? rx[COL_SUBJECT] : rx[:subject_id]
+            y_subject = ry[COL_SUBJECT].present? ? ry[COL_SUBJECT] : ry[:subject_id]
+            # if rx[COL_OUTCOME_CODE] == ry[COL_OUTCOME_CODE] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
+            if x_code == y_code && x_subject == y_subject
               Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+              Rails.logger.debug("*** Match  rx: #{x_code}, #{x_subject} #{rx.inspect}")
+              Rails.logger.debug("*** Match  ry: #{y_code}, #{y_subject} #{ry.inspect}")
               if !error_list[iyall+2].present? || (error_list[iyall+2].present? && error_list[iyall+2][0] != '-1')
                 # put or add to end the list of duplicated lines, but only if not listed prior
                 # ix+2 or iyall+2 for zero relative ruby arrays and ignoring the header line.
@@ -144,9 +151,9 @@ module SubjectOutcomesHelper
                 error_list[iyall+2] = ['-1', '']
               end
               # add the duplicate LO Code message to this row, if not there already
-              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Dup LO Code') if !(records[ix][COL_ERROR] ||= '').include?('Dup LO Code')
+              records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Code') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Code')
               # add the duplicate LO Code message to the later row, if not there already
-              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Dup LO Code') if !(records[iyall][COL_ERROR] ||= '').include?('Dup LO Code')
+              records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Duplicate Code') if !(records[iyall][COL_ERROR] ||= '').include?('Duplicate Code')
             end
           end
         end
@@ -172,7 +179,15 @@ module SubjectOutcomesHelper
           records.drop(ix+1).each_with_index do |ry, iy|
             iyall = iy + ix + 1 # index of the later row being tested
             # if later record has not been matched already, check if a match to current
-            if rx[COL_OUTCOME_NAME] == ry[COL_OUTCOME_NAME] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
+            x_desc = rx[COL_OUTCOME_NAME].present? ? rx[COL_OUTCOME_NAME] : rx[:desc]
+            y_desc = ry[COL_OUTCOME_NAME].present? ? ry[COL_OUTCOME_NAME] : ry[:desc]
+            x_subject = rx[COL_SUBJECT].present? ? rx[COL_SUBJECT] : rx[:subject_id]
+            y_subject = ry[COL_SUBJECT].present? ? ry[COL_SUBJECT] : ry[:subject_id]
+            # if rx[COL_OUTCOME_NAME] == ry[COL_OUTCOME_NAME] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
+            if x_desc == y_desc && x_subject == y_subject
+              Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+              Rails.logger.debug("*** Match  rx: #{x_desc}, #{x_subject} #{rx.inspect}")
+              Rails.logger.debug("*** Match  ry: #{y_desc}, #{y_subject} #{ry.inspect}")
               Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
               if !error_list[iyall+2].present? || (error_list[iyall+2].present? && error_list[iyall+2][0] != '-1')
                 # put or add to end the list of duplicated lines, but only if not listed prior
@@ -449,6 +464,72 @@ module SubjectOutcomesHelper
     return {new_rec_ids_by_subject: new_rec_ids_by_subject, all_new_los: all_new_los}
   end
 
+  def lo_dups_for_subject(subj)
+    # step = 5
+    # Rails.logger.debug("*** Stage: #{@stage}, Subject #{subj.id}-#{subj.name} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+    new_rec_ids = @new_rec_ids_by_subject[subj.id].present? ? @new_rec_ids_by_subject[subj.id] : []
+    Rails.logger.debug("*** new_rec_ids: #{new_rec_ids.inspect}")
+    subj_flags = @subj_to_proc[subj.id].present? ? @subj_to_proc[subj.id] : {}
+    subj_flags = subj_flags.merge({error: false})  # assume no duplicate errors
+
+    @error_list = Hash.new
+    records = Array.new
+    new_rec_ids.each do |rec_id|
+      records << @all_new_los[rec_id]
+    end
+    records.each_with_index do |rx, ix|
+      # check all records following it for duplicated LO description
+      if !@error_list[ix+2].present? || @error_list[ix+2].present? && @error_list[ix+2][0] != '-1'
+        records.drop(ix+1).each_with_index do |ry, iy|
+          iyall = iy + ix + 1 # index of the later row being tested
+          # if later record has not been matched already, check if a match to current
+          x_desc_1 = rx[COL_OUTCOME_NAME].present? ? rx[COL_OUTCOME_NAME] : rx[:desc]
+          x_desc_2 = (x_desc_1.present?) ? x_desc_1.gsub(/\s+/, ' ').strip() : ''
+          y_desc_1 = ry[COL_OUTCOME_NAME].present? ? ry[COL_OUTCOME_NAME] : ry[:desc]
+          y_desc_2 = (y_desc_1.present?) ? y_desc_1.gsub(/\s+/, ' ').strip() : ''
+          x_code = rx[COL_OUTCOME_CODE].present? ? rx[COL_OUTCOME_CODE] : rx[:lo_code]
+          y_code = ry[COL_OUTCOME_CODE].present? ? ry[COL_OUTCOME_CODE] : ry[:lo_code]
+          x_subject = rx[COL_SUBJECT].present? ? rx[COL_SUBJECT] : rx[:subject_id]
+          y_subject = ry[COL_SUBJECT].present? ? ry[COL_SUBJECT] : ry[:subject_id]
+          if x_desc_2 == y_desc_2 && x_subject == y_subject
+            Rails.logger.debug("*** Match  rx: #{x_desc_2}, #{x_subject} #{rx.inspect}")
+            Rails.logger.debug("*** Match  ry: #{y_desc_2}, #{y_subject} #{ry.inspect}")
+            set_error_list_matches(ix, iyall, 'description')
+            Rails.logger.debug("*** dup description added for #{ix}, #{records[ix].inspect}")
+            Rails.logger.debug("*** dup description added for #{iyall}, #{records[iyall].inspect}")
+            # add the duplicate LO Description message to this row, if not there already
+            records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Description') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Description')
+            # add the duplicate LO Description message to the later row, if not there already
+            records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Duplicate Description') if !(records[iyall][COL_ERROR] ||= '').include?('Duplicate Description')
+          end
+          if x_code == y_code && x_subject == y_subject
+            Rails.logger.debug("*** Match  rx: #{x_code}, #{x_subject} #{rx.inspect}")
+            Rails.logger.debug("*** Match  ry: #{y_code}, #{y_subject} #{ry.inspect}")
+            set_error_list_matches(ix, iyall, x_code)
+            Rails.logger.debug("*** dup code added for #{ix}, #{records[ix].inspect}")
+            Rails.logger.debug("*** dup code added for #{iyall}, #{records[iyall].inspect}")
+            # add the duplicate Code message to this row, if not there already
+            records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Code') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Code')
+            # add the duplicate Code message to the later row, if not there already
+            records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Duplicate Code') if !(records[iyall][COL_ERROR] ||= '').include?('Duplicate Code')
+          end
+        end # records.drop(ix+1).each_with_index
+      end # !error_list[ix+2].present? ...
+    end # records.each_with_index
+  end
+
+  def set_error_list_matches(ix, iyall, label)
+    Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+    if !@error_list[iyall+2].present? || (@error_list[iyall+2].present? && @error_list[iyall+2][0] != '-1')
+      if @error_list[ix+2].present?
+        @error_list[ix+2][1] += ", #{iyall+2}"
+      else
+        @error_list[ix+2] = [label, "#{ix+2}, #{iyall+2}"]
+      end
+      @error_list[iyall+2] = ['-1', '']
+    end
+  end
+
   def lo_matches_for_subject(subj)
     step = 5
     Rails.logger.debug("*** Stage: #{@stage}, Subject #{subj.id}-#{subj.name} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
@@ -460,8 +541,8 @@ module SubjectOutcomesHelper
     new_rec_ids = @new_rec_ids_by_subject[subj.id].present? ? @new_rec_ids_by_subject[subj.id] : []
     Rails.logger.debug("*** old_db_ids: #{old_db_ids.inspect}")
     Rails.logger.debug("*** new_rec_ids: #{new_rec_ids.inspect}")
-    # subj_flags = @subj_to_proc[subj.id].present? ? @subj_to_proc[subj.id] : {}
-    subj_flags = {process: true}  # assume automatically processing possible unless reset
+    subj_flags = @subj_to_proc[subj.id].present? ? @subj_to_proc[subj.id] : {}
+    subj_flags = subj_flags.merge({process: true})  # assume automatically processing possible unless reset
 
     new_rec_ids.each do |rec_id|
       new_rec = @all_new_los[rec_id]
@@ -585,17 +666,21 @@ module SubjectOutcomesHelper
         old_rec = @all_old_los[db_id]
         # Rails.logger.debug("*** matching Old rec: #{db_id} - #{old_rec.inspect}")
         updates_done = true if lo_update(new_rec, old_rec)
+        Rails.logger.debug("*** subject  #{subj.id}-#{subj.name} lo_update updates_done: #{updates_done}")
       else
         updates_done = true if lo_add(new_rec)
+        Rails.logger.debug("*** subject  #{subj.id}-#{subj.name} lo_add updates_done: #{updates_done}")
       end
     end
     # Deactivate all old records that are not :up_to_date
     if subj_errors_count == 0
       updates_done = true if lo_deact_rest_old_recs(subj)
+      Rails.logger.debug("*** subject  #{subj.id}-#{subj.name} lo_deact_rest_old_recs updates_done: #{updates_done}")
     end
     if subj_errors_count > 0
       @subj_to_proc[subj.id][:error] = true
     end
+    Rails.logger.debug("*** subject  #{subj.id}-#{subj.name} return updates_done: #{updates_done}")
     return updates_done
   end
 
@@ -692,14 +777,12 @@ module SubjectOutcomesHelper
   end
 
   def lo_setup_subject(subj, auto_update)
+    Rails.logger.debug("*** lo_setup_subject 1 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
+    lo_dups_for_subject(subj)
+    Rails.logger.debug("*** lo_setup_subject 2 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
     lo_matches_for_subject(subj)
-    if !@subj_to_proc[subj.id][:process]
-      Rails.logger.debug("*** lo_setup_subject - DONT AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
-      # This is a subject that must be matched, set up first presenting subject if not done already
-      if @subject_to_show.blank?
-        @subject_to_show = subj
-      end
-    else
+    Rails.logger.debug("*** lo_setup_subject 3 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
+    if @subj_to_proc[subj.id][:process] && !@subj_to_proc[subj.id][:error]
       Rails.logger.debug("*** lo_setup_subject - Auto Update possible #{@subj_to_proc[subj.id]} - #{subj.inspect}")
       if auto_update
         Rails.logger.debug("*** lo_setup_subject - AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
@@ -709,6 +792,12 @@ module SubjectOutcomesHelper
         Rails.logger.debug("*** lo_setup_subject - no autoupdate, then display it (if first) #{subj} -> #{@subject_to_show.inspect}")
         # if no autoupdate, then display it (if first)
         # @subject_to_show = subj if @subject_to_show.blank?
+      end
+    else
+      Rails.logger.debug("*** lo_setup_subject - DONT AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+      # This is a subject that must be matched, set up first presenting subject if not done already
+      if @subject_to_show.blank?
+        @subject_to_show = subj
       end
     end
   end

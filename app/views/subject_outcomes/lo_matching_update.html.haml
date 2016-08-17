@@ -22,47 +22,49 @@
         %h3
           ='Learning Outcomes Updated Matching Report'
       .block-content-full.rounded-title-container
-        %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
-          %thead.table-title
-            %tr
-              %th= 'Subject'
-              %th= 'Updated Marking Period'
-              %th= 'Updated LO Code'
-              %th= 'Updated Description'
-          %tbody.tbody-body
-            - @old_los_to_present.each do |old_rec|
-              - subject_id = old_rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
-              - subject_id_i = Integer(subject_id) rescue -1
-              - hide_subject_class = @present_by_subject.present? ? (@present_by_subject.id != subject_id_i ? 'display-none' : '') : ''
-              - if hide_subject_class.blank?
-                %tr.break
-                  - deact_class = ( (old_rec[:active] == false) ? 'deactivated ' : '')
-                  - error_class = (old_rec[:error].present? ? 'ui-error' : '')
-                  %td.subject_name=old_rec[:subject_name]
-                  %td{class: "mp #{deact_class}"}=old_rec[:mp]
-                  %td{class: "lo_code #{deact_class}"}=old_rec[:lo_code]
-                  %td{class: "lo_desc #{deact_class}"}=old_rec[:desc]
-        - if @prior_subject.present?
+        / %table.titled-table.table.table-bordered.table-condensed.remove-margin.manual-highlight.manual-break
+        /   %thead.table-title
+        /     %tr
+        /       %th= 'Subject'
+        /       %th= 'Updated Marking Period'
+        /       %th= 'Updated LO Code'
+        /       %th= 'Updated Description'
+        /   %tbody.tbody-body
+        /     - @old_los_to_present.each do |old_rec|
+        /       - subject_id = old_rec[SubjectOutcomesHelper::COL_SUBJECT_ID]
+        /       - subject_id_i = Integer(subject_id) rescue -1
+        /       - hide_subject_class = @present_by_subject.present? ? (@present_by_subject.id != subject_id_i ? 'display-none' : '') : ''
+        /       - if hide_subject_class.blank?
+        /         %tr.break
+        /           - deact_class = ( (old_rec[:active] == false) ? 'deactivated ' : '')
+        /           - error_class = (old_rec[:error].present? ? 'ui-error' : '')
+        /           %td.subject_name=old_rec[:subject_name]
+        /           %td{class: "mp #{deact_class}"}=old_rec[:mp]
+        /           %td{class: "lo_code #{deact_class}"}=old_rec[:lo_code]
+        /           %td{class: "lo_desc #{deact_class}"}=old_rec[:desc]
+        - if @prior_subject_name.present?
           - # this is not the first page, so show totals so far
           .row.text-center
-            %span#prior_subj=@prior_subject.name
-            %span=" counts: Errors - "
-            %span#count_errors=@count_errors
-            %span=", Updates - "
+            %span#prior_subj=@prior_subject_name
+            %span=" counts: Updates - "
             %span#count_updates=@count_updates
             %span=", Adds - "
             %span#count_adds=@count_adds
             %span=", Deactivates - "
             %span#count_deactivates=@count_deactivates
+            %span=", Errors - "
+            %span#count_errors=@count_errors
         .row.text-center
-          %span="Grand total counts: Errors - "
-          %span#total_errors=@total_errors
+          %span="Grand total counts: Subjects Updated - "
+          %span#count_updated_subjects=@count_updated_subjects
           %span=", Updates - "
           %span#total_updates=@total_updates
           %span=", Adds - "
           %span#total_adds=@total_adds
           %span=", Deactivates - "
           %span#total_deactivates=@total_deactivates
+          %span=", Errors - "
+          %span#total_errors=@total_errors
 .col-sm-1
 
 
