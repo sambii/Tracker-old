@@ -59,8 +59,19 @@ describe "School Listing", js:true do
       sign_in(@researcher)
       set_users_school(@school1)
     end
-    it { has_nav_to_schools_page }
-    it { lists_all_schools(false) }
+    it { has_nav_to_schools_page(true) }
+    it { lists_all_schools(false, true) }
+    it { no_rollover_school_year }
+    it { no_new_year_rollover }
+  end
+
+  describe "as researcher with no school selected" do
+    before do
+      @researcher = FactoryGirl.create :researcher
+      sign_in(@researcher)
+    end
+    it { has_nav_to_schools_page(false) }
+    it { lists_all_schools(false, false) }
     it { no_rollover_school_year }
     it { no_new_year_rollover }
   end
@@ -71,8 +82,19 @@ describe "School Listing", js:true do
       sign_in(@system_administrator)
       set_users_school(@school1)
     end
-    it { has_nav_to_schools_page }
-    it { lists_all_schools(true) }
+    it { has_nav_to_schools_page(true) }
+    it { lists_all_schools(true, true) }
+    it { has_rollover_school_year }
+    it { has_new_year_rollover }
+  end
+
+  describe "as system administrator with no school selected" do
+    before do
+      @system_administrator = FactoryGirl.create :system_administrator
+      sign_in(@system_administrator)
+    end
+    it { has_nav_to_schools_page(false) }
+    it { lists_all_schools(true, false) }
     it { has_rollover_school_year }
     it { has_new_year_rollover }
   end
@@ -96,8 +118,33 @@ describe "School Listing", js:true do
   ##################################################
   # test methods
 
-  def has_nav_to_schools_page
+  def has_nav_to_schools_page(school_assigned)
     page.should have_css("li#side-schools")
+    find('li#side-schools').click
+    if !school_assigned
+      # confirm school is not assigned
+      within("#head-current-school") do
+        page.should have_content("Select a School")
+        page.should_not have_content("Switch School")
+      end
+    end
+    page.should have_css("a[href='/schools/#{@school2.id}']")
+    find("a[href='/schools/#{@school2.id}']").click
+    assert_equal("/schools/#{@school2.id}", current_path)
+    page.should have_content("School: #{@school2.name}")
+    within("div.show-label-value #school-acronym") do
+      page.should have_content(@school2.acronym)
+    end
+
+    # confirm school is set
+    within("#head-current-school") do
+      page.should_not have_content("Select a School")
+      within("span[title='Current School']") do
+        page.should have_content(@school2.name)
+      end
+    end
+
+
   end # has_nav_to_schools_page
 
   def no_nav_to_schools_page
@@ -118,7 +165,7 @@ describe "School Listing", js:true do
     page.all("tr td.school-acronym").count.should == 1
   end # only_list_one_school
 
-  def lists_all_schools(sys_admin)
+  def lists_all_schools(sys_admin, school_assigned)
     visit schools_path()
     assert_equal("/schools", current_path)
     page.should have_css("tr#school-1")
@@ -158,15 +205,37 @@ describe "School Listing", js:true do
       end
     end
 
-    visit schools_path()
-    find("a[href='/schools/#{@school1.id}']").click
-    assert_equal("/schools/#{@school1.id}", current_path)
-    page.should have_content("School: #{@school1.name}")
-    within("div.show-label-value #school-acronym") do
-      page.should have_content(@school1.acronym)
+    # confirm school is set after going to school dashboard
+    if !school_assigned
+      # confirm school is not assigned
+      within("#head-current-school") do
+        page.should have_content("Select a School")
+        page.should_not have_content("Switch School")
+      end
     end
 
     visit schools_path()
+    page.should have_css("a[href='/schools/#{@school2.id}/dashboard']")
+    find("a[href='/schools/#{@school2.id}/dashboard']").click
+    assert_equal("/schools/#{@school2.id}/dashboard", current_path)
+    page.should have_content("School: #{@school2.name}")
+    within("div#overall") do
+      page.should have_content('0 - High Performance')
+      page.should have_content('0 - Proficient')
+      page.should have_content('0 - Not Yet Proficient')
+      page.should have_content('0 - Unrated')
+    end
+
+    # confirm school is set
+    within("#head-current-school") do
+      page.should_not have_content("Select a School")
+      within("span[title='Current School']") do
+        page.should have_content(@school2.name)
+      end
+    end
+
+    visit schools_path()
+    page.should have_css("a[href='/schools/#{@school1.id}/dashboard']")
     find("a[href='/schools/#{@school1.id}/dashboard']").click
     assert_equal("/schools/#{@school1.id}/dashboard", current_path)
     page.should have_content("School: #{@school1.name}")

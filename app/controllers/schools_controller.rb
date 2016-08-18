@@ -15,7 +15,7 @@ class SchoolsController < ApplicationController
     if template == "schools/show"
       # @school = School.includes(students: {enrollments: {section: [:subject, teaching_assignments: :teacher]}}).find(params[:id])
       # @school = School.includes(:school_year).find(params[:id])
-      # set_school_context
+      set_school_context
     else
       for_subgroup_proficiencies
     end
@@ -240,11 +240,12 @@ class SchoolsController < ApplicationController
 
     current_sect_ids = []
 
-    # if (@current_user.system_administrator? || @current_user.researcher?)
-    #   @school = @current_school
+    if (@current_user.system_administrator? || @current_user.researcher?)
+      set_school_context
+      @school = @current_school
     # else
     #   @school = get_current_school
-    # end
+    end
     if @school.id.nil?
       flash[:alert] = 'Missing School'
     else
