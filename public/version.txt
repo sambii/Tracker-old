@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.033 Aug 18, 2016
+- Set school on School Dashboard as well as set school
 PARLO Tracker version v2.01.031 Aug 17, 2016
 - Bulk LO Merge properly display duplicate errors in all subjects run
 PARLO Tracker version v2.01.030 Aug 16, 2016
