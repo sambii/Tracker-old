@@ -253,7 +253,9 @@ class SubjectOutcomesController < ApplicationController
         step = '3b'
         Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # pull the old learning outcomes to process from the @old_db_ids_by_subject
-        @old_db_ids_by_subject[@subject_to_show.id].each do |db_id|
+        old_db_ids = @old_db_ids_by_subject[@subject_to_show.id]
+        old_db_ids = [] if old_db_ids.blank?
+        old_db_ids.each do |db_id|
           @old_los_to_present << @all_old_los[db_id]
         end
 
