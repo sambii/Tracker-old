@@ -210,7 +210,7 @@ module LoadSectionHelper
     @subj_art_1 = FactoryGirl.create :subject, name: 'Art 1', subject_manager: @model_subject_manager, school: model_school
     @subj_art_2 = FactoryGirl.create :subject, name: 'Art 2', subject_manager: @model_subject_manager, school: model_school
     # @subj_art_3 = FactoryGirl.create :subject, name: 'Art 3', subject_manager: @model_subject_manager, school: model_school
-    # @subj_capstone_1s1 = FactoryGirl.create :subject, name: 'Capstone 1s1', subject_manager: @model_subject_manager, school: model_school
+    @subj_capstone_1s1 = FactoryGirl.create :subject, name: 'Capstone 1s1', subject_manager: @model_subject_manager, school: model_school
     # @subj_capstone_1s2 = FactoryGirl.create :subject, name: 'Capstone 1s2', subject_manager: @model_subject_manager, school: model_school
     @subj_capstone_3s1 = FactoryGirl.create :subject, name: 'Capstone 3s1', subject_manager: @model_subject_manager, school: model_school
     @subj_math_1 = FactoryGirl.create :subject, name: 'Math 1', subject_manager: @model_subject_manager, school: model_school
@@ -246,11 +246,11 @@ module LoadSectionHelper
     # @so_at_3_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_3, lo_code: 'AT.3.03', description: 'AT.3.03 Original', marking_period: '2'
     # @so_at_3_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_art_3, lo_code: 'AT.3.04', description: 'AT.3.04 Original', marking_period: '2'
 
-    # # @subj_capstone_1s1 = FactoryGirl.create :subject, name: 'Capstone 1s1', subject_manager: @model_subject_manager, school: model_school
-    # @cp_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.01', description: 'CP.1.01 Original', marking_period: '1'
-    # @cp_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.02', description: 'CP.1.02 Original', marking_period: '1'
-    # @cp_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.03', description: 'CP.1.03 Original', marking_period: '1'
-    # @cp_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.04', description: 'CP.1.04 Original', marking_period: '1'
+    # @subj_capstone_1s1 = FactoryGirl.create :subject, name: 'Capstone 1s1', subject_manager: @model_subject_manager, school: model_school
+    @cp_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.01', description: 'CP.1.01 Original', marking_period: '1'
+    @cp_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.02', description: 'CP.1.02 Original', marking_period: '1'
+    @cp_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.03', description: 'CP.1.03 Original', marking_period: '1'
+    @cp_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s1, lo_code: 'CP.1.04', description: 'CP.1.04 Original', marking_period: '1'
 
     # # @subj_capstone_1s2 = FactoryGirl.create :subject, name: 'Capstone 1s2', subject_manager: @model_subject_manager, school: model_school
     # @cp_1_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_capstone_1s2, lo_code: 'CP.1.12', description: 'CP.1.12 Original', marking_period: '2'
@@ -287,11 +287,11 @@ module LoadSectionHelper
     @ma_1_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_1, lo_code: 'MA.1.12', description: 'Will be reactivated. Apply determinants and their properties in real-world situations.', marking_period: '2', active: false
 
     # @subj_math_2 = FactoryGirl.create :subject, name: 'Math 2', subject_manager: @model_subject_manager, school: model_school
-    @ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.01', description: 'Old Description 1', marking_period: '1'
-    @ma_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.02', description: 'Old Description 2', marking_period: '1'
-    @ma_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.03', description: 'Old Description 3', marking_period: '1'
-    @ma_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.04', description: 'Old Description 4', marking_period: '1'
-    @ma_1_05 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.05', description: 'Old Description 5', marking_period: '1'
+    @ma_2_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.01', description: 'Old Description 1', marking_period: '1'
+    @ma_2_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.02', description: 'Old Description 2', marking_period: '1'
+    @ma_2_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.03', description: 'Old Description 3', marking_period: '1'
+    @ma_2_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.04', description: 'Old Description 4', marking_period: '1'
+    @ma_2_05 = FactoryGirl.create :subject_outcome, :arabic, subject: @subj_math_2, lo_code: 'MA.2.05', description: 'Old Description 5', marking_period: '1'
   end
 
   def get_std_current_school_year_name

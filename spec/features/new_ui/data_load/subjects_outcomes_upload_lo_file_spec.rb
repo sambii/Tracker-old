@@ -64,6 +64,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     it { bulk_upload_art_add_swap }
     it { bulk_upload_art_2_change }
     it { bulk_upload_art_2_add_delete }
+    it { bulk_upload_capstone_1s1_delete_all }
+    it { bulk_upload_wrong_file }
     it { bulk_upload_all_mismatches }
   end
 
@@ -296,7 +298,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#upload').click
       page.should have_content('Match Old LOs to New LOs')
       # 'Save Matches' button should be showing
-      page.should have_button("Save Matches")
+      page.should have_button("Reconcile Subject")
       page.should_not have_css("#save_all")
       # click the select box to match AT.2.01 to AT.2.01
       page.should have_css('select#selections_0')
@@ -331,7 +333,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#upload').click
       page.should have_content('Match Old LOs to New LOs')
       # 'Save Matches' button should be showing
-      page.should have_button("Save Matches")
+      page.should have_button("Reconcile Subject")
       page.should_not have_css("#save_all")
       # don't click the select box to match AT.2.01 to AT.2.01
       page.should have_css('select#selections_0')
@@ -347,6 +349,62 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     end # within #page-content
   end # def bulk_upload_art_matching
 
+  def bulk_upload_capstone_1s1_delete_all
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      page.should have_content('Upload Curriculum / LOs File')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Capstone 1s1', from: "subject_id")
+      end
+      find('#upload').click
+
+      page.should have_content('Match Old LOs to New LOs')
+      within('#breadcrumb-flash-msgs') do
+        page.should_not have_content('No Curriculum Records to upload.')
+      end
+      # 'Save Matches' button should be showing
+      page.should have_button("Reconcile Subject")
+      page.should_not have_css("#save_all")
+      page.should have_css('#save_matches')
+
+      page.should have_css("tr[data-old-db-id='11'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='11'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='12'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='12'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='13'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='13'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='14'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='14'] td.old_lo_desc.gray-out")
+    end # within #page-content
+  end # def bulk_upload_art_matching
+
+  # test for all subjects bulk upload of Learning Outcomes into Model School
+  # some mismatches (deactivates, reactivates or changes) - requires subject by subject matching
+  def bulk_upload_wrong_file
+    visit upload_lo_file_subject_outcomes_path
+    # hide the sidebar for better printing during debugging
+    find('li#head-sidebar-toggle a').click
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/StaffDataUpload.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+      end
+      find('#upload').click
+
+      page.should have_content('Match Old LOs to New LOs')
+      within('#breadcrumb-flash-msgs') do
+        page.should have_content('No Curriculum Records to upload.')
+        page.should_not have_content('Automatically Updated Subjects')
+
+      end
+    end
+  end
   # test for all subjects bulk upload of Learning Outcomes into Model School
   # some mismatches (deactivates, reactivates or changes) - requires subject by subject matching
   def bulk_upload_all_mismatches
@@ -393,12 +451,12 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("#prior_subj", text: 'Automatically Updated Subjects')
       page.should have_css('#count_updates', text: '3')
       page.should have_css('#count_adds', text: '1')
-      page.should have_css('#count_deactivates', text: '8')
+      page.should have_css('#count_deactivates', text: '12')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updated_subjects', text: '2')
+      page.should have_css('#count_updated_subjects', text: '3')
       page.should have_css('#total_updates', text: '3')
       page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '8')
+      page.should have_css('#total_deactivates', text: '12')
       page.should have_css('#total_errors', text: '0')
 
       select('E-AT.2.01', from: "selections_5")
@@ -433,31 +491,31 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css("tr[data-new-rec-id='22'] select#selections_22")
       page.should have_css("tr[data-new-rec-id='23'] input[type='hidden'][name='selections[23]']")
 
-      page.should have_css("tr[data-old-db-id='23'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='23'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='24'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='24'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='25'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='26'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='27'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='28'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='27'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='27'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='28'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='28'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='29'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='30'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='31'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='32'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='33'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='33'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='34'] td.old_lo_desc.inactive")
+      page.should have_css("tr[data-old-db-id='33'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='34'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='35'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='36'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='37'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='37'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='38'] td.old_lo_desc.inactive")
 
       page.should have_css("#prior_subj", text: 'Art 2')
       page.should have_css('#count_updates', text: '0')
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '0')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updated_subjects', text: '2')
+      page.should have_css('#count_updated_subjects', text: '3')
       page.should have_css('#total_updates', text: '3')
       page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '8')
+      page.should have_css('#total_deactivates', text: '12')
       page.should have_css('#total_errors', text: '0')
 
       select('N-MA.1.01', from: "selections_13")
@@ -504,23 +562,23 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_css(".ui-error", text: 'Duplicate Code')
       end
 
-      page.should have_css("tr[data-old-db-id='35'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='36'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='36'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='37'] td.old_lo_desc.gray-out")
-      page.should have_css("tr[data-old-db-id='38'] td.old_lo_desc")
-      page.should_not have_css("tr[data-old-db-id='38'] td.old_lo_desc.gray-out")
       page.should have_css("tr[data-old-db-id='39'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='40'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='40'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='41'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='42'] td.old_lo_desc")
+      page.should_not have_css("tr[data-old-db-id='42'] td.old_lo_desc.gray-out")
+      page.should have_css("tr[data-old-db-id='43'] td.old_lo_desc.gray-out")
 
       page.should have_css("#prior_subj", text: 'Math 1')
       page.should have_css('#count_updates', text: '8')
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '1')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updated_subjects', text: '3')
+      page.should have_css('#count_updated_subjects', text: '4')
       page.should have_css('#total_updates', text: '11')
       page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '9')
+      page.should have_css('#total_deactivates', text: '13')
       page.should have_css('#total_errors', text: '0')
 
       page.should_not have_css("#save_matches")
@@ -532,11 +590,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#count_updates', text: '0')
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '0')
-      page.should have_css('#count_updated_subjects', text: '3')
+      page.should have_css('#count_updated_subjects', text: '4')
       page.should have_css('#total_errors', text: '0')
       page.should have_css('#total_updates', text: '11')
       page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '9')
+      page.should have_css('#total_deactivates', text: '13')
 
     end # within #page-content
 
@@ -576,7 +634,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within('.block-title h3') do
         page.should have_content("Learning Outcomes Matching Process of #{@subj_math_2.name} of All Subjects")
       end
-      
+
       page.should_not have_css("#save_matches")
       find('#skip_subject').click
 

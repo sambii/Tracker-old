@@ -216,6 +216,8 @@ class SubjectOutcomesController < ApplicationController
         @subject_to_show = @match_subject # always show match subject if subject has been chosen
         @prior_subject_name = ''
       else
+        Rails.logger.debug("*** @all_new_los.count #{@all_new_los.count}")
+        raise("Error - No Curriculum Records to upload.") if @all_new_los.count == 0
         @subjects.each do |subj|
           lo_setup_subject(subj, true)
         end
@@ -443,7 +445,7 @@ class SubjectOutcomesController < ApplicationController
             # Rails.logger.debug("*** new_rec: #{new_rec.inspect}")
             if old_db_id.present?
               # new record assigned to an old record
-              
+
               old_db_id_num = Integer(old_db_id) rescue 0
               Rails.logger.debug("*** old_db_id: #{old_db_id.inspect} => #{old_db_id_num}")
               old_rec = @all_old_los[old_db_id_num]
@@ -477,7 +479,7 @@ class SubjectOutcomesController < ApplicationController
         lo_get_old_los_for_subj(@match_subject)
 
         if updates_done
-          @count_updated_subjects += 1 
+          @count_updated_subjects += 1
           go_to_next = true
         end
       elsif @action == "save_all"

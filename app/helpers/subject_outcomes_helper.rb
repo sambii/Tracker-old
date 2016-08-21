@@ -365,7 +365,10 @@ module SubjectOutcomesHelper
         end
       end
     end  # end CSV.foreach
-    raise("Error - No Curriculum Records to upload.") if records.count == 0
+    # Rails.logger.debug("*** lo_get_file_from_upload @present_by_subject: #{@present_by_subject.inspect}")
+    # Rails.logger.debug("*** lo_get_file_from_upload records.count == 0: #{records.count == 0}")
+    # this test doesn't work, @present_by_subject is not set yet
+    # raise("Error - No Curriculum Records to upload.") if records.count == 0 && @present_by_subject.blank?
     return {records: records, new_los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code}
   end
 
