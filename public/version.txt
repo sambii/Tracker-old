@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.034 Aug 21, 2016
+- Bulk LO - prevent empty file on all subjects, allow deactivate all on single subject
 PARLO Tracker version v2.01.033 Aug 18, 2016
 - Set school on School Dashboard as well as set school
 PARLO Tracker version v2.01.031 Aug 17, 2016
