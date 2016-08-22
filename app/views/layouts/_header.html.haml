@@ -17,10 +17,12 @@
           %a{href: schools_path, title: 'Switch School'}
             %i.fa.fa-lg.fa-building-o
           %span{title: 'Current School'}= "#{@current_school.name}"
-          %span{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
+          - if @current_school.school_year.present?
+            %span{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
         - else
           %span.text-muted= "#{@current_school.name}"
-          %span.text-muted{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
+          - if @current_school.school_year.present?
+            %span.text-muted{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
 / END Left Header Navigation
 / Right Header Navigation
 %ul.nav.navbar-nav-custom.pull-right

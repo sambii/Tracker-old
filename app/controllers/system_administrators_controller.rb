@@ -7,9 +7,9 @@ class SystemAdministratorsController < ApplicationController
 
   # New UI - System Administrator Dashboard
   def show
-    @model_school = School.where(acronym: 'MOD').first
+    @model_school = School.includes(:school_year).find(1)
     @school = get_current_school 
-    @schools = School.accessible_by(current_ability).order('name')
+    @schools = School.includes(:school_year).accessible_by(current_ability).order('name')
     respond_to do |format|
       format.html
     end
