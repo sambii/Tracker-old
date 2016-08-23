@@ -6,14 +6,14 @@
 
 # NOTE: do not call tasks within tasks without changing the error handling to use 'raise' not 'next'
 
-NUM_TEACHERS = 20 # number of teachers per subject
-SECTS_PER_TEACHER = 2
-STUDENTS_PER_SECTION = 15
+# NUM_TEACHERS = 20 # number of teachers per subject
+# SECTS_PER_TEACHER = 2
+# STUDENTS_PER_SECTION = 15
 
-# # testing numbers
-# NUM_TEACHERS = 4 # number of teachers per subject
-# SECTS_PER_TEACHER = 1
-# STUDENTS_PER_SECTION = 4
+# testing numbers
+NUM_TEACHERS = 4 # number of teachers per subject
+SECTS_PER_TEACHER = 1
+STUDENTS_PER_SECTION = 4
 
 TRAINING_SCHOOL_ID = 2
 
@@ -221,6 +221,11 @@ namespace :stem_egypt_training_data do
       next
     end
 
+    # todo - create researcher training account (note password reset)
+
+
+
+
     subject_names = ['Arabic', 'Biology', 'Chemistry', 'Computer Science', 'Earth Science', 'English', 'French', 'German', 'Math', 'Mechanics', 'Physics']
     subject_lead_chars = %w(ar b ch cs es en fr ge ma me p) # characters for username
     subj_discs = [0,2,2,2,2,0,0,0,1,2,2] # index to disciplines array
@@ -254,6 +259,10 @@ namespace :stem_egypt_training_data do
       STDOUT.puts("teachers[#{subj}]: (#{subject_names[subj]}): #{(teachers[subj].map{ |t| t.username}).inspect }")
     end
 
+    # todo - create Competency Assessment Teachers (99) cateacher1-99
+
+
+
     # students hash by student grouping (1- (NUM_TEACHERS * SECTS_PER_TEACHER) and sequence (1-STUDENTS_PER_SECTION)
 
     # students = Hash.new { |k, v| k[v] = Hash.new(0) }
@@ -285,6 +294,10 @@ namespace :stem_egypt_training_data do
       end
       STDOUT.puts("students[#{g}]: #{(students[g].map{ |s| s.username}).inspect}")
     end
+
+
+    # todo - create Competency Assessment Students (6 set names) see list
+
 
 
     ###########################################################
@@ -354,6 +367,12 @@ namespace :stem_egypt_training_data do
       end
 
     end
+
+# todo - for the competency assessment subject
+# create one section per teacher and assign teacher
+# load 4 subject outcomes as section outcomes (2 sem 1, 2 sem 2)
+# load in 2 female and 2 male students into each section
+# 
 
     STDOUT.puts "Done"
 

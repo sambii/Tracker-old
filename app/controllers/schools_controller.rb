@@ -218,8 +218,9 @@ class SchoolsController < ApplicationController
                 end
               end
             end
+          else
+            copy_subjects(model_schools.first, @school)
           end
-          copy_subjects(model_schools.first, @school)
           notice_msg = "School year was successfully rolled over."
         else
           notice_msg = 'School year was successfully rolled over (without Model School LOs).'
@@ -456,7 +457,7 @@ class SchoolsController < ApplicationController
       Rails.logger.debug("** Copy Subject update from model_lo_id")
 
       # update subject outcomes from model school using model_lo_id if it exists
-      sch_subjos = SubjectOutcome.where(subject_id: sch_subject_id, )
+      sch_subjos = SubjectOutcome.where(subject_id: sch_subject_id, active: true)
       sch_subjos.each do |so|
         Rails.logger.debug("*** so: #{so.inspect}")
         if so.model_lo_id.present?
