@@ -6,16 +6,19 @@
 
 # NOTE: do not call tasks within tasks without changing the error handling to use 'raise' not 'next'
 
-# NUM_TEACHERS = 20 # number of teachers per subject
-# SECTS_PER_TEACHER = 2
-# STUDENTS_PER_SECTION = 15
-
-# testing numbers
-NUM_TEACHERS = 4 # number of teachers per subject
-SECTS_PER_TEACHER = 1
-STUDENTS_PER_SECTION = 4
-
 TRAINING_SCHOOL_ID = 2
+
+NUM_TEACHERS = 20 # number of teachers per subject
+SECTS_PER_TEACHER = 2
+STUDENTS_PER_SECTION = 15
+NUM_ASSESSMENT_SECTIONS = 99
+
+# # testing numbers
+# NUM_TEACHERS = 4 # number of teachers per subject
+# SECTS_PER_TEACHER = 1
+# STUDENTS_PER_SECTION = 4
+# NUM_ASSESSMENT_SECTIONS = 9
+
 
 
 ###########################################################
@@ -32,16 +35,218 @@ namespace :stem_egypt_training_data do
 
   task build_training_school: [:load_training_school, :create_training_los, :create_training_ratings]
 
-  task load_training_school: :environment do
-
-    ###########################################################
-    # check to make sure training school exists and is empty
-    # note: load_training_school task empties school
+  task setup_assessment_school: :environment do
 
     # ensure school 2 exists
     schools = School.where(id: TRAINING_SCHOOL_ID)
     if schools.count == 0
-      raise "!!!!!/nERROR: Training School does not exist/n!!!!!"
+      raise "!!!!! ERROR: Training School does not exist!!!!!"
+    else
+      school = schools.first
+    end
+
+    school_year = school.school_year
+
+    # don't add Assessment School Discipline of Administration to disciplines array
+    db_disc = Discipline.where(name: "Administration")
+    if db_disc.count > 0
+      admin = db_disc.first
+    else
+      admin = Discipline.create(name: "Administration")
+      raise("Error creating Administration discipline: #{admin.errors.full_messages}") if admin.errors.count > 0
+    end
+
+    # create the Competency Subject if necessary
+    ca_subjects = Subject.where(school_id: TRAINING_SCHOOL_ID, discipline_id: admin.id, name: 'Competency Assessment')
+    if ca_subjects.count == 0
+      STDOUT.puts ("Create Competency Assessment Subject ")
+      ca_subject = Subject.new()
+      ca_subject.name = 'Competency Assessment'
+      ca_subject.discipline_id = admin.id
+      ca_subject.school_id = school.id
+      # ca_subject.subject_manager_id = subject_manager.id
+      if !ca_subject.save
+        raise "!!!!! ERROR: create subject error #{ca_subject.errors.full_messages}!!!!!"
+        # next
+      end
+    elsif ca_subjects.count == 1
+      ca_subject = ca_subjects.first
+    else
+      raise "ERROR: Duplicate assessment subject 'Competency Assessment'"
+    end
+
+    # load 4 subject outcomes as section outcomes (2 sem 1, 2 sem 2)
+    sos = Array.new
+    assmt_los = [
+      ['LO.1.01', 'Training Learning Outcome 1', '1'],
+      ['LO.1.02', 'Training Learning Outcome 2', '1'],
+      ['LO.1.03', 'Training Learning Outcome 3', '2'],
+      ['LO.1.04', 'Training Learning Outcome 4', '2']
+    ]
+    assmt_los.each do |lo|
+      subjos = SubjectOutcome.where(subject_id: ca_subject.id, lo_code: lo[0], description: lo[1])
+      if subjos.count == 0
+        subjo = SubjectOutcome.new
+        subjo.lo_code = lo[0]
+        subjo.description = lo[1]
+        subjo.marking_period = lo[2]
+        subjo.subject_id = ca_subject.id
+        raise("ERROR: error creating Subject Outcome #{lo[0]} - #{lo[41]}") if !subjo.save
+      elsif subjos.count == 1
+        subjo = subjos.first
+      else
+        raise("ERROR: duplicate Subject Outcome for Assessment Subject #{lo[0]} #{lo[1]}")
+      end
+      sos << subjo
+    end
+
+    sects = Section.where(subject_id: ca_subject.id)
+    # delete any pre-existing Assessment Sections and Users
+    if sects.count > 0
+      STDOUT.puts "WARNING: any assessment sections will be DELETED!"
+      STDOUT.puts 'press enter to continue'
+      STDIN.gets
+      sects.each do |sect|
+        (SectionOutcome.where section_id: sect.id).each do |so|
+          (EvidenceSectionOutcome.where section_outcome_id: so.id).each do |eso|
+            EvidenceSectionOutcomeRating.delete_all(evidence_section_outcome_id: eso.id)
+            eso.delete
+          end
+          SectionOutcomeRating.delete_all(section_outcome_id: so.id)
+          so.delete
+        end
+        Evidence.delete_all(section_id: sect.id )
+        Enrollment.delete_all(section_id: sect.id )
+        TeachingAssignment.delete_all(section_id: sect.id )
+        sect.delete
+        puts "Section #{sect.name} - #{sect.line_number} has been deleted"
+      end
+    end
+
+    # create Competency Assessment Students (6 set names)
+    assmt_students_a = [
+      ['M', 'Ali', 'Amgad Kamal', 'ETH_aamgad.kamal'],
+      ['F', 'Doaa', 'Salan Elsayed', 'ETH_dsalan.elsayed'],
+      ['M', 'Fady', 'Adel Fahmy', 'ETH_fadel.fahmy'],
+      ['F', 'Israa', 'Mostafa Badran', 'ETH_imostafa.badran'],
+      ['M', 'Hager', 'Naser Mahmoud', 'ETH_hnaser.mahmoud'],
+      ['F', 'Mara', 'Saeid Mousa', 'ETH_msaeid.mousa']
+    ]
+    assmt_students = Array.new
+    assmt_students_a.each do |stu_info|
+      users = User.where("username like '#{stu_info[3]}'")
+      if users.count == 0
+        # create new student
+        stu = Student.new()
+        stu.username =  stu_info[3]
+        stu.first_name = stu_info[1]
+        stu.last_name = stu_info[2]
+        stu.grade_level = 1
+        stu.gender = stu_info[0]
+        stu.school_id = school.id
+        stu.password = "password"
+        stu.password_confirmation = "password"
+        if !stu.save
+          STDOUT.puts("*** stu.username: #{stu.username.inspect} #{stu_info[3].inspect}")
+          raise "!!!!! ERROR: create assessment student error #{stu.errors.full_messages}!!!!!"
+          # next
+        end
+      elsif users.count == 1
+        stu = users.first
+      else
+        raise "ERROR: duplicate assessment student #{stu_info[3]}"
+      end
+      assmt_students << stu
+    end
+    # STDOUT.puts("Assessment Students: #{assmt_students.map{|s| s.username}}")
+
+    assessment_sections = Array.new
+    # create Competency Assessment sections and assign teachers cateacher1-99
+    (1..NUM_ASSESSMENT_SECTIONS).each do |n|
+      # create the section
+      s = Section.new()
+      s.line_number = "Assessment #{sprintf('%03d',n)}"
+      s.subject_id = ca_subject.id
+      s.school_year_id = school_year.id
+      s.message = ["Homework Due Thursday!!", "Quiz on Friday !!!!"][n % 2]
+      if !s.save
+        raise "!!!!! ERROR: create section error #{s.errors.full_messages}!!!!!"
+        # next
+      end
+      assessment_sections << s
+
+      sos.each do |so|
+        # copy LOs to this section
+        has_secto = SectionOutcome.where(section_id: s.id, subject_outcome_id: so.id)
+        if has_secto.count == 0
+          secto = SectionOutcome.new
+          secto.section_id = s.id
+          secto.subject_outcome_id = so.id
+          secto.marking_period = so.marking_period
+          raise("ERROR: error saving Assessment Section Outcome #{s.line_number} - #{so.lo_code} - error: #{secto.errors.full_messages}") if !secto.save
+        else
+          raise 'ERROR: Sections already exist for Assessment Subject'
+        end
+      end
+
+      # create one teacher per section
+      un = "cateacher#{sprintf('%03d',n)}"
+      cateacher_match = User.where("username like 'cateacher#{sprintf('%03d',n)}'")
+      if cateacher_match.count == 0
+        t = Teacher.new()
+        t.username = un
+        t.first_name = 'Assessment'
+        t.last_name = "Teacher#{sprintf('%03d',n)}"
+        t.school_id = school.id
+        t.set_temporary_password
+        if !t.save
+          raise "!!!!! ERROR: create assessment teacher #{un} error #{t.errors.full_messages}!!!!!"
+          # next
+        end
+      elsif cateacher_match.count == 1
+        t = cateacher_match.first
+        raise "ERROR: invalid school on assessment teacher" if t.school_id != school.id
+      else
+        raise "ERROR: Duplicate ca teacher username"
+      end
+
+      # assign the teacher to it
+      ta = TeachingAssignment.new()
+      ta.teacher_id = t.id
+      ta.section_id = s.id
+      if !ta.save
+        raise "!!!!! ERROR: create assessment teaching assignment error #{ta.errors.full_messages}!!!!!"
+        # next
+      end
+
+      # load in 2 female and 2 male students into each section
+      (0..3).each do |ix|
+        # enroll first 4 students into it
+        stu = assmt_students[ix]
+        e = Enrollment.new()
+        e.student_id = stu.id
+        e.section_id = s.id
+        e.student_grade_level = stu.grade_level
+        if !e.save
+          raise "!!!!! ERROR: create assessment enrollment error #{e.errors.full_messages}!!!!!"
+          # next
+        end
+      end # end 0..3).each
+    end
+    STDOUT.puts ":setup_assessment_school DONE!"
+  end
+
+
+  task load_training_school: :environment do
+
+    ###########################################################
+    # check to make sure training school exists and is empty
+    # note: clear_training_school task empties school
+
+    # ensure school 2 exists
+    schools = School.where(id: TRAINING_SCHOOL_ID)
+    if schools.count == 0
+      raise "!!!!! ERROR: Training School does not exist!!!!!"
       # next
     else
       school = schools.first
@@ -58,17 +263,8 @@ namespace :stem_egypt_training_data do
       # next
     end
 
-    # ensure all 4 disciplines are created and keep them in the 'disciplines' array
+    # ensure all 3 disciplines are created and keep them in the 'disciplines' array
     disciplines = []
-
-    db_disc = Discipline.where(name: "Administration")
-    if db_disc.count > 0
-      admin = db_disc.first
-    else
-      admin = Discipline.create(name: "Administration")
-      raise("Error creating Administration discipline: #{admin.errors.full_messages}") if admin.errors.count > 0
-    end
-    disciplines << admin
 
     db_disc = Discipline.where(name: "Language")
     if db_disc.count > 0
@@ -98,62 +294,59 @@ namespace :stem_egypt_training_data do
     disciplines << science
 
 
-    STDOUT.puts "create schools, school year and users"
+    STDOUT.puts "create school year and users"
 
-    STDOUT.puts("School: #{school.inspect}")
+    # get school year from current year
+    starts_at = Time.now.year
+    starts_at -= 1 if Time.now.month < 7
+    ends_at = starts_at + 1
 
-
-    # choose source for setting current school year
-    answer = 'x'
-    while !['c', 'C', 'm', 'M', ''].include?(answer)
-      STDOUT.puts("Get School Year source? ('c' - current year, 'm' - model school, '' - exit")
-      answer = STDIN.gets.strip
+    # use existing school year if present
+    if school.school_year_id.present?
+      begin
+        school_year = SchoolYear.find(school.school_year_id)
+      rescue
+        school_year = nil
+      end
     end
 
-    raise(" Exit chosen") if answer.blank?
-
-    if ['c', 'C'].include?(answer)
-      # get school year from current year
-      starts_at = Time.now.year
-      ends_at = starts_at + 1
-    elsif ['m', 'M', ''].include?(answer)
-      mod_sch = School.includes(:school_year).find(1)
-      if mod_sch.errors.count > 0
-        raise "invalid model school"
+    if school_year.blank?
+      # set a school year
+      school_years = SchoolYear.where('school_id = ?', school.id)
+      if school_years.count > 0
+        # choose the first matching school year for this school
+        STDOUT.puts 'Warning: picking first matching school year' if school_years.count > 1
+        school_year = school_years.first
+      else
+        # else create a new school year
+        school_year = SchoolYear.new
+        school_year.name = "#{starts_at.to_s}-#{ends_at.to_s.last(2)}"
+        school_year.school_id = school.id
+        school_year.starts_at = Date.parse("#{starts_at.to_s}-09-01")
+        school_year.ends_at = Date.parse("#{ends_at.to_s}-06-30")
+        if !school_year.save
+          raise "!!!!! ERROR: Create school year got error: #{school.errors.full_messages}!!!!!"
+          # next
+        end
       end
-      if mod_sch.acronym != 'MOD'
-        raise "Model school is not school 1"
-      end
-      starts_at = mod_sch.school_year.starts_at.year
-      ends_at = mod_sch.school_year.ends_at.year
-    else
-      raise 'invalid school year source option'
     end
 
-    school_years = SchoolYear.where('school_id = ? AND starts_at >= ? AND starts_at <= ?', school.id, "#{starts_at}-01-01", "#{starts_at}-12-31") 
-    if school_years.count > 0
-      STDOUT.puts 'Warning: picking first matching school year' if school_years.count > 1
-      school_year = school_years.first
-    else
-      school_year = SchoolYear.new
-      school_year.name = "#{starts_at.to_s}-#{ends_at.to_s.last(2)}"
-      school_year.school_id = school.id
-      school_year.starts_at = Date.parse("#{starts_at.to_s}-09-01")
-      school_year.ends_at = Date.parse("#{ends_at.to_s}-06-30")
-      if !school_year.save
-        raise "!!!!!/nERROR: Create school got error: #{school.errors.full_messages}/n!!!!!"
-        # next
-      end
+    school_year.name = "#{starts_at.to_s}-#{ends_at.to_s.last(2)}"
+    school_year.starts_at = Date.parse("#{starts_at.to_s}-09-01")
+    school_year.ends_at = Date.parse("#{ends_at.to_s}-06-30")
+    if !school_year.save
+      raise "!!!!! ERROR: Update SchoolYear got error: #{school.errors.full_messages}!!!!!"
+      # next
     end
 
     school.school_year_id = school_year.id
     if !school.save
-      raise "!!!!!/nERROR: Update school year got error: #{school.errors.full_messages}/n!!!!!"
+      raise "!!!!! ERROR: Update School year got error: #{school.errors.full_messages}!!!!!"
       # next
     end
 
-    STDOUT.puts("School: #{school.inspect}")
-    STDOUT.puts("school_year: #{school_year.inspect}")
+    # STDOUT.puts("School: #{school.inspect}")
+    # STDOUT.puts("school_year: #{school_year.inspect}")
 
     ###########################################################
     # create the special users
@@ -171,14 +364,14 @@ namespace :stem_egypt_training_data do
       school_admin.password = "password"
       school_admin.password_confirmation = "password"
       if !school_admin.save
-        STDOUT.puts "!!!!!/nERROR: create school admin error #{school_admin.errors.full_messages}/n!!!!!"
-        next
+        raise "!!!!! ERROR: create school admin error #{school_admin.errors.full_messages}!!!!!"
+        # next
       end
     elsif school_admins.count == 1
       school_admin = school_admins.first
     else
-      STDOUT.puts "!!!!!/nERROR: System Error - multiple eth_admin records"
-      next
+      raise "!!!!! ERROR: System Error - multiple eth_admin records"
+      # next
     end
 
     counselors = Counselor.where(username: "eth_counselor")
@@ -191,14 +384,14 @@ namespace :stem_egypt_training_data do
       counselor.password = "password"
       counselor.password_confirmation = "password"
       if !counselor.save
-        STDOUT.puts "!!!!!/nERROR: create school Counselor error #{school_admin.errors.full_messages}/n!!!!!"
-        next
+        raise "!!!!! ERROR: create school Counselor error #{school_admin.errors.full_messages}!!!!!"
+        # next
       end
     elsif counselors.count == 1
       counselor = counselors.first
     else
-      STDOUT.puts "!!!!!/nERROR: System Error - multiple eth_counselor records"
-      next
+      raise "!!!!! ERROR: System Error - multiple eth_counselor records"
+      # next
     end
 
     subject_managers = Teacher.where(username: "eth_subject_manager")
@@ -211,19 +404,36 @@ namespace :stem_egypt_training_data do
       subject_manager.password = "password"
       subject_manager.password_confirmation = "password"
       if !subject_manager.save
-        STDOUT.puts "!!!!!/nERROR: create subject_manager error #{subject_manager.errors.full_messages}/n!!!!!"
-        next
+        raise "!!!!! ERROR: create subject_manager error #{subject_manager.errors.full_messages}!!!!!"
+        # next
       end
     elsif subject_managers.count == 1
       subject_manager = subject_managers.first
     else
-      STDOUT.puts "!!!!!/nERROR: System Error - multiple eth_counselor records"
-      next
+      raise "!!!!! ERROR: System Error - multiple eth_subject_manager records"
+      # next
     end
 
     # todo - create researcher training account (note password reset)
-
-
+    researchers = Researcher.where(username: "eth_training_researcher")
+    if researchers.count == 0
+      researcher = Researcher.new()
+      researcher.researcher = true
+      researcher.username = "eth_training_researcher"
+      researcher.first_name = "Eth"
+      researcher.last_name = "Training Researcher"
+      researcher.password = "password"
+      researcher.password_confirmation = "password"
+      if !researcher.save
+        raise "!!!!! ERROR: create researcher error #{researcher.errors.full_messages}!!!!!"
+        # next
+      end
+    elsif researchers.count == 1
+      researcher = subject_managers.first
+    else
+      raise "!!!!! ERROR: System Error - multiple eth_training_researcher records"
+      # next
+    end
 
 
     subject_names = ['Arabic', 'Biology', 'Chemistry', 'Computer Science', 'Earth Science', 'English', 'French', 'German', 'Math', 'Mechanics', 'Physics']
@@ -232,16 +442,16 @@ namespace :stem_egypt_training_data do
 
     if subject_names.length != subject_lead_chars.length ||
       subject_names.length != subj_discs.length
-      STDOUT.puts "!!!!!/nERROR: Invalid subject creation arrays #{subject_names.length} #{subject_lead_chars.length} #{subj_discs.length}/n!!!!!"
-      next
+      raise "!!!!! ERROR: Invalid subject creation arrays #{subject_names.length} #{subject_lead_chars.length} #{subj_discs.length}!!!!!"
+      # next
     end
     # teachers array by subject (0-9) and sequence (0-(subject_names.length-1))
     # teachers = Hash.new { |k, v| k[v] = Array.new(NUM_TEACHERS) }
     teachers = Array.new(subject_names.length) { Array.new(NUM_TEACHERS) }
 
     STDOUT.puts("Create #{NUM_TEACHERS} teachers per subject")
-    (0..(subject_names.length-1)).each do |subj|
-      (0..(NUM_TEACHERS - 1)).each do |seq|
+    (0...(subject_names.length)).each do |subj|
+      (0...(NUM_TEACHERS)).each do |seq|
         un = subject_lead_chars[subj]+'teacher'+(seq+1).to_s
         t = Teacher.new()
         t.username = un
@@ -251,16 +461,13 @@ namespace :stem_egypt_training_data do
         t.password = "password"
         t.password_confirmation = "password"
         if !t.save
-          STDOUT.puts "!!!!!/nERROR: create teacher #{subject_names[subj][0].downcase}teacher#{(seq+1).to_s} error #{t.errors.full_messages}/n!!!!!"
-          next
+          raise "!!!!! ERROR: create teacher #{subject_names[subj][0].downcase}teacher#{(seq+1).to_s} error #{t.errors.full_messages}!!!!!"
+          # next
         end
         teachers[subj][seq] = t
       end
       STDOUT.puts("teachers[#{subj}]: (#{subject_names[subj]}): #{(teachers[subj].map{ |t| t.username}).inspect }")
     end
-
-    # todo - create Competency Assessment Teachers (99) cateacher1-99
-
 
 
     # students hash by student grouping (1- (NUM_TEACHERS * SECTS_PER_TEACHER) and sequence (1-STUDENTS_PER_SECTION)
@@ -286,17 +493,14 @@ namespace :stem_egypt_training_data do
         stu.password = "password"
         stu.password_confirmation = "password"
         if !stu.save
-          STDOUT.puts "!!!!!/nERROR: create student error #{stu.errors.full_messages}/n!!!!!"
-          next
+          raise "!!!!! ERROR: create student error #{stu.errors.full_messages}!!!!!"
+          # next
         end
         STDOUT.puts("students group #{g}, student: #{n}")
         students[g][n] = stu
       end
       STDOUT.puts("students[#{g}]: #{(students[g].map{ |s| s.username}).inspect}")
     end
-
-
-    # todo - create Competency Assessment Students (6 set names) see list
 
 
 
@@ -317,8 +521,8 @@ namespace :stem_egypt_training_data do
       s.school_id = school.id
       s.subject_manager_id = subject_manager.id
       if !s.save
-        STDOUT.puts "!!!!!/nERROR: create subject error #{s.errors.full_messages}/n!!!!!"
-        next
+        raise "!!!!! ERROR: create subject error #{s.errors.full_messages}!!!!!"
+        # next
       end
       subjects[ix] = s
 
@@ -334,8 +538,8 @@ namespace :stem_egypt_training_data do
         s.school_year_id = school_year.id
         s.message = ["Homework Due Thursday!!", "Quiz on Friday !!!!"][sect % 2]
         if !s.save
-          STDOUT.puts "!!!!!/nERROR: create section error #{s.errors.full_messages}/n!!!!!"
-          next
+          raise "!!!!! ERROR: create section error #{s.errors.full_messages}!!!!!"
+          # next
         end
         subject_sections[ix][sect] = s
 
@@ -348,8 +552,8 @@ namespace :stem_egypt_training_data do
         ta.teacher_id = subj_teachers[teach].id
         ta.section_id = subject_sections[ix][sect].id
         if !ta.save
-          STDOUT.puts "!!!!!/nERROR: create teaching assignment error #{ta.errors.full_messages}/n!!!!!"
-          next
+          raise "!!!!! ERROR: create teaching assignment error #{ta.errors.full_messages}!!!!!"
+          # next
         end
 
         # enroll students into it
@@ -359,8 +563,8 @@ namespace :stem_egypt_training_data do
           e.section_id = subject_sections[ix][sect].id
           e.student_grade_level = student.grade_level
           if !e.save
-            STDOUT.puts "!!!!!/nERROR: create enrollment error #{e.errors.full_messages}/n!!!!!"
-            next
+            raise "!!!!! ERROR: create enrollment error #{e.errors.full_messages}!!!!!"
+            # next
           end
         end
 
@@ -368,15 +572,9 @@ namespace :stem_egypt_training_data do
 
     end
 
-# todo - for the competency assessment subject
-# create one section per teacher and assign teacher
-# load 4 subject outcomes as section outcomes (2 sem 1, 2 sem 2)
-# load in 2 female and 2 male students into each section
-# 
-
     STDOUT.puts "Done"
 
-  end # end create_school
+  end # end load_training_school
 
 
   task create_training_los: :environment do
@@ -385,7 +583,7 @@ namespace :stem_egypt_training_data do
     # check to make sure school already exists
     schools = School.includes(:school_year).where(id: TRAINING_SCHOOL_ID)
     if schools.count == 0
-      raise "!!!!!/nERROR: Training School does not exist/n!!!!!"
+      raise "!!!!! ERROR: Training School does not exist!!!!!"
       # next
     else
       school = schools.first
@@ -395,8 +593,8 @@ namespace :stem_egypt_training_data do
 
     school_year = SchoolYear.where(id: school.school_year_id).first
     if school_year.errors.count > 0
-      STDOUT.puts "!!!!!/nERROR: Cannot find School Year/n!!!!!"
-      next
+      raise "!!!!! ERROR: Cannot find School Year!!!!!"
+      # next
     end
 
     ###########################################################
@@ -408,8 +606,8 @@ namespace :stem_egypt_training_data do
       STDOUT.puts "Subject Outcomes already exist.  If you wish to recreate them, hit enter to continue"
       input = STDIN.gets.chomp
       if input != ""
-        STDOUT.puts "!!!!!\nERROR: Subject Outcome create cancelled by user.\n!!!!!"
-        next
+        raise "!!!!!\nERROR: Subject Outcome create cancelled by user.\n!!!!!"
+        # next
       end
     end
 
@@ -630,7 +828,7 @@ namespace :stem_egypt_training_data do
 
     puts "Done"
 
-  end # end create_learning_outcomes
+  end # end create_training_los
 
   task create_training_ratings: :environment do
 
@@ -638,7 +836,7 @@ namespace :stem_egypt_training_data do
     # check to make sure school already exists
     schools = School.includes(:school_year).where(id: TRAINING_SCHOOL_ID)
     if schools.count == 0
-      raise "!!!!!/nERROR: Training School does not exist/n!!!!!"
+      raise "!!!!! ERROR: Training School does not exist!!!!!"
       # next
     else
       school = schools.first
@@ -648,7 +846,7 @@ namespace :stem_egypt_training_data do
 
     school_year = SchoolYear.where(id: school.school_year_id).first
     if school_year.errors.count > 0
-      puts "!!!!!/nERROR: Cannot find School Year/n!!!!!"
+      puts "!!!!! ERROR: Cannot find School Year!!!!!"
       next
     end
 
@@ -688,14 +886,14 @@ namespace :stem_egypt_training_data do
 
     evid_seq = 1
 
-    # confirm to go ahead
-    input = ''
-    STDOUT.puts "This procedure will create Ratings in the Training School, hit enter to continue"
-    input = STDIN.gets.chomp
-    if input != ""
-      puts "!!!!!\nERROR: create_ratings cancelled by user.\n!!!!!"
-      next
-    end
+    # # confirm to go ahead
+    # input = ''
+    # STDOUT.puts "This procedure will create Ratings in the Training School, hit enter to continue"
+    # input = STDIN.gets.chomp
+    # if input != ""
+    #   puts "!!!!!\nERROR: create_ratings cancelled by user.\n!!!!!"
+    #   next
+    # end
 
     section_outcomes.each do |so|
 
@@ -750,7 +948,7 @@ namespace :stem_egypt_training_data do
     end
 
     puts "Done"
-  end # end create_ratings
+  end # end create_training_ratings
 
   task refresh_training_school: :environment do
 
@@ -758,7 +956,7 @@ namespace :stem_egypt_training_data do
     # check to make sure school already exists
     schools = School.includes(:school_year).where(id: TRAINING_SCHOOL_ID)
     if schools.count == 0
-      raise "!!!!!/nERROR: Training School does not exist/n!!!!!"
+      raise "!!!!! ERROR: Training School does not exist!!!!!"
       # next
     else
       school = schools.first
@@ -768,7 +966,7 @@ namespace :stem_egypt_training_data do
 
     school_year = SchoolYear.where(id: school.school_year_id).first
     if school_year.errors.count > 0
-      puts "!!!!!/nERROR: Cannot find School Year/n!!!!!"
+      puts "!!!!! ERROR: Cannot find School Year!!!!!"
       next
     end
 
@@ -873,18 +1071,18 @@ namespace :stem_egypt_training_data do
       t.save
     end
     STDOUT.puts "Done"
-  end
+  end # end refresh_training_school
 
 
   task clear_training_school: :environment do
 
-    # !!!!!\nWARNING: CAUTION MODIFYING THIS CODE - MISTAKE COULD DELETE LIVE DATA ON PRODUCTION SYSTEM. !!!!!!!!
+    # !!!!!\nWARNING: CAUTION MODIFYING THIS CODE - MISTAKE COULD DELETE LIVE DATA. !!!!!!!!
 
     ###########################################################
     # check to make sure school already exists
     schools = School.includes(:school_year).where(id: TRAINING_SCHOOL_ID)
     if schools.count == 0
-      raise "!!!!!/nERROR: Training School does not exist/n!!!!!"
+      raise "!!!!! ERROR: Training School does not exist!!!!!"
       # next
     else
       school = schools.first
@@ -921,6 +1119,6 @@ namespace :stem_egypt_training_data do
 
     puts "Done"
 
-  end # end delete
+  end # end clear_training_school
 
 end
