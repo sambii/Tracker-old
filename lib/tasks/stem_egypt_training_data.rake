@@ -35,6 +35,97 @@ namespace :stem_egypt_training_data do
 
   task build_training_school: [:load_training_school, :create_training_los, :create_training_ratings]
 
+  task setup_leadership_training: :environment do
+
+    # ensure school 2 exists
+    schools = School.where("acronym LIKE 'LT%'")
+    if schools.count == 0
+      raise "!!!!! ERROR: No Leadership Training Schools !!!!!"
+    end
+
+    model_school = School.find(1)
+    raise "ERROR: opening model school: #{model_school.errors.full_messages}" if model_school.errors.count > 0
+    model_school_year = model_school.school_year
+    raise "ERROR: getting model school year" if model_school_year.blank?
+
+    STDOUT.puts "WARNING: all Leadership Training data will be refreshed!"
+    STDOUT.puts 'press enter to continue'
+    STDIN.gets
+
+    schools.each do |sch|
+
+      # confirm acronym is in correct format LT##
+      valid_school = true
+      acronym = sch.acronym
+      valid_school = false if acronym[0..1] != 'LT'
+      acronym_num = acronym.clone
+      acronym_num.slice!(0,2)
+      lt_num = Integer(acronym_num) rescue -1
+      valid_school = false if lt_num < 0
+
+      if valid_school
+        # reset school year to the one prior to the model school
+        begin
+          sy = SchoolYear.find(sch.school_year_id)
+        rescue
+          sy = SchoolYear.new
+          sy.school_id = sch.id
+        end
+        sy.starts_at = Date.new( (model_school_year.starts_at.year - 1), model_school_year.starts_at.mon, 1)
+        sy.ends_at = Date.new( (model_school_year.ends_at.year - 1), model_school_year.ends_at.mon, 1)
+        sy.name = "#{sy.starts_at.year.to_s}-#{sy.ends_at.year.to_s.last(2)}"
+        sy.save
+
+        # delete all sections for school
+        Section.where(school_year_id: sy.id).each do |sect|
+          (SectionOutcome.where section_id: sect.id).each do |so|
+            (EvidenceSectionOutcome.where section_outcome_id: so.id).each do |eso|
+              EvidenceSectionOutcomeRating.delete_all(evidence_section_outcome_id: eso.id)
+              eso.delete
+            end
+            SectionOutcomeRating.delete_all(section_outcome_id: so.id)
+            so.delete
+          end
+          Evidence.delete_all(section_id: sect.id )
+          Enrollment.delete_all(section_id: sect.id )
+          TeachingAssignment.delete_all(section_id: sect.id )
+          sect.delete
+          # puts "Section #{sect.name} - #{sect.line_number} has been deleted"
+        end
+
+        User.delete_all(school_id: sch.id)
+
+        sa1 = SchoolAdministrator.new
+        sa1.school_id = sch.id
+        sa1.username = "#{acronym}_leadership_user"
+        sa1.first_name = 'Leadership'
+        sa1.last_name = 'User'
+        sa1.email = "#{acronym}.lt1@example.com"
+        sa1.set_temporary_password
+        if !sa1.save
+          raise "error creating #{sa1.username}, #{sa1.email}, #{sa1.errors.full_messages}"
+        end
+
+        sa2 = SchoolAdministrator.new
+        sa2.school_id = sch.id
+        sa2.username = "#{acronym}_leadership_trainer"
+        sa2.first_name = 'Leadership'
+        sa2.last_name = 'Trainer'
+        sa2.email = "#{acronym}.lt2@example.com"
+        sa2.set_temporary_password
+        if !sa2.save
+          raise "error creating #{sa2.username}, #{sa2.email}, #{sa2.errors.full_messages}"
+        end
+
+        STDOUT.puts("Leadership Training User: #{sa1.username} / #{sa1.temporary_password}")
+        STDOUT.puts("Leadership Training User: #{sa2.username} / #{sa2.temporary_password}")
+
+      end # if valid school
+    end
+
+
+  end
+
   task setup_assessment_school: :environment do
 
     # ensure school 2 exists

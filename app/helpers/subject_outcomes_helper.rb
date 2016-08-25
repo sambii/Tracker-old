@@ -636,7 +636,8 @@ module SubjectOutcomesHelper
       subject_id = new_rec[:subject_id]
       rec_proc_count = 0
       if new_rec[:exact_match].blank?
-        old_db_ids_by_subject[subject_id].each do |old_db_id|
+        subj_ids = old_db_ids_by_subject[subject_id].present? ? old_db_ids_by_subject[subject_id] : []
+        subj_ids.each do |old_db_id|
           old_rec = all_old_los[old_db_id]
           rec_proc_count += 1
           if old_rec[:exact_match].blank?

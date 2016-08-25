@@ -197,7 +197,7 @@ class SubjectOutcomesController < ApplicationController
       # @errors = Hash.new
 
       step = 4
-      Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      Rails.logger.debug("*** lo_upload Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # hash to determine if subject should be processed or matched (by subject id)
       @subj_to_proc = Hash.new({})
 
@@ -243,14 +243,14 @@ class SubjectOutcomesController < ApplicationController
 
       Rails.logger.debug("*** Subject to Present to User: #{@subject_to_show.inspect}")
       if @subject_to_show.present?
-        step = '3a'
+        step = '6a'
         Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # we are processing one subject, so we are not looping through subjects
         # pull the new learning outcomes to process from the @new_rec_ids_by_subject
         @new_rec_ids_by_subject[@subject_to_show.id].each do |rec_id|
           @new_los_to_present << @all_new_los[rec_id]
         end
-        step = '3b'
+        step = '6b'
         Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # pull the old learning outcomes to process from the @old_db_ids_by_subject
         old_db_ids = @old_db_ids_by_subject[@subject_to_show.id]
@@ -271,7 +271,7 @@ class SubjectOutcomesController < ApplicationController
         @errors[:filename] = nil
         # Ignore this, first display where user is asked filename
       else
-        msg_str = "ERROR: lo_matching Exception at @stage: #{@stage}, step #{step}, item #{action_count+1} - #{e.message}"
+        msg_str = "ERROR: lo_upload Exception at @stage: #{@stage}, step #{step}, item #{action_count+1} - #{e.message}"
         @errors[:base] = append_with_comma(@errors[:base], msg_str)
         Rails.logger.error(msg_str)
         flash[:alert] = msg_str[0...50]
@@ -537,7 +537,9 @@ class SubjectOutcomesController < ApplicationController
         step = '3b'
         Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # pull the old learning outcomes to process from the @old_db_ids_by_subject
-        @old_db_ids_by_subject[@subject_to_show.id].each do |db_id|
+        old_db_ids = @old_db_ids_by_subject[@subject_to_show.id]
+        old_db_ids = [] if old_db_ids.blank?
+        old_db_ids.each do |db_id|
           @old_los_to_present << @all_old_los[db_id]
           # Rails.logger.debug("*** old rec to present: #{@all_old_los[db_id]}")
         end
@@ -556,7 +558,7 @@ class SubjectOutcomesController < ApplicationController
       msg_str = "ERROR: lo_matching Exception at #{item_at} - #{e.message}"
       @errors[:base] = append_with_comma(@errors[:base], msg_str)
       Rails.logger.error(@errors[:base])
-      flash[:alert] = truncate(@errors[:base], length: 50)
+      flash[:alert] = (@errors[:base]).truncate(100)
       @stage = 5
     end
 
