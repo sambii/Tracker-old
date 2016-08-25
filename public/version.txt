@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.036 Aug 25, 2016
+- Training School rake tasks and misc cleanups.
 PARLO Tracker version v2.01.035 Aug 21, 2016
 - Bulk LO - allow for no old records for subject
 PARLO Tracker version v2.01.034 Aug 21, 2016
