@@ -461,8 +461,12 @@ class SchoolsController < ApplicationController
       sch_subjos.each do |so|
         Rails.logger.debug("*** so: #{so.inspect}")
         if so.model_lo_id.present?
-          Rails.logger.debug("*** id Present")
-          mod_so = SubjectOutcome.find(so.model_lo_id)
+          Rails.logger.debug("*** id Present #{so.model_lo_id}")
+          begin
+            mod_so = SubjectOutcome.find(so.model_lo_id)
+          rescue
+            mod_so = nil
+          end
           match_item = Hash.new
           match_item[:error_str] = ''
           if mod_so.present?
@@ -472,7 +476,7 @@ class SchoolsController < ApplicationController
             so.marking_period = mod_so.marking_period
             so.active = mod_so.active
             if !so.save
-              match_item[:error_str] = "ERROR: error saving Learning Outcome #{so.name} for subject id #{sch_subject_id}, errors: #{so.errors.full_messages}" 
+              match_item[:error_str] = "ERROR: error saving Learning Outcome #{so.name} for subject id #{sch_subject_id}, errors: #{so.errors.full_messages}"
               fail(match_item[:error_str]) if match_item[:error_str]
               Rails.logger.error(match_item[:error_str])
             end
@@ -485,8 +489,8 @@ class SchoolsController < ApplicationController
             matches << match_item
           else
             Rails.logger.debug("*** error")
-            match_item[:error_str] = "ERROR: Missing Model LO pointed to by model_lo_id: #{model_lo_id} in record: #{so.id}"
-            fail(match_item[:error_str])
+            match_item[:error_str] = "ERROR: Missing Model LO pointed to by model_lo_id: #{so.model_lo_id} in record: #{so.id}"
+            # fail(match_item[:error_str])
             Rails.logger.error(match_item[:error_str])
             matches << match_item
           end
