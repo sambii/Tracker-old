@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.037 Aug 30, 2016
+- fix edit section and to show bulk enter teacher assignments for school admins
 PARLO Tracker version v2.01.036 Aug 25, 2016
 - Training School rake tasks and misc cleanups.
 PARLO Tracker version v2.01.035 Aug 21, 2016
