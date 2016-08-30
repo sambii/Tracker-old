@@ -264,7 +264,11 @@ class Ability
 
         # Section
         can [:create, :index, :new_enrollment, :new_evidence, :new_section_outcome,
-             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :student_info_handout_by_grade, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :enter_bulk, :update_bulk, :section_outcomes, :new, :create],
+             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome,
+             :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout,
+             :student_info_handout_by_grade, :progress_rpt_gen, :class_dashboard, :edit_section_message,
+             :exp_col_all_evid, :list_enrollments, :remove_enrollment, :enter_bulk, :update_bulk,
+             :section_outcomes, :new, :create],
           Section,
           { subject: {school_id: user.school_id }}
 
@@ -298,7 +302,7 @@ class Ability
           Teacher,
           { school_id: user.school_id }
 
-        can [:enter_bulk, :update_bulk],
+        can [:enter_bulk, :update_bulk, :create],
           TeachingAssignment,
           {teacher: {school_id: user.school_id}}
 
