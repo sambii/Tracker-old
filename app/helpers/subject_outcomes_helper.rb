@@ -137,9 +137,9 @@ module SubjectOutcomesHelper
             y_subject = ry[COL_SUBJECT].present? ? ry[COL_SUBJECT] : ry[:subject_id]
             # if rx[COL_OUTCOME_CODE] == ry[COL_OUTCOME_CODE] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
             if x_code == y_code && x_subject == y_subject
-              Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
-              Rails.logger.debug("*** Match  rx: #{x_code}, #{x_subject} #{rx.inspect}")
-              Rails.logger.debug("*** Match  ry: #{y_code}, #{y_subject} #{ry.inspect}")
+              # Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+              # Rails.logger.debug("*** Match  rx: #{x_code}, #{x_subject} #{rx.inspect}")
+              # Rails.logger.debug("*** Match  ry: #{y_code}, #{y_subject} #{ry.inspect}")
               if !error_list[iyall+2].present? || (error_list[iyall+2].present? && error_list[iyall+2][0] != '-1')
                 # put or add to end the list of duplicated lines, but only if not listed prior
                 # ix+2 or iyall+2 for zero relative ruby arrays and ignoring the header line.
@@ -185,10 +185,10 @@ module SubjectOutcomesHelper
             y_subject = ry[COL_SUBJECT].present? ? ry[COL_SUBJECT] : ry[:subject_id]
             # if rx[COL_OUTCOME_NAME] == ry[COL_OUTCOME_NAME] && rx[COL_SUBJECT] == ry[COL_SUBJECT]
             if x_desc == y_desc && x_subject == y_subject
-              Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
-              Rails.logger.debug("*** Match  rx: #{x_desc}, #{x_subject} #{rx.inspect}")
-              Rails.logger.debug("*** Match  ry: #{y_desc}, #{y_subject} #{ry.inspect}")
-              Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+              # Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
+              # Rails.logger.debug("*** Match  rx: #{x_desc}, #{x_subject} #{rx.inspect}")
+              # Rails.logger.debug("*** Match  ry: #{y_desc}, #{y_subject} #{ry.inspect}")
+              # Rails.logger.debug("*** Match of #{ix+2} and #{iyall+2} !!!")
               if !error_list[iyall+2].present? || (error_list[iyall+2].present? && error_list[iyall+2][0] != '-1')
                 # put or add to end the list of duplicated lines, but only if not listed prior
                 # ix+2 or iyall+2 for zero relative ruby arrays and ignoring the header line.
@@ -199,8 +199,8 @@ module SubjectOutcomesHelper
                 end
                 error_list[iyall+2] = ['-1', '']
               end
-              Rails.logger.debug("*** dup description added for #{ix}, #{records[ix].inspect}")
-              Rails.logger.debug("*** dup description added for #{iyall}, #{records[iyall].inspect}")
+              # Rails.logger.debug("*** dup description added for #{ix}, #{records[ix].inspect}")
+              # Rails.logger.debug("*** dup description added for #{iyall}, #{records[iyall].inspect}")
               # add the duplicate LO Description message to this row, if not there already
               records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Description') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Description')
               # add the duplicate LO Description message to the later row, if not there already
@@ -495,22 +495,22 @@ module SubjectOutcomesHelper
           x_subject = rx[COL_SUBJECT].present? ? rx[COL_SUBJECT] : rx[:subject_id]
           y_subject = ry[COL_SUBJECT].present? ? ry[COL_SUBJECT] : ry[:subject_id]
           if x_desc_2 == y_desc_2 && x_subject == y_subject
-            Rails.logger.debug("*** Match  rx: #{x_desc_2}, #{x_subject} #{rx.inspect}")
-            Rails.logger.debug("*** Match  ry: #{y_desc_2}, #{y_subject} #{ry.inspect}")
+            # Rails.logger.debug("*** Match  rx: #{x_desc_2}, #{x_subject} #{rx.inspect}")
+            # Rails.logger.debug("*** Match  ry: #{y_desc_2}, #{y_subject} #{ry.inspect}")
             set_error_list_matches(ix, iyall, 'description')
-            Rails.logger.debug("*** dup description added for #{ix}, #{records[ix].inspect}")
-            Rails.logger.debug("*** dup description added for #{iyall}, #{records[iyall].inspect}")
+            # Rails.logger.debug("*** dup description added for #{ix}, #{records[ix].inspect}")
+            # Rails.logger.debug("*** dup description added for #{iyall}, #{records[iyall].inspect}")
             # add the duplicate LO Description message to this row, if not there already
             records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Description') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Description')
             # add the duplicate LO Description message to the later row, if not there already
             records[iyall][COL_ERROR] = append_with_comma(records[iyall][COL_ERROR], 'Duplicate Description') if !(records[iyall][COL_ERROR] ||= '').include?('Duplicate Description')
           end
           if x_code == y_code && x_subject == y_subject
-            Rails.logger.debug("*** Match  rx: #{x_code}, #{x_subject} #{rx.inspect}")
-            Rails.logger.debug("*** Match  ry: #{y_code}, #{y_subject} #{ry.inspect}")
+            # Rails.logger.debug("*** Match  rx: #{x_code}, #{x_subject} #{rx.inspect}")
+            # Rails.logger.debug("*** Match  ry: #{y_code}, #{y_subject} #{ry.inspect}")
             set_error_list_matches(ix, iyall, x_code)
-            Rails.logger.debug("*** dup code added for #{ix}, #{records[ix].inspect}")
-            Rails.logger.debug("*** dup code added for #{iyall}, #{records[iyall].inspect}")
+            # Rails.logger.debug("*** dup code added for #{ix}, #{records[ix].inspect}")
+            # Rails.logger.debug("*** dup code added for #{iyall}, #{records[iyall].inspect}")
             # add the duplicate Code message to this row, if not there already
             records[ix][COL_ERROR] = append_with_comma(records[ix][COL_ERROR], 'Duplicate Code') if !(records[ix][COL_ERROR] ||= '').include?('Duplicate Code')
             # add the duplicate Code message to the later row, if not there already
@@ -781,15 +781,15 @@ module SubjectOutcomesHelper
   end
 
   def lo_setup_subject(subj, auto_update)
-    Rails.logger.debug("*** lo_setup_subject 1 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
+    # Rails.logger.debug("*** lo_setup_subject 1 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
     lo_dups_for_subject(subj)
-    Rails.logger.debug("*** lo_setup_subject 2 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
+    # Rails.logger.debug("*** lo_setup_subject 2 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
     lo_matches_for_subject(subj)
-    Rails.logger.debug("*** lo_setup_subject 3 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
+    # Rails.logger.debug("*** lo_setup_subject 3 @subj_to_proc[subj.id]: #{@subj_to_proc[subj.id]}")
     if @subj_to_proc[subj.id][:process] && !@subj_to_proc[subj.id][:error]
-      Rails.logger.debug("*** lo_setup_subject - Auto Update possible #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+      Rails.logger.debug("*** lo_setup_subject - Auto Update possible - #{subj.inspect}")
       if auto_update
-        Rails.logger.debug("*** lo_setup_subject - AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+        Rails.logger.debug("*** lo_setup_subject - AUTO UPDATE - #{subj.inspect}")
         # update this subject now and be done with it
         @count_updated_subjects += 1 if lo_update_subject(subj)
       else
@@ -798,7 +798,7 @@ module SubjectOutcomesHelper
         # @subject_to_show = subj if @subject_to_show.blank?
       end
     else
-      Rails.logger.debug("*** lo_setup_subject - DONT AUTO UPDATE #{@subj_to_proc[subj.id]} - #{subj.inspect}")
+      Rails.logger.debug("*** lo_setup_subject - DONT AUTO UPDATE - #{subj.inspect}")
       # This is a subject that must be matched, set up first presenting subject if not done already
       if @subject_to_show.blank?
         @subject_to_show = subj

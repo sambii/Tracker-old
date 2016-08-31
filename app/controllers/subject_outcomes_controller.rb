@@ -220,6 +220,7 @@ class SubjectOutcomesController < ApplicationController
         raise("Error - No Curriculum Records to upload.") if @all_new_los.count == 0
         @subjects.each do |subj|
           lo_setup_subject(subj, true)
+          break if @subject_to_show.present?
         end
         @present_by_subject = @subject_to_show
         @prior_subject_name = 'Automatically Updated Subjects'
@@ -279,8 +280,8 @@ class SubjectOutcomesController < ApplicationController
       end
     end
 
-    @old_los_to_present.each{|rec| Rails.logger.debug("*** present old rec: #{rec}")}
-    @new_los_to_present.each{|rec| Rails.logger.debug("*** present new rec: #{rec}")}
+    # @old_los_to_present.each{|rec| Rails.logger.debug("*** present old rec: #{rec}")}
+    # @new_los_to_present.each{|rec| Rails.logger.debug("*** present new rec: #{rec}")}
 
     Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
     Rails.logger.debug("*** @errors #{@errors.inspect}")
@@ -498,19 +499,27 @@ class SubjectOutcomesController < ApplicationController
 
       ##### get subject to present to user #####
       Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
-      do_subject_setup = false
+      Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
+      do_subject_matched = false
       @subjects.each_with_index do |subj, ix|
         if subj.id == @match_subject.id
           # we found the subject just presented to the user
+          Rails.logger.debug("*** matched subject just presented #{ix} - #{subj.inspect}")
 
-          do_subject_setup = true
+          do_subject_matched = true
           next if go_to_next
         end
 
-        if do_subject_setup
-          lo_setup_subject(subj, false) # did auto update already in lo_upload
+        Rails.logger.debug("*** subject looping #{ix} - #{subj.name}")
+
+        if do_subject_matched
+          lo_setup_subject(subj, true) # didn't do all auto updates in lo_upload
+          Rails.logger.debug("*** matched next subject #{ix} - #{subj.inspect}")
         end
+
+        break if @subject_to_show.present?
       end
+
       @present_by_subject = @subject_to_show
       Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
       Rails.logger.debug("*** @present_by_subject #{@present_by_subject.inspect}")
