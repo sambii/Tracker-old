@@ -51,7 +51,7 @@ module SubjectOutcomesHelper
 
         # strip leading a trailing spaces in lo_code and name
         csv_hash[COL_OUTCOME_CODE] = csv_hash[COL_OUTCOME_CODE].strip
-        csv_hash[COL_OUTCOME_NAME] = csv_hash[COL_OUTCOME_NAME].gsub(/\r\n?/, "\n")[0..255].strip
+        csv_hash[COL_OUTCOME_NAME] = csv_hash[COL_OUTCOME_NAME].gsub!(/\s+/, ' ').strip()[0...255]
 
         # make sure marking period is filled with either marking period field or semester field.
         if csv_hash[COL_MARK_PER].blank?
