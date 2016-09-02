@@ -245,17 +245,19 @@ class Ability
         can [:show, :create, :update, :enter_bulk, :update_bulk],
           Enrollment,
           { student: {school_id: user.school_id } }
+        can [:new], Enrollment
 
         # Evidence
         can [:create, :rate, :show, :update, :show_attachments],
           Evidence,
           { section: { subject: { school_id: user.school_id } } }
-        can [:new, :create], Evidence # added this for creation of new evidences (where record has no sections yet)
+        can [:new], Evidence
 
         # EvidenceSectionOutcomeRating
         can [:create, :show, :update],
           EvidenceSectionOutcomeRating,
           { evidence_section_outcome: { section_outcome: { section: { subject: { school_id: user.school_id } } } } }
+        can [:new], EvidenceSectionOutcomeRating
 
         # School
         can [:read, :edit, :update, :new_year_rollover],
@@ -271,53 +273,62 @@ class Ability
              :section_outcomes, :new, :create],
           Section,
           { subject: {school_id: user.school_id }}
+        can [:new], Section
 
         # SectionOutcome
         can [:create, :show, :sort, :update, :evidences_left, :evidences_right, :toggle_marking_period],
             SectionOutcome,
             { section: { subject: { school_id: user.school_id } } }
+        can [:new], SectionOutcome
 
         # SubjectOutcome
         can [:create, :show, :update],
             SubjectOutcome,
             { subject: { school_id: user.school_id } }
+        can [:new], SubjectOutcome
 
         # SectionOutcomeRating
         can [:create, :update],
           SectionOutcomeRating,
           { section_outcome: { section: { subject: { school_id: user.school_id } } } }
+        can [:new], SectionOutcomeRating
 
         # Student
         can [:create, :deactivate, :read, :update, :dashboard, :security, :proficiency_bars, :bulk_upload, :bulk_update],
           Student,
           { school_id: user.school_id }
+        can [:new], Student
 
         # Subject
         can [:read, :view_subject_outcomes, :proficiency_bars, :progress_meters],
             Subject,
             { school_id: user.school_id }
+        can [:new], Subject
 
         # Teacher
         can [:read, :create, :update, :dashboard],
           Teacher,
           { school_id: user.school_id }
+        can [:new], Teacher
 
         can [:enter_bulk, :update_bulk, :create],
           TeachingAssignment,
           {teacher: {school_id: user.school_id}}
+        can [:new], TeachingAssignment
 
         # User
         can [:create, :read, :update, :set_temporary_password, :account_activity_report, :staff_listing, :dashboard, :security, :new_staff, :create_staff, :profile, :sections_list, :bulk_upload_staff, :bulk_update_staff],
           User,
           { school_id: user.school_id }
-
         can [:read, :change_password, :edit, :update, :profile],
           User,
           { id: user.id }
+        can [:new], User
 
         # Report Card Request
         can [:create, :forward],
           ReportCardRequest
+        can [:new], ReportCardRequest
 
         # Attendance
         can :manage,
