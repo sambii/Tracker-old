@@ -1,0 +1,14 @@
+%tbody.tbody-header.show-tbody.show-tbody-body
+  %tr.height-30
+    %td
+      .clearfix
+        %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
+          %i.fa.fa-caret-down.fa-lg
+        / %a.pull-left.lmargin5{href: "javascript:void(0)"}
+        %strong.pull-left.lmargin5=xid
+    %td
+      %a{href: "#{user_path(student_id)}"}
+        .user-full-name=name
+    - @attendance_types.each do |at|
+      %td.centered=by_type[at.id]
+%tbody.tbody-body

@@ -55,7 +55,6 @@
               %th= 'Student Name'
               - @attendance_types.each do |at|
                 %th=at.description
-              %th= 'Comment'
           - last_student_id = 0
           - last_student_xid = 0
           - last_student_name = ''
@@ -63,24 +62,11 @@
 
           - @attendances.each do |a|
             - if last_student_id != a.user_id && last_student_id != 0
-              %tbody.tbody-header.show-tbody.show-tbody-body
-                %tr.height-30
-                  %td
-                    .clearfix
-                      %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
-                        %i.fa.fa-caret-down.fa-lg
-                      / %a.pull-left.lmargin5{href: "javascript:void(0)"}
-                      %strong.pull-left.lmargin5=last_student_xid
-                  %td
-                    %a{href: "#{user_path(a.user_id)}"}
-                      .user-full-name=last_student_name
-                  - @attendance_types.each do |at|
-                    %td=by_type[at.id]
-                  %td=''
-              %tbody.tbody-body
+              =render partial: 'student_attendance_break', locals: {student_id: last_student_id, xid: last_student_xid, name: last_student_name, by_type: by_type}
               - by_type = types_empty_hash.clone
             - last_student_id = a.user_id
             - last_student_xid = a.student.xid
             - last_student_name = a.student.full_name
             - by_type[a.attendance_type_id] += 1
+          =render partial: 'student_attendance_break', locals: {student_id: last_student_id, xid: last_student_xid, name: last_student_name, by_type: by_type}
 

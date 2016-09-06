@@ -110,6 +110,7 @@ class AttendancesController < ApplicationController
     @test_auth_item = Attendance.new
     @test_auth_item.school_id = current_school_id
     a_user = User.where(school_id: current_school_id).first
+    raise("ERROR: no users in this school") if a_user.blank?
     @test_auth_item.user_id = a_user.id
     @test_auth_item.section_id = @section_id
     authorize! :read, @test_auth_item
