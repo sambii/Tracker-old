@@ -54,13 +54,14 @@ namespace :stem_egypt_training_data do
 
     schools.each do |sch|
 
+
       # confirm acronym is in correct format LT##
       valid_school = true
       acronym = sch.acronym
       valid_school = false if acronym[0..1] != 'LT'
       acronym_num = acronym.clone
       acronym_num.slice!(0,2)
-      lt_num = Integer(acronym_num) rescue -1
+      lt_num = Integer(acronym_num, 10) rescue -1
       valid_school = false if lt_num < 0
 
       if valid_school
