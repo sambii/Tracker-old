@@ -144,7 +144,7 @@ class ApplicationController < ActionController::Base
     @toolkit_subjects = []
     load_subjects = false
     load_sections = false
-    user_loaded = 'User'.constantize
+    # user_loaded = 'User'.constantize
     Rails.logger.debug ("*** @current_school_id = #{@current_school_id}")
     if current_user.present?
       # admins and researchers get to list subjects since they normally do not have assigned sections
@@ -154,11 +154,17 @@ class ApplicationController < ActionController::Base
       end
       #  see if user with @current_role has assigned sections.
       clazz = @current_role.to_s.camelize.constantize
-      user_loaded = clazz.find(current_user.id)
-      if user_loaded && user_loaded.methods.include?(:sections)
-        load_sections = true
-      elsif user_loaded.parent?
-        load_sections = true
+      begin
+        user_loaded = clazz.find(current_user.id)
+      rescue
+        user_loaded = nil
+      end
+      if user_loaded
+        if user_loaded.methods.include?(:sections)
+          load_sections = true
+        elsif user_loaded.parent?
+          load_sections = true
+        end
       end
     end
 
