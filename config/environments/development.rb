@@ -46,5 +46,9 @@ Tracker2::Application.configure do
 
   # Open emails to be sent in a new browser window.
   config.action_mailer.delivery_method = :letter_opener
+
+  # run delayed jobs inline for development
+  Delayed::Worker.delay_jobs = false
+
 end
 

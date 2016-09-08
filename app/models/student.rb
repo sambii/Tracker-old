@@ -296,7 +296,7 @@ class Student < User
     hash = Hash.new { |h,k| h[k] = 0 }
     EvidenceSectionOutcomeRating.joins(
       evidence_section_outcome: :evidence
-    ).where(evidences: {section_id: section_id}, student_id: id, active: true).map { |a|
+    ).where(evidences: {section_id: section_id, active: true}, student_id: id).map { |a|
       hash[a.rating] += 1
     }
     hash
