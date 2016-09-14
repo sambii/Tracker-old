@@ -52,7 +52,7 @@
                 - break
               - else
                 %tr
-                  %td
+                  %td.subject-link
                     %a{href: subject_path(subject.id), id: "prof-subj-#{subject.id}"}
                       ="#{subject.name}"
                   - pixel_width = 300
@@ -90,7 +90,7 @@
                 - break
               - else
                 %tr
-                  %td{:style => "width: 150px;"}
+                  %td.subject-link
                     %a{href: subject_path(subject.id), id: "learning-subj-#{subject.id}"}
                       ="#{subject.name}"
                   %td.active

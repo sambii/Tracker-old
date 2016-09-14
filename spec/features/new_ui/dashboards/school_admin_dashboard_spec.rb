@@ -4,10 +4,23 @@ require 'spec_helper'
 
 describe "School Admin Dashboard", js:true do
   before (:each) do
-    @section = FactoryGirl.create :section
-    @teacher = FactoryGirl.create :teacher, school: @section.school
+    @school = FactoryGirl.create :school_current_year, :arabic
+    @teacher = FactoryGirl.create :teacher, school: @school
+    @subject = FactoryGirl.create :subject, name: 'Subject 1', subject_manager: @teacher, school: @school
+    @section = FactoryGirl.create :section, subject: @subject
+    @subj_math_3 = FactoryGirl.create :subject, name: 'Math 3', subject_manager: @teacher, school: @school
+    @subj_math_4 = FactoryGirl.create :subject, name: 'Math 4', subject_manager: @teacher, school: @school
+    @subj_math_5 = FactoryGirl.create :subject, name: 'Math 5', subject_manager: @teacher, school: @school
+    @subj_math_6 = FactoryGirl.create :subject, name: 'Math 6', subject_manager: @teacher, school: @school
+    @subj_math_7 = FactoryGirl.create :subject, name: 'Math 7', subject_manager: @teacher, school: @school
+    @subj_math_8 = FactoryGirl.create :subject, name: 'Math 8', subject_manager: @teacher, school: @school
+    @subj_math_9 = FactoryGirl.create :subject, name: 'Math 9', subject_manager: @teacher, school: @school
+    @subj_math_10 = FactoryGirl.create :subject, name: 'Math 10', subject_manager: @teacher, school: @school
+    @subj_math_11 = FactoryGirl.create :subject, name: 'Math 11', subject_manager: @teacher, school: @school
+    @subj_math_12 = FactoryGirl.create :subject, name: 'Math 12', subject_manager: @teacher, school: @school
     @school_administrator = FactoryGirl.create :school_administrator, school: @section.school
     load_test_section(@section, @teacher)
+
     @subject = @section.subject
   end
 
@@ -78,16 +91,23 @@ describe "School Admin Dashboard", js:true do
       page.should have_content('9 - Unrated')
     end
 
+
     within("#proficiency") do
       page.should have_css('div.high-rating-bar', text: '9')
       page.should have_css('div.prof-rating-bar', text: '9')
       page.should have_css('div.nyp-rating-bar', text: '9')
       page.should have_css('div.unrated-rating-bar', text: '9')
+      # make sure first entry is Subject 1
+      subject_nodes = all('tbody td.subject-link a').map(&:text)
+      subject_nodes[0].should == @subject.name
     end
 
     # make sure learning outcomes covered match
     within("#learning") do
       page.should have_content("4 out of 4")
+      # make sure first entry is Subject 1
+      subject_nodes = all('tbody td.subject-link a').map(&:text)
+      subject_nodes[0].should == @subject.name
     end
 
     #  validate links on page

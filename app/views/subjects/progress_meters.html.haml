@@ -29,7 +29,7 @@
           %td='All'
 .row
   .col-sm-12.col-lg-8
-    .block.block-alt-style.full
+    #learning.block.block-alt-style.full
       .block-content-full.rounded-title-container
         %table.titled-table.table.table-bordered.table-condensed.remove-margin
           %thead.table-title
@@ -41,20 +41,21 @@
               - complete = srd_v[:rated_los_count]
               - grand_total = srd_v[:all_los_count]
               - width = (complete > 0) ? (complete*100/grand_total).floor : 0
-              %tr
-                %td{:style => "width: 150px;"}
-                  =srd_v[:subject].name
-                %td.active
-                  / .table-progress{:style => "width: #{width}%;"}=display if width >= 15
-                  .progress-container
-                    .table-progress{title: 'Learning Outcomes Covered out of All', :style => "width: #{width}%;"}
-                      - if width >= 20
-                        ="#{complete}"
-                      - if width >= 80
-                        =" out of #{grand_total}"
-                    .after-progress
-                      - if width < 20
-                        ="#{complete}"
-                      - if width < 80
-                        =" out of #{grand_total}"
+              - if complete > 0 # hide subject with no progress
+                %tr
+                  %td.subject-link
+                    =srd_v[:subject].name
+                  %td.active
+                    / .table-progress{:style => "width: #{width}%;"}=display if width >= 15
+                    .progress-container
+                      .table-progress{title: 'Learning Outcomes Covered out of All', :style => "width: #{width}%;"}
+                        - if width >= 20
+                          ="#{complete}"
+                        - if width >= 80
+                          =" out of #{grand_total}"
+                      .after-progress
+                        - if width < 20
+                          ="#{complete}"
+                        - if width < 80
+                          =" out of #{grand_total}"
   .col-sm-0.col-lg-4

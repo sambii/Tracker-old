@@ -34,7 +34,7 @@ class SchoolAdministratorsController < ApplicationController
         @subject_ratings[s.id] = s.count_ratings_plus(section_ids: @current_sections.pluck(:id), school_year_starts_at: @school_year.starts_at)
       end
       @by_date = @subject_ratings.sort_by{|k,v| v[:last_rating_date].to_time}.reverse
-      @by_lo_count = @subject_ratings.sort_by{|k,v| (v[:by_count_ratio])}
+      @by_lo_count = @subject_ratings.sort_by{|k,v| (v[:ratio])}.reverse
 
       @recent10 = User.where('(teacher=? OR counselor=? OR school_administrator=?) AND current_sign_in_at IS NOT NULL AND school_id=?', true, true, true, @school.id).order(:last_name, :first_name).order('current_sign_in_at DESC').limit(10)
     end
