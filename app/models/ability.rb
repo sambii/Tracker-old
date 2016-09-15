@@ -198,13 +198,16 @@ class Ability
             User,
             { id: user.id }
 
-        can [:create, :update, :dashboard, :security, :set_temporary_password], ["system_administrator = 1 or researcher = 1 or school_administrator = 1 or counselor = 1"], User do |u|
-          reject = false
-          u.role_symbols.each do |r|
-            reject = true if ![:student, :parent].include?(r)
-          end
-          u.school_id == user.school_id and !reject
-        end
+        # removed - see simple replacements below - may possibly be relevant if accessible_by is used
+        # can [:create, :update, :dashboard, :security, :set_temporary_password], ["system_administrator = 1 or researcher = 1 or school_administrator = 1 or counselor = 1 or teacher = 1"], User do |u|
+        #   reject = false
+        #   u.role_symbols.each do |r|
+        #     reject = true if ![:student, :parent].include?(r)
+        #   end
+        #   u.school_id == user.school_id and !reject
+        # end
+        can [:create, :update, :dashboard, :security, :set_temporary_password, :sections_list], User, { student: true}
+        can [:create, :update, :dashboard, :security, :set_temporary_password], User, { parent: true}
 
         # Attendance
         can :manage,

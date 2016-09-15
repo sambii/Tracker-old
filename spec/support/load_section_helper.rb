@@ -19,13 +19,16 @@ module LoadSectionHelper
     @enrollment5 = FactoryGirl.create :enrollment, section: section, student: @student5
     @student6   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-6'
     @enrollment6 = FactoryGirl.create :enrollment, section: section, student: @student6
+    # unenrolled = student active, but unenrolled.
     @student_unenrolled   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Unenrolled'
     @enrollment_unenrolled = FactoryGirl.create :enrollment, section: section, student: @student_unenrolled
+    # transferred = student deactivated, but still enrolled.
     @student_transferred   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Transferred'
     @enrollment_transferred = FactoryGirl.create :enrollment, section: section, student: @student_transferred
+    # out = student deactivated, and unenrolled.
     @student_out   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Out'
     @enrollment_out = FactoryGirl.create :enrollment, section: section, student: @student_out
-
+    # new = student active and enrolled with no ratings.
     @student_new   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'New'
     @enrollment_new = FactoryGirl.create :enrollment, section: section, student: @student_new
 

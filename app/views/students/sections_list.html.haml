@@ -49,13 +49,14 @@
                     %strong.pull-left.lmargin5="Current Enrollments"
             %tbody.tbody-body
               - @current_enr.each do |e|
-                %tr{id: "student_#{e.student_id}"}
+                %tr{id: "enrollment_#{e.id}"}
                   %td=e.section.name
                   %td=e.section.line_number
                   %td=e.section.teaching_assignments.first.teacher.full_name if e.section.teaching_assignments.present?
                   %td
-                    %a{href: "/enrollments/#{e.id}"}
-                      %i.fa.fa-lg.fa-check
+                    - if can?(:show, e) 
+                      %a{href: "/enrollments/#{e.id}"}
+                        %i.fa.fa-lg.fa-check
             %tbody.tbody-header.show-tbody{class: (true ? 'show-tbody-body' : '' )}
               %tr.height-30
                 %td{colspan: 4}
@@ -65,11 +66,12 @@
                     %strong.pull-left.lmargin5="Previous Enrollments"
             %tbody.tbody-body
               - @previous_enr.each do |e|
-                %tr{id: "student_#{e.student_id}"}
+                %tr{id: "enrollment_#{e.id}"}
                   %td=e.section.name
                   %td=e.section.line_number
                   %td=e.section.teaching_assignments.first.teacher.full_name
                   %td
-                    %a{href: "/enrollments/#{e.id}"}
-                      %i.fa.fa-lg.fa-check
+                    - if can?(:show, e) 
+                      %a{href: "/enrollments/#{e.id}"}
+                        %i.fa.fa-lg.fa-check
 
