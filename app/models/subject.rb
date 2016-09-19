@@ -24,6 +24,7 @@ class Subject < ActiveRecord::Base
 
   # Validations
   validates_presence_of :school, :discipline, :name
+  validates_uniqueness_of       :name, :scope => :school_id, :message => "This subject name already exists for this school!"
 
 
   # New UI
