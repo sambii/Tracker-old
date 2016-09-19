@@ -65,11 +65,11 @@
                     .col-md-5='Username:'
                     .col-md-7=@parent.username
               %tr
-                %td{id: "user_#{@student.id}"}
+                %td.student-temp-pwd{id: "user_#{@student.id}"}
                   .row
                     .col-md-5='Temporary Password:'
                     .col-md-7{id: "user_#{@student.id}_password"}=set_temporary_password(@student)
-                %td{id: "user_#{@parent.id}"}
+                %td.parent-temp-pwd{id: "user_#{@parent.id}"}
                   .row
                     .col-md-5='Temporary Password:'
                     .col-md-7{id: "user_#{@parent.id}_password"}=set_temporary_password(@parent)

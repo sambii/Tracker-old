@@ -78,7 +78,7 @@
               %th= 'Gender'
               %th= 'Parent Email'
               %th= 'Send Email'
-              %th{colspan: 6}= 'Edits'
+              %th{colspan: 6}= 'Actions'
           - start_letter = ''
           - if @school.has_flag?(School::USER_BY_FIRST_LAST)
             - grouping = @students.group_by(&:first_name_initial)
@@ -98,7 +98,7 @@
               - studs.each do |s|
                 - if s.grade_level <= max_grade
                   - deact_class = s.active ? 'active' : 'deactivated'
-                  %tr{class: deact_class, id: "student_#{s.id}"}
+                  %tr.student-row{class: deact_class, id: "student_#{s.id}"}
                     %td.user-xid=s.xid
                     - if @school.has_flag?(School::USER_BY_FIRST_LAST)
                       %td
@@ -133,7 +133,7 @@
                       %a{data: {target: "#modal_popup", toggle: 'modal', url: student_path(s.id, format: :js)}, title: 'View Student User Information'}
                         %i.fa.fa-lg.fa-ellipsis-h
                     %td
-                      - if can? :update, s
+                      - if can? :edit, s
                         %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_student_path(s.id, format: :js)}, title: 'Edit Student User Information'}
                           %i.fa.fa-lg.fa-edit
                     %td

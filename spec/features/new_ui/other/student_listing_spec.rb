@@ -74,23 +74,29 @@ describe "Student Listing", js:true do
     before do
       sign_in(@student)
     end
-    it { has_no_student_listing }
+    it { has_no_student_listing(true) }
   end
 
   describe "as parent" do
     before do
       sign_in(@student.parent)
     end
-    it { has_no_student_listing }
+    it { has_no_student_listing(false) }
   end
 
   ##################################################
   # test methods
 
-  def has_no_student_listing
+  def has_no_student_listing(student)
+    page.should_not have_css("#side-students")
     visit students_path
-    save_and_open_page
-    assert_not_equal("/students", current_path)
+    if student
+      all('.student-row').count.should == 1
+      page.should have_css("a[data-url='/students/#{@student.id}.js']")
+      page.should_not have_css("a[data-url='/students/#{@student.id}/edit.js']")
+    else
+      all('.student-row').count.should == 0
+    end
   end
 
   def has_valid_student_listing(can_create, can_deactivate, can_see_all)
@@ -134,6 +140,9 @@ describe "Student Listing", js:true do
     visit students_path
     assert_equal("/students", current_path)
     can_see_student_sections(@student, @enrollment, @enrollment_s2, can_see_all)
+    visit students_path
+    assert_equal("/students", current_path)
+    can_reset_student_password(@student)
   end # def has_valid_subjects_listing
 
   ##################################################
@@ -171,6 +180,21 @@ describe "Student Listing", js:true do
     assert_equal("/enrollments/#{enrollment.id}", current_path)
   end
 
+  def can_reset_student_password(student)
+    within("tr#student_#{student.id}") do
+      page.should have_css("a[data-url='/students/#{student.id}/security.js']")
+      find("a[data-url='/students/#{student.id}/security.js']").click
+    end
+    page.should have_content("Student/Parent Security and Access")
+    within("#user_#{student.id}") do
+      page.should have_css("a[href='/users/#{student.id}/set_temporary_password']")
+      find("a[href='/users/#{student.id}/set_temporary_password']").click
+    end    
+    within("#user_#{student.id}.student-temp-pwd") do
+      page.should_not have_content('(Reset Password')
+    end
+
+  end
 
 
 end

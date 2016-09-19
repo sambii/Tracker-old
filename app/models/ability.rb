@@ -62,9 +62,10 @@ class Ability
             { id: user.id }
 
         # User (Self)
-        can [:read, :change_password, :edit, :update, :profile],
+        can [:read, :change_password, :update, :profile],
             User,
             { id: user.id }
+        cannot [:edit], User, {id: user.id}
 
         # students cannot update their password in the model school (for student orientation use)
         cannot [:update],
