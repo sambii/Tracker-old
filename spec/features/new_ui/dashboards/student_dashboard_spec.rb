@@ -84,16 +84,16 @@ describe "Student Dashboard", js:true do
     visit student_path(@student.id)
     assert_equal("/students/#{@student.id}", current_path)
     within("#evidence-stats-overall h4.text-success") do
-      page.should have_content('14/32')
+      page.should have_content('12/24')
     end
     within("#evidence-stats-overall h4.text-danger") do
-      page.should have_content('18/32')
+      page.should have_content('12/24')
     end
     within("#evidence-stats-last7 h4.text-success") do
-      page.should have_content('14/32')
+      page.should have_content('0/0')
     end
     within("#evidence-stats-last7 h4.text-danger") do
-      page.should have_content('18/32')
+      page.should have_content('0/0')
     end
     within("#lo-pie") do
       page.should have_content('1 - High Performance')

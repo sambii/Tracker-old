@@ -160,12 +160,18 @@
               - total = complete + problems
               - grand_total = e.section.section_outcomes.count
               - todo = grand_total - total
-              - prof_width = (complete > 0) ? (complete*100/grand_total).floor : 0
-              - prob_width = (problems > 0) ? (problems*100/grand_total).floor : 0
-              - total_width = (todo > 0) ? (todo*100/grand_total).floor : 0
-              - display = "#{complete}/#{total.floor}"
+              - prof_width = (complete > 0) ? (complete*97/grand_total).floor : 0
+              - prob_width = (problems > 0) ? (problems*97/grand_total).floor : 0
+              - total_width = (todo > 0) ? (todo*97/grand_total).floor : 0
+              - display = "#{complete}/#{total.floor} "
               - display_total = "of #{grand_total}"
               - t_name = (e.section.teachers && e.section.teachers.first) ? e.section.teachers.first.last_name : ''
+              - both_in_left = false
+              - both_in_right = false
+              - if prof_width > 9
+                - both_in_left = true
+              - elsif prob_width > 9
+                - both_in_right = true
               %tr{data: {lo_prog_id: "#{e.section.id}"}}
                 %td.col-sm-5
                   %a{href: (can?(:show, e) ? "#{enrollment_path(e.id)}" : "javascript:void(0)"), class: (can?(:show, e) ? "" : "deactivated arrow-cursor"), title: 'Link to Tracker Page'}
@@ -174,9 +180,9 @@
                 %td.active.col-sm-7
                   / .table-progress{:style => "width: #{width}%;"}=display if width >= 15
                   .progress-container
-                    - if prof_width >= 10
-                      .table-progress{title: 'Learning Outcomes completed at Proficient or Higher out of total rated', :style => "width: #{prof_width}%;"}=display if prof_width >= 10 && prob_width < 10
-                    - if prob_width >= 10
-                      .table-problems{title: 'Learning Outcomes not completed at Proficient or Higher out of total rated', :style => "width: #{prob_width}%;"}=display if prob_width >= 10
-                    - if total_width >= 10
+                    - if complete > 0
+                      .table-progress{title: 'Learning Outcomes completed at Proficient or Higher out of total rated', :style => "width: #{prof_width}%;"}= if both_in_left then display elsif !both_in_right then complete end
+                    - if problems > 0
+                      .table-problems{title: 'Learning Outcomes not completed at Proficient or Higher out of total rated', :style => "width: #{prob_width}%;"}= if both_in_right then display elsif !both_in_left then problems end
+                    - if todo > 0
                       .after-progress{title: 'Total planned number of Learning Outcomes for this course', :style => "width: #{total_width}%;"}= (prof_width < 10 && total_width < 10) ? display : display_total
