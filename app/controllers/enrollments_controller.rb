@@ -87,7 +87,6 @@ class EnrollmentsController < ApplicationController
   # student enrollment bulk entry page
   def enter_bulk
     Rails.logger.debug("*** enter_bulk")
-    # authorize! :read, User # force login if not logged in
 
     num_items = prep_for_bulk_view(params)
 
@@ -259,13 +258,12 @@ class EnrollmentsController < ApplicationController
     @subjects = Subject.where(school_id: school.id, id: sections_subject_id).order(:name)
     @cur_subject_id = ta_params['subject_id'].to_i if ta_params
     if @cur_subject_id
-      @sections = Section.where(subject_id: @cur_subject_id).includes(:subject)
+      @sections = Section.where(school_year_id: school.school_year_id, subject_id: @cur_subject_id).includes(:subject)
     else
       @sections = []
     end
     @cur_section_id = ta_params['section_id'].to_i if ta_params
 
-    Rails.logger.debug("*** @cur_section_id: #{@cur_section_id}")
     if @cur_section_id.present? && @cur_section_id > 0
       @current_section_assignments = Enrollment.where(section_id: @cur_section_id, active: true)
       @cur_section = Section.find(@cur_section_id)
@@ -273,8 +271,6 @@ class EnrollmentsController < ApplicationController
       @current_section_assignments = []
       @cur_section = nil
     end
-    Rails.logger.debug("*** @current_section_assignments: #{@current_section_assignments.inspect}")
-    Rails.logger.debug("*** @cur_section: #{@cur_section.inspect}")
 
     if ta_params
       if @current_section_assignments.count > 0

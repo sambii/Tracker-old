@@ -151,8 +151,15 @@ class SectionsController < ApplicationController
   # respond to ajax call to populate the section select box for the subject
   def index
     @subject_id = params['subject_id'].to_i
+    if params['school_year_id'].present?
+      @school_year_id = Integer(params['school_year_id']) rescue nil
+    else
+      @school_year_id = nil
+      Rails.logger.error("WARNING: Sections#index is missing school_year_id")
+    end
     sections_select_info = []
-    Section.where(subject_id: @subject_id).each do |s|
+    @sections = @school_year_id.present? ? Section.where(subject_id: @subject_id, school_year_id: @school_year_id) : Section.where(subject_id: @subject_id)
+    @sections.each do |s|
       sections_select_info << {id: s.id, name: "#{s.name} - #{s.line_number}"}
     end
     respond_to do |format|

@@ -32,11 +32,14 @@ $ ->
       console.log 'getSectionsForSubject'
       subject_id = $(that).val()
       console.log "subject_id: #{subject_id}"
+      school_year_id = $(that).attr('data-school-year-id')
+      console.log "school_year_id: #{school_year_id}"
       xhr = $.ajax
         url:  "/sections"
         type: 'get'
         data:
-          subject_id: subject_id
+          subject_id: subject_id,
+          school_year_id: school_year_id
         dataType: 'json'
         success: (resp, status, xhr) ->
           console.log "done: status: #{status}"

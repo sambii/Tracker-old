@@ -110,7 +110,7 @@
             .row
               .col-sm-5
                 %fieldset.input-group{id: 'ask-subjects'}
-                  %select#subject-select.change-subject-select.select2-styles{name: "enrollments_attributes[subject_id]", placeholder: 'Select Subject:'}
+                  %select#subject-select.change-subject-select.select2-styles{name: "enrollments_attributes[subject_id]", placeholder: 'Select Subject:', data: {school_year_id: @school.school_year_id}}
                     %option{value: ""}= "Select Subject"
                     - @subjects.each do |subj|
                       %option{value: "#{subj.id}", selected: (@cur_subject_id == subj.id)}= "#{subj.name}"
