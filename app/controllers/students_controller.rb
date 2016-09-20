@@ -256,7 +256,7 @@ class StudentsController < ApplicationController
     # get all usernames in school to manually set usernames
     usernames = Hash.new
     User.where(school_id: school.id).each do |u|
-      usernames[u.username] = u
+      usernames[u.username] = u.id
     end
 
     @stage = 1

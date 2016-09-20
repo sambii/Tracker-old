@@ -188,7 +188,7 @@ module StudentsHelper
     else
       initial_username = (school.acronym + "_" + student.first_name[0] + student.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
     end
-    work_username = initial_username
+    work_username = initial_username.downcase
     incr = 2
     until usernames[work_username] == nil
       work_username = initial_username+(incr.to_s)

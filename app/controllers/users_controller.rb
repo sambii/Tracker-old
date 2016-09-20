@@ -265,7 +265,7 @@ class UsersController < ApplicationController
     # get all usernames in school to manually set usernames
     usernames = Hash.new
     User.where(school_id: @school.id).each do |u|
-      usernames[u.username] = u
+      usernames[u.username] = u.id
     end
 
     @stage = 1
@@ -334,7 +334,7 @@ class UsersController < ApplicationController
       if matching_emails.count > 0
         @records2.each_with_index do |rx, ix|
           # check all records following it for duplicated email
-          if emails.include?(rx[COL_EMAIL])
+          if rx[COL_EMAIL].present? && emails.include?(rx[COL_EMAIL])
             @records2[ix][COL_ERROR] = append_with_comma(@records2[ix][COL_ERROR], 'Email in use.')
             @errors[:base] = 'Errors exist - see below!!!'
           end

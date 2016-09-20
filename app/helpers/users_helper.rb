@@ -73,7 +73,7 @@ module UsersHelper
       error_list = Hash.new
       records.each_with_index do |rx, ix|
         # check all records following it for duplicated email
-        if error_list[ix+2] != '-1'
+        if rx[COL_EMAIL].present? && error_list[ix+2] != '-1'
           records.drop(ix+1).each_with_index do |ry, iy|
             iyall = iy + ix + 1 # index of the later row being tested
             # if later record has not been matched already, check if a match to current
@@ -169,9 +169,9 @@ module UsersHelper
     if school.has_flag?(School::USERNAME_FROM_EMAIL) && staff.email.present?
       initial_username = (school.acronym + "_" + staff.email.split('@', 2)[0])
     else
-      initial_username = (school.acronym + "_" + staff.first_name[0] + student.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
+      initial_username = (school.acronym + "_" + staff.first_name[0] + staff.last_name).downcase.gsub(/[^0-9a-z -_\.]+/, '').gsub(/ /, '.')
     end
-    work_username = initial_username
+    work_username = initial_username.downcase
     incr = 2
     until usernames[work_username] == nil
       work_username = initial_username+(incr.to_s)
