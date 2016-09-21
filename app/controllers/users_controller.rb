@@ -38,8 +38,19 @@ class UsersController < ApplicationController
 
   # New UI
   def new_staff
+    @school = get_current_school
     @user = User.new
-    @user.school_id = current_school_id
+    @user.school_id = @school.id
+    respond_to do |format|
+      format.js
+    end
+  end
+
+  # New UI
+  def new
+    @school = get_current_school
+    @user = User.new
+    @user.school_id = @school.id
     respond_to do |format|
       format.js
     end
@@ -66,7 +77,9 @@ class UsersController < ApplicationController
     @user.errors.add(:base, "not allowed to create this type of user: #{@user.role_symbols.inspect}") if !can?(:create, @user)
 
     respond_to do |format|
-      if @user.errors.count == 0 && @user.save
+      if school.has_flag?(School::USERNAME_FROM_EMAIL) && @user.email.blank?
+        @user.errors.add(:email, "email is required")
+      elsif @user.errors.count == 0 && @user.save
         UserMailer.welcome_user(@user, @school, get_server_config).deliver # deliver after save
         format.js
       else
@@ -78,6 +91,7 @@ class UsersController < ApplicationController
 
 
   def edit
+    @school = get_current_school
     respond_to do |format|
       format.js
     end
@@ -111,7 +125,13 @@ class UsersController < ApplicationController
     respond_to do |format|
       lname = params[:user][:last_name]
       reload_staff_list = (lname.present? && lname != @user.last_name && lname[0] != @user.last_name[0]) ? true : false
-      if @user.errors.count == 0 && @user.update_attributes(params[:user])
+      @user.assign_attributes(params[:user])
+      @user.valid?
+      if @school.has_flag?(School::USERNAME_FROM_EMAIL) && params[:user][:email].blank? 
+        @user.errors.add(:email, "email is required")
+        format.js
+      elsif @user.errors.count == 0 && @user.update_attributes(params[:user])
+      # if @user.errors.count == 0 && @user.update_attributes(params[:user])
         if @user.password and @user.password_confirmation
           Rails.logger.debug("*** change password.")
           if @user.reset_password!(@user.password, @user.password_confirmation)
@@ -157,9 +177,9 @@ class UsersController < ApplicationController
     # @staff = User.accessible_by(current_ability, User).order(:last_name, :first_name).scoped
     @school = get_current_school
     if @school.has_flag?(School::USER_BY_FIRST_LAST)
-      @staff = User.where('teacher=? OR counselor=? OR school_administrator=?', true, true, true).order(:first_name, :last_name)
+      @staff = User.where('school_id=? AND (teacher=? OR counselor=? OR school_administrator=?)', @school.id, true, true, true).order(:first_name, :last_name)
     else
-      @staff = User.where('teacher=? OR counselor=? OR school_administrator=?', true, true, true).order(:last_name, :first_name)
+      @staff = User.where('school_id=? AND (teacher=? OR counselor=? OR school_administrator=?)', @school.id, true, true, true).order(:last_name, :first_name)
     end
     respond_to do |format|
       if @school.id.present?
