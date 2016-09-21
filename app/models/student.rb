@@ -53,6 +53,7 @@ class Student < User
   # Other Definitions
   scope :special_ed_status, lambda { |statuses| where(special_ed: statuses) }
   scope :alphabetical, where(active: true).order("last_name", "first_name")
+  scope :first_last, order("first_name", "last_name")
 
   def active_sections
    sections.where(

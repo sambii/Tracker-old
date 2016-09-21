@@ -191,7 +191,13 @@ class SectionsController < ApplicationController
   # new UI
   # bring up new enrollment popup form for teacher tracker page
   def new_enrollment
-    @students = @section.school.students.alphabetical - @section.active_students
+    @school = get_current_school
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      section_students = @section.school.students.first_last
+    else
+      section_students = @section.school.students.alphabetical
+    end
+    @students = section_students - @section.active_students
     @enrollment = Enrollment.new
     # new student and parent for add new student to class (views/students/_form.html.haml)
     @student = Student.new
