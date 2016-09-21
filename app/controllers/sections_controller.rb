@@ -65,7 +65,11 @@ class SectionsController < ApplicationController
       @section.subject_id = subj_param
     end
     @subjects = Subject.where(school_id: @school.id)
-    @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).alphabetical
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     respond_to do |format|
       format.html
       format.js
@@ -75,7 +79,11 @@ class SectionsController < ApplicationController
   def create
     @school = get_current_school
     @section.school_year_id = @school.school_year_id
-    @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).alphabetical
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
 
     respond_to do |format|
       if @section.save
@@ -98,7 +106,11 @@ class SectionsController < ApplicationController
 
   def edit
     @school = get_current_school
-    @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).alphabetical
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     template = params[:template]
     template ||= "edit"
 
@@ -113,7 +125,11 @@ class SectionsController < ApplicationController
   def update
     # responds to edit subsections 'Update Section' button (save student subsection changes)
     @school = get_current_school
-    @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).alphabetical
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     respond_to do |format|
       if @section.update_attributes(params[:section])
         @teaching_assignments = []

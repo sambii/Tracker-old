@@ -82,7 +82,11 @@ class SubjectsController < ApplicationController
   def new
     @school = get_current_school
     @subjects = Subject.where(school_id: @school.id)
-    @teachers = Teacher.where(school_id: @school.id, active: true)
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     @disciplines = Discipline.order(:name)
     respond_to do |format|
       format.html # new.html.erb
@@ -94,7 +98,12 @@ class SubjectsController < ApplicationController
   def create
     @school = get_current_school
     @subjects = Subject.where(school_id: @school.id)
-    @teachers = Teacher.where(school_id: @school.id, active: true)
+    # @teachers = Teacher.where(school_id: @school.id, active: true)
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     @disciplines = Discipline.all
     respond_to do |format|
       saved = @subject.save
@@ -113,7 +122,12 @@ class SubjectsController < ApplicationController
   def edit
     @school = get_current_school
     @subjects = Subject.where(school_id: @school.id)
-    @teachers = Teacher.where(school_id: @school.id, active: true)
+    # @teachers = Teacher.where(school_id: @school.id, active: true)
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     @disciplines = Discipline.all
     respond_to do |format|
       format.html
@@ -157,7 +171,12 @@ class SubjectsController < ApplicationController
   def update
     @school = get_current_school
     @subjects = Subject.where(school_id: @school.id)
-    @teachers = Teacher.where(school_id: @school.id, active: true)
+    # @teachers = Teacher.where(school_id: @school.id, active: true)
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: @school.id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     @disciplines = Discipline.all
     respond_to do |format|
       updated = @subject.update_attributes(params[:subject])

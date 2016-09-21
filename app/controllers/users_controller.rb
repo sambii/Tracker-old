@@ -157,15 +157,15 @@ class UsersController < ApplicationController
     # @staff = User.accessible_by(current_ability, User).order(:last_name, :first_name).scoped
     @school = get_current_school
     if @school.has_flag?(School::USER_BY_FIRST_LAST)
-      @staff = User.where('teacher=? OR counselor=? OR school_administrator=?', true, true, true).order(:first_name, :last_name).scoped
+      @staff = User.where('teacher=? OR counselor=? OR school_administrator=?', true, true, true).order(:first_name, :last_name)
     else
-      @staff = User.where('teacher=? OR counselor=? OR school_administrator=?', true, true, true).order(:last_name, :first_name).scoped
+      @staff = User.where('teacher=? OR counselor=? OR school_administrator=?', true, true, true).order(:last_name, :first_name)
     end
     respond_to do |format|
       if @school.id.present?
-        Rails.logger.debug("*** @school.id = #{@school.id}")
-        @staff = @staff.where(school_id: @school.id)
-        Rails.logger.debug("*** staff count = #{@staff.count}")
+        # Rails.logger.debug("*** @school.id = #{@school.id}")
+        # @staff = @staff.where(school_id: @school.id)
+        # Rails.logger.debug("*** staff count = #{@staff.count}")
         format.html
       else
         @staff

@@ -38,8 +38,8 @@ class TeachingAssignmentsController < ApplicationController
             ta_params.each do |subj_id, sect_tas|
               sect_tas.each do |sect_id, t_id|
                 if t_id.present?
-                  raise("Section not in this school!") if Section.where(id: sect_id, school_year_id: @school.school_year_id) == 0
-                  raise("Teacher not in this school!") if Teacher.where(id: t_id, school_id: @school.id) == 0
+                  raise("Section not in this school!") if Section.where(id: sect_id, school_year_id: @school.school_year_id).count == 0
+                  raise("Teacher not in this school!") if Teacher.where(id: t_id, school_id: @school.id).count == 0
                   ta = TeachingAssignment.new
                   ta.section_id = sect_id
                   ta.teacher_id = t_id
@@ -88,7 +88,12 @@ class TeachingAssignmentsController < ApplicationController
     assigned_subject_section_ids = TeachingAssignment.where(section_id: all_section_ids).pluck(:section_id)
     unassigned_subject_section_ids = all_section_ids - assigned_subject_section_ids
     @disciplines = Discipline.includes(subjects: {sections: :teachers }).where('sections.id in (?)', unassigned_subject_section_ids).order('disciplines.name, subjects.name, sections.line_number')
-    @teachers = Teacher.where(school_id: current_school_id)
+    # @teachers = Teacher.where(school_id: current_school_id)
+    if @school.has_flag?(School::USER_BY_FIRST_LAST)
+      @teachers = Teacher.where(school_id: current_school_id).accessible_by(current_ability).order(:first_name, :last_name)
+    else
+      @teachers = Teacher.where(school_id: current_school_id).accessible_by(current_ability).order(:last_name, :first_name)
+    end
     @school = get_current_school
     @errors[:base] = add_error(@errors[:base], 'Need to assign school.') if @school.id.blank?
     @errors[:base] = add_error(@errors[:base], 'Cannot run Teacher Assignment Bulk Entry, all sections have a teacher assigned') if unassigned_subject_section_ids == 0

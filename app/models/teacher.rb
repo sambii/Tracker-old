@@ -3,7 +3,7 @@
 #
 class Teacher < User
   default_scope where(teacher: true, active: true)
-  default_scope order: 'LOWER(users.last_name), LOWER(users.first_name) ASC'
+  # default_scope order: 'LOWER(users.last_name), LOWER(users.first_name) ASC'
 
   # Access Control
   # using_access_control
