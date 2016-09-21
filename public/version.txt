@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.040 Sep 21, 2016
+- Bug fixes before school starts
 PARLO Tracker version v2.01.039 Sep 2, 2016
 - Bulk LO Upload length mismatch fix, School Administrator authorizations fixes
 PARLO Tracker version v2.01.038 Sep 1, 2016
