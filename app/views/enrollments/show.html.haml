@@ -213,13 +213,13 @@
                         .evidence-attachment-row
                           %a{href: ea.attachment.url, target: '_blank'}
                             %i.fa.fa-paperclip
-                            .evidence-attachment-name
+                            %span.evidence-attachment-name
                               ="#{ea.name}"
                       - eso.evidence_hyperlinks.each_with_index do |eh, ix|
                         .evidence-attachment-row
                           %a{href: eh.hyperlink, target: '_blank'}
                             %i.fa.fa-paperclip
-                            .evidence-hyperlink-title
+                            %span.evidence-hyperlink-title
                               ="#{eh.title}"
                     %td.eso-evidence-rating-icon
                       =raw(evidence_icon_html(@evidence_ratings[eso.id][:rating]))
