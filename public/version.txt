@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.041 Oct 16, 2016
+- fix single user entry
 PARLO Tracker version v2.01.040 Sep 21, 2016
 - Bug fixes before school starts
 PARLO Tracker version v2.01.039 Sep 2, 2016
