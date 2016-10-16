@@ -77,7 +77,7 @@ class UsersController < ApplicationController
     @user.errors.add(:base, "not allowed to create this type of user: #{@user.role_symbols.inspect}") if !can?(:create, @user)
 
     respond_to do |format|
-      if school.has_flag?(School::USERNAME_FROM_EMAIL) && @user.email.blank?
+      if @school.has_flag?(School::USERNAME_FROM_EMAIL) && @user.email.blank?
         @user.errors.add(:email, "email is required")
       elsif @user.errors.count == 0 && @user.save
         UserMailer.welcome_user(@user, @school, get_server_config).deliver # deliver after save
@@ -127,7 +127,7 @@ class UsersController < ApplicationController
       reload_staff_list = (lname.present? && lname != @user.last_name && lname[0] != @user.last_name[0]) ? true : false
       @user.assign_attributes(params[:user])
       @user.valid?
-      if @school.has_flag?(School::USERNAME_FROM_EMAIL) && params[:user][:email].blank? 
+      if @school.has_flag?(School::USERNAME_FROM_EMAIL) && params[:user][:email].blank?
         @user.errors.add(:email, "email is required")
         format.js
       elsif @user.errors.count == 0 && @user.update_attributes(params[:user])
