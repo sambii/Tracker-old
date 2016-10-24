@@ -82,6 +82,7 @@ class TeachingAssignmentsController < ApplicationController
   end
 
   def prep_for_bulk_view
+    @school = get_current_school
     # required @errors = Hash.new to predefined
     all_subject_ids = Subject.where(school_id: current_school_id).pluck(:id)
     all_section_ids = Section.where(subject_id: all_subject_ids).pluck(:id)
@@ -94,7 +95,6 @@ class TeachingAssignmentsController < ApplicationController
     else
       @teachers = Teacher.where(school_id: current_school_id).accessible_by(current_ability).order(:last_name, :first_name)
     end
-    @school = get_current_school
     @errors[:base] = add_error(@errors[:base], 'Need to assign school.') if @school.id.blank?
     @errors[:base] = add_error(@errors[:base], 'Cannot run Teacher Assignment Bulk Entry, all sections have a teacher assigned') if unassigned_subject_section_ids == 0
     return unassigned_subject_section_ids.count
