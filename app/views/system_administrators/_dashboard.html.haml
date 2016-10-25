@@ -6,17 +6,17 @@
   - breadcrumb :root # to ensure breadcrumbs always show
   - breadcrumb :system_admin_dashboard, @system_administrator
   = help_gen_breadcrumbs
-- content_for :header_contextual_dropdown do
-  %li
-    .alert.alert-danger.alert-alt
-      %a{href: "#{edit_user_path(current_user)}"}
-        %i.fa.fa-cog.fa-fw.pull-right
-        System Admin Emergency Power
-  %li
-    %div
-      %a{href: "#{edit_user_path(current_user)}"}
-        %i.fa.fa-cog.fa-fw.pull-right
-        System Admin Extra Action
+/ - content_for :header_contextual_dropdown do
+/   %li
+/     .alert.alert-danger.alert-alt
+/       %a{href: "#{edit_user_path(current_user)}"}
+/         %i.fa.fa-cog.fa-fw.pull-right
+/         System Admin Emergency Power
+/   %li
+/     %div
+/       %a{href: "#{edit_user_path(current_user)}"}
+/         %i.fa.fa-cog.fa-fw.pull-right
+/         System Admin Extra Action
 
 / Header
 .header-block

@@ -1,22 +1,25 @@
+
+# important files to ignore for security/privacy reasons
+/config/database.yml
+/db/*.sqlite3*
+/public/system/*
+/shared/*
+
+# important files to ignore because they are temporary files
+/log/*.log
+/public/assets/*
+/tmp/*
+
+# Ignore other unneeded files.
+**/coverage
 **/.bundle
 **/chromedriver.log
-**/.DS_Store
 **/Guardfile
 **/nohup.out
 **/.idea/
 **/.sass-cache/
-**/config/database.yml
-**/db/*.sqlite3*
-**/log/*.log
-**/public/assets/*
-**/public/system/*
-**/tmp/
-**/coverage
-
-# Ignore other unneeded files.
-**/doc/
+**/.DS_Store
 **/*.swp
 **/*~
 **/.project
 **/images/login_bg.png
-
