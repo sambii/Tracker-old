@@ -137,6 +137,10 @@ module UsersHelper
   # student bulk upload file stage 4 and 5 processing
   def build_staff(csv_hash)
     begin
+      csv_hash[COL_FNAME] = 'none' if csv_hash[COL_FNAME].blank?
+      csv_hash[COL_LNAME] = 'none' if csv_hash[COL_LNAME].blank?
+      csv_hash[COL_EMAIL] = 'no@email' if csv_hash[COL_EMAIL].blank?
+      csv_hash[COL_POSIT] = '0' if csv_hash[COL_POSIT].blank?
       new_staff = User.new
       new_staff.school_id = @school.id
       # new_staff.xid = csv_hash[COL_ID]

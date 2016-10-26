@@ -164,6 +164,12 @@ module StudentsHelper
   # student bulk upload file stage 4 and 5 processing
   def build_student(csv_hash)
     begin
+      csv_hash[COL_FNAME] = 'none' if csv_hash[COL_FNAME].blank?
+      csv_hash[COL_LNAME] = 'none' if csv_hash[COL_LNAME].blank?
+      csv_hash[COL_EMAIL] = 'no@email' if csv_hash[COL_EMAIL].blank?
+      csv_hash[COL_ID_NOTE] = '0' if csv_hash[COL_ID_NOTE].blank?
+      csv_hash[COL_GRADE] = '1' if csv_hash[COL_GRADE].blank?
+      csv_hash[COL_GENDER] = 'M' if csv_hash[COL_GENDER].blank?
       new_student = Student.new
       new_student.school_id = @school.id
       new_student.first_name = csv_hash[COL_FNAME]
