@@ -69,7 +69,7 @@
                 %tr{id: "enrollment_#{e.id}"}
                   %td=e.section.name
                   %td=e.section.line_number
-                  %td=e.section.teaching_assignments.first.teacher.full_name
+                  %td=e.section.teaching_assignments.first.teacher.full_name if e.section.teaching_assignments.present?
                   %td
                     - if can?(:show, e) 
                       %a{href: "/enrollments/#{e.id}"}
