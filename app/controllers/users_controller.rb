@@ -127,11 +127,8 @@ class UsersController < ApplicationController
       reload_staff_list = (lname.present? && lname != @user.last_name && lname[0] != @user.last_name[0]) ? true : false
       @user.assign_attributes(params[:user])
       @user.valid?
-      if @school.has_flag?(School::USERNAME_FROM_EMAIL) && params[:user][:email].blank?
-        @user.errors.add(:email, "email is required")
-        format.js
-      elsif @user.errors.count == 0 && @user.update_attributes(params[:user])
-      # if @user.errors.count == 0 && @user.update_attributes(params[:user])
+      if @user.errors.count == 0 && @user.update_attributes(params[:user])
+        # if @user.errors.count == 0 && @user.update_attributes(params[:user])
         if @user.password and @user.password_confirmation
           Rails.logger.debug("*** change password.")
           if @user.reset_password!(@user.password, @user.password_confirmation)
@@ -145,7 +142,12 @@ class UsersController < ApplicationController
             format.html { render :action => "change_password" }
           end
         else
-          if params[:commit] == 'update_staff'
+          Rails.logger.error("*** no pwd confirmation - @user.errors: #{@user.errors.inspect}")
+          if @school.has_flag?(School::USERNAME_FROM_EMAIL) && params[:user][:email].blank?
+            @user.errors.add(:email, "email is required")
+            Rails.logger.error("*** @user.errors: #{@user.errors.inspect}")
+            format.js
+          elsif params[:commit] == 'update_staff'
             if reload_staff_list
               format.js { render js: "window.location.reload(true);" }
             else
