@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.044  Oct 29, 2016
+- bug fixes for 3, 6, 10, and 13
 PARLO Tracker version v2.01.043  Oct 26, 2016
 - fix error 500 on wrong bulk upload student or staff files
 PARLO Tracker version v2.01.042 Oct 26, 2016
