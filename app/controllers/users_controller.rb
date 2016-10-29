@@ -162,6 +162,9 @@ class UsersController < ApplicationController
           end
         end
       else
+        if @school.has_flag?(School::USERNAME_FROM_EMAIL) && params[:user][:email].blank?
+          @user.errors.add(:email, "email is required")
+        end
         Rails.logger.error("ERROR - #{@user.errors.full_messages}")
         flash[:alert] = "ERROR: #{@user.errors.full_messages}"
         if params[:commit] == 'update_staff'

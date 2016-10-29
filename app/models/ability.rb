@@ -178,9 +178,12 @@ class Ability
             { section_outcome_id: user.teacher.section_outcomes.pluck(:id) }
 
         # Student
-        can [:create, :read, :update, :dashboard, :security],
-            [Student, Parent],
-            {school_id: user.school_id }
+        can [:create, :read, :update, :dashboard, :security, :index],
+            [Student], {school_id: user.school_id }
+        can :new, [Student]
+
+        # Parent
+        can [:create, :read, :update, :dashboard, :security, :index, :new], [Parent]
 
         # Subject
         can [:read],

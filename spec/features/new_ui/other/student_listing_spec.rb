@@ -12,12 +12,18 @@ describe "Student Listing", js:true do
 
     create_and_load_arabic_model_school
 
-    # two subjects in @school1
-    @section1_1 = FactoryGirl.create :section
-    @subject1 = @section1_1.subject
-    @school1 = @section1_1.school
-    @teacher1 = @subject1.subject_manager
+    @school1 = FactoryGirl.create :school, :arabic
+    @teacher1 = FactoryGirl.create :teacher, school: @school1
+    @subject1 = FactoryGirl.create :subject, school: @school1, subject_manager: @teacher
+    @section1_1 = FactoryGirl.create :section, subject: @subject1
     @discipline = @subject1.discipline
+
+    # two subjects in @school1
+    # @section1_1 = FactoryGirl.create :section
+    # @subject1 = @section1_1.subject
+    # @school1 = @section1_1.school
+    # @teacher1 = @subject1.subject_manager
+    # @discipline = @subject1.discipline
 
     load_test_section(@section1_1, @teacher1)
 
@@ -58,7 +64,7 @@ describe "Student Listing", js:true do
       sign_in(@researcher)
       set_users_school(@school1)
     end
-    it { has_valid_student_listing(false, false, true) }
+    it { has_valid_student_listing(false, false, true, true) }
   end
 
   describe "as system administrator" do
@@ -99,7 +105,7 @@ describe "Student Listing", js:true do
     end
   end
 
-  def has_valid_student_listing(can_create, can_deactivate, can_see_all)
+  def has_valid_student_listing(can_create, can_deactivate, can_see_all, read_only=false)
     visit students_path
     assert_equal("/students", current_path)
     within("#page-content") do
@@ -118,8 +124,9 @@ describe "Student Listing", js:true do
         page.should have_css("i.fa-ellipsis-h")
         page.should have_css("i.fa-edit") if can_create
         page.should_not have_css("i.fa-edit") if !can_create
-        page.should have_css("i.fa-unlock") if can_create
-        page.should_not have_css("i.fa-unlock") if !can_create
+        page.should have_css("i.fa-unlock") if can_deactivate
+        # fine tune this, so testing if teachers can unlock students they are assigned to
+        # page.should_not have_css("i.fa-unlock") if !can_deactivate
         page.should have_css("i.fa-times-circle") if can_deactivate && @student.active == true
         page.should_not have_css("i.fa-times-circle") if !can_deactivate && @student.active == true
       end
@@ -142,7 +149,9 @@ describe "Student Listing", js:true do
     can_see_student_sections(@student, @enrollment, @enrollment_s2, can_see_all)
     visit students_path
     assert_equal("/students", current_path)
-    can_reset_student_password(@student)
+    can_reset_student_password(@student) if !read_only
+    can_change_student(@student) if !read_only
+    can_create_student(@student) if !read_only
   end # def has_valid_subjects_listing
 
   ##################################################
@@ -189,11 +198,92 @@ describe "Student Listing", js:true do
     within("#user_#{student.id}") do
       page.should have_css("a[href='/users/#{student.id}/set_temporary_password']")
       find("a[href='/users/#{student.id}/set_temporary_password']").click
-    end    
+    end
     within("#user_#{student.id}.student-temp-pwd") do
       page.should_not have_content('(Reset Password')
     end
 
+  end
+  def can_change_student(student)
+    within("tr#student_#{student.id}") do
+      page.should have_css("a[data-url='/students/#{student.id}/edit.js']")
+      find("a[data-url='/students/#{student.id}/edit.js']").click
+    end
+    page.should have_content("Edit Student")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      within("form#edit_student_#{student.id}") do
+        # page.select(@subject2_1.discipline.name, from: "subject-discipline-id")
+        page.fill_in 'student_first_name', :with => 'Changed Fname'
+        page.fill_in 'student_last_name', :with => 'Changed Lname'
+        # confirm the required flag is displayed (this school has username by email)
+        page.should have_css("#email span.ui-required")
+        page.fill_in 'student_email', :with => ''
+        page.click_button('Save')
+      end
+    end
+    # ensure that blank email gets an error on updates
+    page.should have_css("#modal_popup form#edit_student_#{student.id}")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      within("form#edit_student_#{student.id}") do
+        page.should have_css('span.ui-error', text:'Email is required.')
+        page.fill_in 'student_email', :with => 'changed@email.address'
+        page.click_button('Save')
+      end
+    end
+    page.should_not have_css("#modal_popup form#edit_student_#{student.id}")
+    assert_equal("/students", current_path)
+    within("tr#student_#{student.id}") do
+      page.should have_css("a[data-url='/students/#{student.id}.js']")
+      find("a[data-url='/students/#{student.id}.js']").click
+    end
+    page.should have_content("View Student")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      page.should have_content('Changed Fname')
+      page.should have_content('Changed Lname')
+      page.should have_content('changed@email.address')
+    end
+  end
+
+  def can_create_student(student)
+    Rails.logger.debug("++++ can_create_student: #{student.inspect}")
+    within("div#page-content") do
+      page.should have_css("a[data-url='/students/new.js']")
+      find("a[data-url='/students/new.js']").click
+    end
+    page.should have_content("Create New Student")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      within("form#new_student") do
+        page.fill_in 'student_first_name', :with => ''
+        page.fill_in 'student_last_name', :with => ''
+        # confirm the required flag is displayed (this school has username by email)
+        page.should have_css("#email span.ui-required")
+        page.fill_in 'student_email', :with => ''
+        page.fill_in 'student_grade_level', :with => '4'
+        page.click_button('Save')
+      end
+    end
+    # ensure that blank email gets an error on creates
+    page.should have_css("#modal_popup form#new_student")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      within("form#new_student") do
+        page.should have_css('#first-name span.ui-error', text:'["can\'t be blank"]')
+        page.fill_in 'student_first_name', :with => 'New Fname'
+        page.should have_css('#last-name span.ui-error', text:'["can\'t be blank"]')
+        page.fill_in 'student_last_name', :with => 'New Lname'
+        page.should have_css('#email span.ui-error', text:'["Email is required."]')
+        page.fill_in 'student_email', :with => 'new@email.address'
+        page.should have_css('#grade-level span.ui-error', text:'["Grade Level is invalid"]')
+        page.fill_in 'student_grade_level', :with => '2'
+        page.click_button('Save')
+      end
+    end
+    page.should_not have_css("#modal_popup form#new_student")
+    assert_equal("/students", current_path)
+    # expect(page.text).to match(/New\sFname/) # alternate syntax
+    page.text.should match(/New\sFname/)
+    # expect(page.text).to match(/New\sLname/) # alternate syntax
+    page.text.should match(/New\sLname/)
+    page.should have_content('new@email.address')
   end
 
 

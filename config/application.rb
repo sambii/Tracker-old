@@ -15,7 +15,7 @@ module Tracker2
     # -- all .rb files in that directory are automatically loaded.
 
     # Custom directories with classes and modules you want to be autoloadable.
-    # config.autoload_paths += %W(#{config.root}/extras)    
+    # config.autoload_paths += %W(#{config.root}/extras)
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
     # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
@@ -43,8 +43,9 @@ module Tracker2
     config.assets.enabled = true
 
     config.assets.paths << Rails.root.join("app", "assets", "fonts")
-    config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')  
+    config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
     config.assets.precompile << /\.(?:svg|eot|woff|ttf)$/
+
 
   end
 end

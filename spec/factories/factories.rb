@@ -1,5 +1,5 @@
 # All the Factories are small units of usable code. Each is setup with the minimum set of values
-# required by the Model. 
+# required by the Model.
 #
 # 1) Basic Usage: Create a factory foo that accepts string variable bar
 # factory :foo do
@@ -10,7 +10,7 @@
 # factory :bar
 #    name "Joe"
 # end
-# 
+#
 # factory :foo do
 #    bar  #Factory foo will automatically call create :bar
 # end
@@ -24,7 +24,7 @@
 # factory :foo
 #   cash { 200 * 50 }
 # end
-# 
+#
 # 5) Use the same method for referencing a local variable.
 # factory :teaching_assignment do
 #   section
@@ -33,7 +33,7 @@
 # The pattern in 5) is used extensively. The :teaching_assignment model does not enforce any
 # restriction on the teacher. But we want to setup sensible defaults. If we did not add the lambda code
 # teacher will be created in a different school than the section. The code will work but it will be hardly useful.
-# 
+#
 # 6) Traits allow you to group attributes together and then apply them to any factory.
 # trait :user_common_attributes do
 #      gender                  "F"
@@ -42,34 +42,34 @@
 #  factory :student do
 #    user_common_attributes
 #  end
-# 
+#
 # 7) Sequence ensures we have unique values. Whenever a Model field needs to be unique, use Sequence instead of Faker.
 #    This is because Faker elements are Pseudo Random and will collide once you have many elements in your test db.
 #    Sequence ensures uniqueness.
 #
 #  # assume validation specifies that email must be unique
-#  factory :user 
+#  factory :user
 #    sequence(:email)        { |n| "user#{n}@example.com" }
 #  end
 #  We could have used Faker to generate the email, but it will eventually collide, so we use sequence
 #
 # Usage Guide:
-#    Pattern 1: 
-#    Call the factory closest to the model that you actually need. This will create ALL the dependencies up to School. 
+#    Pattern 1:
+#    Call the factory closest to the model that you actually need. This will create ALL the dependencies up to School.
 #    Then work your way up by referencing any variables you need. This results in the least amount of code
 #
 #    Pattern 2 (not reccomended):
 #    Start from the top model (which is school in our case) then pass this into all the models you need.
 #    This results in the most lines of code
 #
-#    Pattern 3: 
+#    Pattern 3:
 #    Section is a central model for many tests. If you need to build a class room, start with section, then get a school
 #    from the section. Then pass the school to your teacher, and student. Dont forget to create teaching_assignment and enrollment
-#     
+#
 #    Pattern 4 (not reccomened):
 #    If you want to build a class romm, you could start with a school. You will need to get the school_year and pass it to the section
 #    during it's creation. You could then pass the school to the teacher and student.
-#    
+#
 #    Build or Create: You can call :build or :create on all models, except noted on the factory. You could run into referential integrity
 #    issues when using build, if the model expects a referenced model to have an id. Use create most of the time if you want to be happy.
 
@@ -85,7 +85,7 @@ FactoryGirl.define do
       sequence(:username)     { |n| "user#{n}" }
       sequence(:email)        { |n| "user#{n}@example.com" }
   end
-  
+
   trait :school_common_attributes do
     sequence(:name)         { |n| "Factory School #{n}" }
     sequence(:acronym)      { |n| "SCH#{n}"}
@@ -95,14 +95,14 @@ FactoryGirl.define do
     state                   { Faker::Address.state }
     zip_code                { Faker::Address.zip }
   end
-  
+
   # After creation of the school, a school year will be created and assigned.
   # This will cover most use cases in Tracker.
   # If you don't want a school_year set, call :school_without_schoolyear.
   # If you call foo = build :school, you will get a school with the common attributes.
   # foo will not get a school year, but if you call save on foo, the school_year will
   # be created. after(:create) is a call back.
-  factory :school do   
+  factory :school do
     school_common_attributes
     #automagically set the school year for this school
     after(:create) do |school|
@@ -111,11 +111,11 @@ FactoryGirl.define do
       school.save
     end
     trait :arabic do
-      flags   'use_family_name,user_by_first_last,grade_in_subject_name'
+      flags   'use_family_name,user_by_first_last,grade_in_subject_name,username_from_email'
     end
   end
 
-  factory :school_current_year, class: School do   
+  factory :school_current_year, class: School do
     school_common_attributes
     #automagically set the school year for this school
     after(:create) do |school|
@@ -128,7 +128,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :school_prior_year, class: School do   
+  factory :school_prior_year, class: School do
     school_common_attributes
     #automagically set the school year for this school
     after(:create) do |school|
@@ -174,7 +174,7 @@ FactoryGirl.define do
   factory :student do
     user_common_attributes
     school
-    grade_level  5
+    grade_level  2
     student      true
   end
 

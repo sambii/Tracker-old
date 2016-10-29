@@ -25,7 +25,7 @@ class User < ActiveRecord::Base
   validates_presence_of     :username
   validates_uniqueness_of   :username
   validates                 :email, format: { with: /^([\w\.%\+\-]+)@([\w\-]+\.)+([\w]{2,})$/i }, allow_blank: true
-  # cannot do this as is.
+# cannot do this as is.
   # must allow for multiple parent accounts with the same email address
   # validates                 :email,
   #                           format: { with: /^([\w\.%\+\-]+)@([\w\-]+\.)+([\w]{2,})$/i },

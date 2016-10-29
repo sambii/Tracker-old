@@ -5,7 +5,7 @@ class StudentsController < ApplicationController
 
   include StudentsHelper
 
-  load_and_authorize_resource
+  load_and_authorize_resource except: [:new, :create]
 
   # skip_load_and_authorize_resource only: :index
 
@@ -92,8 +92,11 @@ class StudentsController < ApplicationController
 
   # New UI
   def new
+    @school = get_current_school
     @student = Student.new
+    @student.school_id = @school.id
     @parent = Parent.new
+    @parent.school_id = @school.id
     respond_to do |format|
       format.js
     end
@@ -102,20 +105,34 @@ class StudentsController < ApplicationController
   # New UI
   def create
     @school = get_current_school
+    @student = Student.new
+    @student.assign_attributes(params[:student])
     @student.school_id = @school.id
     @student.set_unique_username
     @student.set_temporary_password
+    @parent = Parent.new
+    @parent.assign_attributes(params[:parent])
+    @parent.school_id = @school.id
+    parent_status = @parent.valid?
+
+    @student.assign_attributes(params[:user])
 
     respond_to do |format|
-      if @student.save
+
+      if @student.errors.count == 0 && @student.save
         begin
           UserMailer.welcome_user(@student, @school, get_server_config).deliver
         rescue => e
           Rails.logger.error("Error: Student Email missing ServerConfigs record with support_email address")
           raise InvalidConfiguration, "Missing ServerConfigs record with support_email address"
         end
-        @parent = @student.parent
-        parent_status = @parent.update_attributes(params[:parent])
+        @parent = @student.parents.first
+        if @parent.blank?
+          @parent = Parent.new
+        end
+        @parent.assign_attributes(params[:parent])
+        @parent.school_id = @school.id
+        parent_status = @parent.save
         begin
           UserMailer.welcome_user(@parent, @school, get_server_config).deliver
         rescue => e
@@ -127,17 +144,6 @@ class StudentsController < ApplicationController
         end
         format.js
       else
-        # @parent = Parent.new
-        @parent = @student.parent
-        if !@parent
-          @parent = Parent.new
-          @parent.errors.add(:base, 'ERROR - Missing parent/guardian record')
-          # todo notify trackersupport
-        elsif params[:parent]
-          parent_status = @parent.update_attributes(params[:parent])
-        else
-          parent_status = true
-        end
         if !parent_status
           flash[:alert] = @student.errors.full_messages << @parent.errors.full_messages
         else
@@ -151,6 +157,7 @@ class StudentsController < ApplicationController
   # New UI
   # Students edit screen via js
   def edit
+    @school = get_current_school
     @parent = @student.get_parent
     respond_to do |format|
       format.js
@@ -172,6 +179,8 @@ class StudentsController < ApplicationController
     end
     parent_status = true
     @parent = @student.parent
+    @parenta = @student.get_parent
+    @parentb = @student.parents.first
     parent_status = @parent.update_attributes(params[:parent])
 
     respond_to do |format|

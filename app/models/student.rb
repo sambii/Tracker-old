@@ -2,10 +2,8 @@
 # see license.txt in this software package
 #
 class Student < User
-  default_scope where(student: true)
-  scope :active, where(active: true)
-  scope :active_student, where(active: true)
 
+  # parameter black/white listing
   attr_accessor :subsection
 
   # before_update :set_unique_username, if: lambda { |a| a.active }
@@ -45,16 +43,25 @@ class Student < User
   validates_presence_of         :grade_level
   validates_numericality_of     :grade_level
 
+  validate :is_email_required?
+  validate :is_grade_level_valid?
+
   # Gender is not required
   # validates                     :gender, presence: {message: I18n.translate('errors.cant_be_blank')}
   # validates_length_of           :gender,
   #                               maximum: 1, message: I18n.translate('item_is_invalid')
 
-  # Other Definitions
+
+  #scopes
+  default_scope where(student: true)
+  scope :active, where(active: true)
+  scope :active_student, where(active: true)
   scope :special_ed_status, lambda { |statuses| where(special_ed: statuses) }
   scope :alphabetical, where(active: true).order("last_name", "first_name")
   scope :first_last, order("first_name", "last_name")
 
+
+  # other definitions
   def active_sections
    sections.where(
       :enrollments        => {
@@ -333,4 +340,37 @@ class Student < User
       end
     end
   end
+
+  def is_email_required?
+    email_error = false
+    begin
+      if self.school_id.present?
+        school = School.find(self.school_id)
+        if school.has_flag?(School::USERNAME_FROM_EMAIL) && self.email.blank?
+          self.errors.add(:email, 'Email is required.')
+          email_error = true
+        end
+      end
+    rescue
+      Rails.logger.error("ERROR: is_email_required? school (#{self.school_id.inspect}) find error.")
+    end
+    return email_error
+  end
+
+  def is_grade_level_valid?
+    grade_level_error = false
+    begin
+      if self.school_id.present?
+        school = School.find(self.school_id)
+        if school.has_flag?(School::USER_BY_FIRST_LAST) && (self.grade_level.blank? || self.grade_level > 3)
+          self.errors.add(:grade_level, 'Grade Level is invalid')
+          grade_level_error = true
+        end
+      end
+    rescue
+      Rails.logger.error("ERROR: is_email_required? school (#{self.school_id.inspect}) find error.")
+    end
+    return grade_level_error
+  end
+
 end

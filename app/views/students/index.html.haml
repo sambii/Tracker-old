@@ -96,7 +96,7 @@
                     %strong.pull-left.lmargin5="#{start_letter}"
             %tbody.tbody-body
               - studs.each do |s|
-                - if s.grade_level <= max_grade
+                - if true # s.grade_level <= max_grade
                   - deact_class = s.active ? 'active' : 'deactivated'
                   %tr.student-row{class: deact_class, id: "student_#{s.id}"}
                     %td.user-xid=s.xid
