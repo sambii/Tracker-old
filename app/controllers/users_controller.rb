@@ -355,13 +355,14 @@ class UsersController < ApplicationController
         emails << rx[COL_EMAIL]
       end
       # get any matching emails in database
-      matching_emails = User.where(school_id: @school.id, email: emails)
+      matching_emails = User.where(school_id: @school.id, email: emails).pluck(:email)
       if matching_emails.count > 0
         @records2.each_with_index do |rx, ix|
           # check all records following it for duplicated email
-          if rx[COL_EMAIL].present? && emails.include?(rx[COL_EMAIL])
+          if rx[COL_EMAIL].present? && matching_emails.include?(rx[COL_EMAIL].strip)
             @records2[ix][COL_ERROR] = append_with_comma(@records2[ix][COL_ERROR], 'Email in use.')
             @errors[:base] = 'Errors exist - see below!!!'
+            Rails.logger.warn("WARNING: dup email for #{rx[COL_EMAIL]} on record #{ix} ")
           end
         end
       end # matching_emails.count > 0
