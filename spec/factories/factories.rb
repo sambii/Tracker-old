@@ -119,12 +119,13 @@ FactoryGirl.define do
     school_common_attributes
     #automagically set the school year for this school
     after(:create) do |school|
-      school_year = FactoryGirl.create(:current_school_year, school: school)
+      @prior_school_year = FactoryGirl.create(:prior_school_year, school: school)
+      school_year = @current_school_year = FactoryGirl.create(:current_school_year, school: school)
       school.current_school_year=school_year
       school.save
     end
     trait :arabic do
-      flags   'use_family_name,user_by_first_last,grade_in_subject_name'
+      flags   'use_family_name,user_by_first_last,grade_in_subject_name,username_from_email'
     end
   end
 
@@ -132,12 +133,13 @@ FactoryGirl.define do
     school_common_attributes
     #automagically set the school year for this school
     after(:create) do |school|
-      prior_school_year = FactoryGirl.create(:prior_school_year, school: school)
+      prior_school_year = @prior_school_year = FactoryGirl.create(:prior_school_year, school: school)
+      @current_school_year = FactoryGirl.create(:current_school_year, school: school)
       school.current_school_year=prior_school_year
       school.save
     end
     trait :arabic do
-      flags   'use_family_name,user_by_first_last,grade_in_subject_name'
+      flags   'use_family_name,user_by_first_last,grade_in_subject_name,username_from_email'
     end
   end
 

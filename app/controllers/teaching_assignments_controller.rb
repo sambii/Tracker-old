@@ -7,14 +7,13 @@ class TeachingAssignmentsController < ApplicationController
   # teaching assignment bulk entry page
   def enter_bulk
     Rails.logger.debug("*** enter_bulk")
-    authorize! :read, User # force login if not logged in
+    authorize! :update_bulk, TeachingAssignment
     @errors = Hash.new
     num_items = prep_for_bulk_view
-        Rails.logger.debug("*** num_items: #{num_items}")
     respond_to do |format|
       if num_items == 0
-          flash[:alert] = 'No sections to assign teachers to.'
-         format.html { redirect_to subjects_path }
+        flash[:alert] = 'No sections to assign teachers to.'
+        format.html { redirect_to subjects_path }
       else
         format.html
       end
@@ -26,7 +25,7 @@ class TeachingAssignmentsController < ApplicationController
   # teaching assignment bulk entry update page
   def update_bulk
     Rails.logger.debug("*** update_bulk")
-    authorize! :read, User # force login if not logged in
+    authorize! :update_bulk, TeachingAssignment
     @errors = Hash.new
     @school = get_current_school
     @errors[:base] = add_error(@errors[:base], 'Need to assign school.') if @school.id.blank?
@@ -85,7 +84,7 @@ class TeachingAssignmentsController < ApplicationController
     @school = get_current_school
     # required @errors = Hash.new to predefined
     all_subject_ids = Subject.where(school_id: current_school_id).pluck(:id)
-    all_section_ids = Section.where(subject_id: all_subject_ids).pluck(:id)
+    all_section_ids = Section.where(subject_id: all_subject_ids, school_year_id: @school.school_year_id).pluck(:id)
     assigned_subject_section_ids = TeachingAssignment.where(section_id: all_section_ids).pluck(:section_id)
     unassigned_subject_section_ids = all_section_ids - assigned_subject_section_ids
     @disciplines = Discipline.includes(subjects: {sections: :teachers }).where('sections.id in (?)', unassigned_subject_section_ids).order('disciplines.name, subjects.name, sections.line_number')
