@@ -128,8 +128,9 @@ class UsersController < ApplicationController
       @user.assign_attributes(params[:user])
       @user.valid?
       if @user.errors.count == 0 && @user.update_attributes(params[:user])
-        # if @user.errors.count == 0 && @user.update_attributes(params[:user])
-        if @user.password and @user.password_confirmation
+        if params[:commit] == 'active'
+          format.js
+        elsif @user.password and @user.password_confirmation
           Rails.logger.debug("*** change password.")
           if @user.reset_password!(@user.password, @user.password_confirmation)
             @user.temporary_password = nil unless @user.temporary_password == @user.password
@@ -153,9 +154,6 @@ class UsersController < ApplicationController
             else
               format.js
             end
-          elsif params[:commit] == 'active'
-            Rails.logger.debug("*** update active flag.")
-            format.js
           else
             Rails.logger.debug("*** update other.")
             format.html { redirect_to(root_path, :notice => 'Profile successfully updated.') }

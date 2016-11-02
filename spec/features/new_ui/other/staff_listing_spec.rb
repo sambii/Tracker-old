@@ -4,11 +4,16 @@ require 'spec_helper'
 
 describe "Staff Listing", js:true do
   before (:each) do
-    @section = FactoryGirl.create :section
-    @school = @section.school
+    create_and_load_arabic_model_school
+
+    @school = FactoryGirl.create :school, :arabic
     @teacher = FactoryGirl.create :teacher, school: @school
     @teacher_deact = FactoryGirl.create :teacher, school: @school, active: false
+    @subject = FactoryGirl.create :subject, school: @school, subject_manager: @teacher
+    @section = FactoryGirl.create :section, subject: @subject
+    @discipline = @subject.discipline
     load_test_section(@section, @teacher)
+
 
   end
 
@@ -74,6 +79,7 @@ describe "Staff Listing", js:true do
       page.should have_content("All Staff for #{@school.name}")
       page.should have_css("tr#user_#{@teacher.id}")
       page.should_not have_css("tr#user_#{@teacher.id}.deactivated")
+      page.should have_css("tr#user_#{@teacher.id}.active")
       within("tr#user_#{@teacher.id}") do
         page.should have_content("#{@teacher.last_name}")
         page.should have_content("#{@teacher.first_name}")
@@ -85,17 +91,37 @@ describe "Staff Listing", js:true do
         page.should_not have_css("i.fa-edit") if !can_create
         page.should have_css("i.fa-unlock") if can_create
         page.should_not have_css("i.fa-unlock") if !can_create
-        page.should have_css("i.fa-times-circle") if can_create && @teacher.active == true
-        page.should_not have_css("i.fa-times-circle") if !can_create && @teacher.active == true
+        # click the deactivate icon
+        if can_create
+          find('#remove-staff').click
+          page.driver.browser.switch_to.alert.accept
+        end
       end
+      # confirm the user is deactivated
+      if can_create
+        page.should have_css("tr#user_#{@teacher.id}.deactivated")
+        page.should_not have_css("tr#user_#{@teacher.id}.active")
+      end
+
       page.should have_css("tr#user_#{@teacher_deact.id}")
       page.should have_css("tr#user_#{@teacher_deact.id}.deactivated")
+      page.should_not have_css("tr#user_#{@teacher_deact.id}.active")
       within("tr#user_#{@teacher_deact.id}") do
         page.should have_content("#{@teacher_deact.last_name}")
         page.should have_content("#{@teacher_deact.first_name}")
         page.should have_content("#{@teacher_deact.email}")
         page.should have_css("i.fa-undo") if can_create && @teacher_deact.active == false
         page.should_not have_css("i.fa-undo") if !can_create && @teacher_deact.active == false
+        # click the reactivate icon
+        if can_create
+          find('#restore-staff').click
+          page.driver.browser.switch_to.alert.accept
+        end
+      end
+      # confirm the user is deactivated
+      if can_create
+        page.should have_css("tr#user_#{@teacher_deact.id}.active")
+        page.should_not have_css("tr#user_#{@teacher_deact.id}.deactivated")
       end
     end # within("#page-content") do
   end # def has_valid_subjects_listing

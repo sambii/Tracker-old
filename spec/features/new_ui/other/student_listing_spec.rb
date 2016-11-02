@@ -14,7 +14,7 @@ describe "Student Listing", js:true do
 
     @school1 = FactoryGirl.create :school, :arabic
     @teacher1 = FactoryGirl.create :teacher, school: @school1
-    @subject1 = FactoryGirl.create :subject, school: @school1, subject_manager: @teacher
+    @subject1 = FactoryGirl.create :subject, school: @school1, subject_manager: @teacher1
     @section1_1 = FactoryGirl.create :section, subject: @subject1
     @discipline = @subject1.discipline
 
