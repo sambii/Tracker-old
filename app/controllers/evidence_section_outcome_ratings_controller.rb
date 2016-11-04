@@ -24,12 +24,14 @@ class EvidenceSectionOutcomeRatingsController < ApplicationController
 
     # only update tracker page when not bulk (bulk update is refreshed)
     render_to = (params['bulk'] == 'true' ) ? {nothing:true} : 'update_tracker'
+
     respond_to do |format|
       if @evidence_section_outcome_rating.save
+        @section_outcome_id = @evidence_section_outcome_rating.evidence_section_outcome.section_outcome_id
         format.js {render render_to}
       else
-        p @evidence_section_outcome_rating.errors
-        format.js {render render_to, text: @evidence_section_outcome_rating.errors.full_messages.inspect.to_s}
+        @section_outcome_id = 0
+        format.js {render render_to, alert: @evidence_section_outcome_rating.errors.full_messages.inspect.to_s}
       end
     end
   end
@@ -37,27 +39,34 @@ class EvidenceSectionOutcomeRatingsController < ApplicationController
   def update
     # coding to manually authorize, to avoid cancan error 500
     if params[:id]
-      sorid = params[:id]
-    elsif params[:evidence_section_outcome_rating]
-      sorid = params[:evidence_section_outcome_rating]
-    elsif params[:section_outcome_rating][:id]
-      sorid = params[:section_outcome_rating][:id]
+      esorid = params[:id]
+    # not sure if these are needed. check where this is called!
+    elsif params[:evidence_section_outcome_rating_id]
+      esorid = params[:evidence_section_outcome_rating_id]
+    elsif params[:evidence_section_outcome_rating][:id]
+      esorid = params[:evidence_section_outcome_rating][:id]
     else
-      sorid = 0 # will fail
+      esorid = 0 # will fail
     end
-    @evidence_section_outcome_rating = EvidenceSectionOutcomeRating.find(sorid)
+    begin
+      @evidence_section_outcome_rating = EvidenceSectionOutcomeRating.find(esorid)
+      @section_outcome_id = @evidence_section_outcome_rating.evidence_section_outcome.section_outcome_id
+    rescue
+      @evidence_section_outcome_rating = EvidenceSectionOutcomeRating.new(params[:evidence_section_outcome_rating])
+      @evidence_section_outcome_rating.errors.add(:base, "ERROR - Please reload page, Missing esor record: #{esorid.inspect}")
+      @section_outcome_id = 0
+    end
+
+
     authorize! :update, @evidence_section_outcome_rating # only let maintainers do these things
 
-    Rails.logger.debug("*** esor params: #{params[:evidence_section_outcome_rating]}")
     render_to = (params['bulk'] == 'true' ) ? {nothing:true} : 'update_tracker'
     respond_to do |format|
-      if @evidence_section_outcome_rating.update_attributes params[:evidence_section_outcome_rating]
-        Rails.logger.debug("*** Updated esor: #{@evidence_section_outcome_rating.inspect.to_s}")
+      if  (@evidence_section_outcome_rating.errors.count == 0) && (@evidence_section_outcome_rating.update_attributes params[:evidence_section_outcome_rating])
         format.js {render render_to}
       else
-        Rails.logger.error("*** ERROR updating esor: #{@evidence_section_outcome_rating.errors.full_messages.inspect.to_s}")
-        p @evidence_section_outcome_rating.errors
-        format.js {render render_to, text: @evidence_section_outcome_rating.errors.full_messages.inspect.to_s}
+        Rails.logger.error("ERROR - updating esor: #{@evidence_section_outcome_rating.errors.full_messages.inspect.to_s}")
+        format.js {render render_to, alert: @evidence_section_outcome_rating.errors.full_messages.inspect.to_s}
       end
     end
   end
