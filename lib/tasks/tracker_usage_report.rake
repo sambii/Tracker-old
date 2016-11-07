@@ -28,13 +28,9 @@ namespace :tracker_usage_report do
           SectionOutcome.where(section_id: sec.id).each do |so|
             EvidenceSectionOutcome.where(section_outcome_id: so.id).each do |eso|
               evid_count += 1
-              EvidenceSectionOutcomeRating.where(evidence_section_outcome_id: eso.id).each do |esor|
-                esor_count += 1
-              end
+              esor_count = EvidenceSectionOutcomeRating.where(evidence_section_outcome_id: eso.id).count
             end
-            SectionOutcomeRating.where(section_outcome_id: so.id).each do |sor|
-              sor_count += 1
-            end
+            sor_count = SectionOutcomeRating.where(section_outcome_id: so.id).count
           end
           evid_trimmed_count = (evid_count.to_s).truncate(5, omission: '...').rjust(5, ' ')
           esor_trimmed_count = (esor_count.to_s).truncate(5, omission: '...').rjust(5, ' ')
