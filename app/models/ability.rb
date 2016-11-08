@@ -238,6 +238,7 @@ class Ability
         can :proficiency_bars, Student
         can [:proficiency_bars, :progress_meters, :view_subject_outcomes], Subject
         can [:staff_listing, :sections_list], User
+        can [:tracker_usage], Teacher
 
         cannot [:edit, :update], User
         cannot [:edit, :update], Student
@@ -314,7 +315,7 @@ class Ability
         can [:new], Subject
 
         # Teacher
-        can [:read, :create, :update, :dashboard],
+        can [:read, :create, :update, :dashboard, :tracker_usage],
           Teacher,
           { school_id: user.school_id }
         can [:new], Teacher

@@ -171,6 +171,14 @@ class Section < ActiveRecord::Base
                   { |a|   a.full_name }.to_sentence
   end
 
+  def rated_section_outcomes_count
+    SectionOutcomeRating.where(section_outcome_id: section_outcomes.pluck(:id), rating: ['H', 'P', 'N']).select('DISTINCT section_outcome_ratings.section_outcome_id').count
+  end
+  def rated_evidence_section_outcomes_count
+    eso_ids = EvidenceSectionOutcome.where(section_outcome_id: section_outcomes.pluck(:id))
+    EvidenceSectionOutcomeRating.where(evidence_section_outcome_id: eso_ids, rating: ['B', 'G', 'Y', 'R', 'M']).select('DISTINCT evidence_section_outcome_ratings.evidence_section_outcome_id').count
+  end
+
   def count_ratings_by_outcome
     return_value      = Hash.new { |l, k| l[k] = Hash.new(0) }
     section_outcomes  = SectionOutcome.includes(:subject_outcome, {section_outcome_ratings: :student}).where(:section_id => id)

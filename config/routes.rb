@@ -59,7 +59,11 @@ Tracker2::Application.routes.draw do
       get 'progress_meters'
     end
   end
-  resources :teachers
+  resources :teachers do
+    collection do
+      get 'tracker_usage'
+    end
+  end
   resources :counselors
 
   match "sections/update_bulk" => "home#index", via: :get

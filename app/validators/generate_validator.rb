@@ -6,6 +6,7 @@ class GenerateValidator < ActiveModel::Validator
   def validate(record)
     Rails.logger.debug("*** validate #{record.inspect.to_s}")
     case record.name
+    when 'tracker_usage' then validate_tracker_usage(record)
     when 'ss_by_lo' then validate_ss_by_lo(record)
     when 'ss_by_stud' then validate_ss_by_stud(record)
     when 'nyp_by_stud' then validate_nyp_by_stud(record)
@@ -23,6 +24,9 @@ class GenerateValidator < ActiveModel::Validator
     else
       record.errors[:name] = I18n.translate('errors.is_invalid')
     end
+  end
+
+  def validate_tracker_usage(record)
   end
 
   def validate_ss_by_lo(record)

@@ -14,6 +14,8 @@
         %label.col-sm-4.col-lg-4.control-label='Report Type'
         %select#generate-type.col-sm-8.col-lg-4.select-select2{name: "generate[name]", placeholder: 'Select Report to generate:', class: (@generate.errors[:name] ? 'ui_error' : 'no_ui_error' )}
           %option{id: '', value: '', selected: (@generate.name == ''), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}=''
+          - if can? :tracker_usage, Teacher
+            %option{id: 'tracker_usage', value: 'tracker_usage', selected: (@generate.name == 'tracker_usage'), data: {ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Tracker Usage'
           - if can? :section_summary_outcome, Section
             %option{id: 'ss_by_lo', value: 'ss_by_lo', selected: (@generate.name == 'ss_by_lo'), data: {ask_subjects: 0, ask_grade_level: 0, ask_sections: 1, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Section Summary by Learning Outcome'
           - if can? :section_summary_student, Section

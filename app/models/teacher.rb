@@ -30,5 +30,14 @@ class Teacher < User
   def section_outcomes
     SectionOutcome.where(section_id: sections.map{ |a| [a.id] })
   end
+  def rated_section_outcomes_count
+    SectionOutcomeRating.where(section_outcome_id: section_outcomes.pluck(:id), rating: ['H', 'P', 'N']).select("DISTINCT section_outcome_ratings.section_outcome_id").count
+  end
+  def evidence_section_outcomes
+    EvidenceSectionOutcome.where(section_outcome_id: section_outcomes.pluck(:id))
+  end
+  def rated_evidence_section_outcomes_count
+    EvidenceSectionOutcomeRating.where(evidence_section_outcome_id: evidence_section_outcomes.pluck(:id), rating: ['B', 'G', 'Y', 'R', 'M']).select("DISTINCT evidence_section_outcome_ratings.evidence_section_outcome_id").count
+  end
 
 end

@@ -96,6 +96,7 @@ class GeneratesController < ApplicationController
         Rails.logger.debug("*** OK, run report")
         Rails.logger.debug ("@generate = #{@generate.inspect.to_s}")
         Rails.logger.debug ("subject_id = #{params_gen[:subject_id]}")
+        format.html {redirect_to tracker_usage_teachers_path} if @generate.name == 'tracker_usage'
         format.html {redirect_to section_summary_outcome_section_path(@section.id)} if @generate.name == 'ss_by_lo'
         format.html {redirect_to section_summary_student_section_path(@section.id)} if @generate.name == 'ss_by_stud'
         format.html {redirect_to nyp_student_section_path(@section.id)} if @generate.name == 'nyp_by_stud'
@@ -112,7 +113,9 @@ class GeneratesController < ApplicationController
         format.html {redirect_to account_activity_report_users_path()} if @generate.name == 'account_activity'
         format.html {redirect_to section_attendance_xls_attendances_path()} if @generate.name == 'section_attendance_xls'
         format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], start_date: params_gen[:start_date], end_date: params_gen[:end_date]} if @generate.name == 'attendance_report'
-        format.html {redirect_to root_path(), alert: 'Invalid Report Chosen!'}
+        format.html {redirect_to view_context.user_dashboard_path(current_user),
+          alert: 'Invalid Report Chosen!'
+        }
       end
     end
   end

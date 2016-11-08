@@ -125,6 +125,11 @@ crumb :acct_activity do
   parent :generate_reports
 end
 
+crumb :tracker_usage do
+  link 'Tracker Usage', tracker_usage_teachers_path
+  parent :generate_reports
+end
+
 crumb :staff_listing do
   link 'Staff Listing', staff_listing_users_path
   parent :root

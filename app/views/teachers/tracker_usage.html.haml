@@ -1,0 +1,62 @@
+
+- content_for(:title, 'Tracker Usage Report')
+- content_for(:page_name, 'Tracker Usage Report')
+- content_for(:page_class, 'generate-reports misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :tracker_usage
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="Generate Reports"
+  %h2.h1.page-title
+    %strong="Tracker Activity for School #{@school.name}"
+.block-section.indent-block
+  .row.height-30
+    .pull-left
+      %a#collapse-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Collapse All'}
+        %i.fa.fa-lg.fa-caret-right
+      %a#expand-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Expand All'}
+        %i.fa.fa-lg.fa-caret-down
+      %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-filter
+      %a.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+        %i.fa.fa-lg.fa-print
+      %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-download
+.row
+  .col-sm-12
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+          %thead.table-title
+            %tr
+              %th='Section'
+              %th='# Evidences'
+              %th='# Evidences Rated'
+              %th='# LOs'
+              %th='# LOs Rated'
+          - @teachers.each do |t|
+            - sum_los = 
+            %tbody.tbody-header.show-tbody{class: (true ? 'show-tbody-body' : '' )}
+              %tr.height-30
+                %td
+                  .clearfix
+                    %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
+                      %i.fa.fa-caret-down.fa-lg
+                    %strong.pull-left.lmargin5="#{t.full_name} - #{t.email}"
+                %td.evid_count.text-center=t.evidence_section_outcomes.count
+                %td.evid_rated_count.text-center=t.rated_evidence_section_outcomes_count
+                %td.los_count.text-center=t.section_outcomes.count
+                %td.los_rated_count.text-center=t.rated_section_outcomes_count
+            %tbody.tbody-body.alt-rows
+              - t.sections.each do |s|
+                - los_count = s.section_outcomes.count
+                %tr
+                  %td.section.text-center="#{s.name} - #{s.line_number}"
+                  %td.evid_count.text-center=s.evidence_section_outcomes.count
+                  %td.evid_rated_count.text-center=s.rated_evidence_section_outcomes_count
+                  %td.los_count.text-center=s.section_outcomes.count
+                  %td.los_rated_count.text-center=s.rated_section_outcomes_count
