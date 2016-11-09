@@ -8,7 +8,7 @@
   = help_gen_breadcrumbs
 
 / Header
-.header-block
+.header-block.report-header
   %h1.h3.page-title
     %strong="Generate Reports"
   %h2.h1.page-title
@@ -26,7 +26,7 @@
         %i.fa.fa-lg.fa-print
       %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
         %i.fa.fa-lg.fa-download
-.row
+.row.report-body
   .col-sm-12
     .block.block-alt-style.full
       .block-content-full.rounded-title-container
@@ -40,21 +40,21 @@
               %th='# LOs Rated'
           - @teachers.each do |t|
             - sum_los = 
-            %tbody.tbody-header.show-tbody{class: (true ? 'show-tbody-body' : '' )}
+            %tbody.tbody-header.show-tbody{class: (true ? 'show-tbody-body' : '' ), data: {tch_id: "#{t.id}"} }
               %tr.height-30
                 %td
                   .clearfix
                     %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
                       %i.fa.fa-caret-down.fa-lg
                     %strong.pull-left.lmargin5="#{t.full_name} - #{t.email}"
-                %td.evid_count.text-center=t.evidence_section_outcomes.count
+                %td.evid_count.text-center=t.active_evidence_section_outcomes.count
                 %td.evid_rated_count.text-center=t.rated_evidence_section_outcomes_count
-                %td.los_count.text-center=t.section_outcomes.count
+                %td.los_count.text-center=t.active_section_outcomes.count
                 %td.los_rated_count.text-center=t.rated_section_outcomes_count
-            %tbody.tbody-body.alt-rows
+            %tbody.tbody-body.alt-rows{ data: {tch_id: "#{t.id}"} }
               - t.sections.each do |s|
                 - los_count = s.section_outcomes.count
-                %tr
+                %tr{ data: {sect_id: "#{s.id}"} }
                   %td.section.text-center="#{s.name} - #{s.line_number}"
                   %td.evid_count.text-center=s.evidence_section_outcomes.count
                   %td.evid_rated_count.text-center=s.rated_evidence_section_outcomes_count
