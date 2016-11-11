@@ -39,14 +39,19 @@
               %th='# LOs'
               %th='# LOs Rated'
           - @teachers.each do |t|
-            - sum_los = 
             %tbody.tbody-header.show-tbody{class: (true ? 'show-tbody-body' : '' ), data: {tch_id: "#{t.id}"} }
               %tr.height-30
                 %td
                   .clearfix
                     %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
                       %i.fa.fa-caret-down.fa-lg
+
+                    %a.pull-left.lmargin5{href: "/users/#{t.id}", title: 'Staff Dashboard'}
+                      %i.fa.fa-lg.fa-dashboard
+                    %a.pull-left.lmargin5{href: "/users/#{t.id}/sections_list", title: 'Staff Sections List'}
+                      %i.fa.fa-lg.fa-check
                     %strong.pull-left.lmargin5="#{t.full_name} - #{t.email}"
+
                 %td.evid_count.text-center=t.active_evidence_section_outcomes.count
                 %td.evid_rated_count.text-center=t.rated_evidence_section_outcomes_count
                 %td.los_count.text-center=t.active_section_outcomes.count
@@ -55,7 +60,12 @@
               - t.sections.each do |s|
                 - los_count = s.section_outcomes.count
                 %tr{ data: {sect_id: "#{s.id}"} }
-                  %td.section.text-center="#{s.name} - #{s.line_number}"
+                  %td
+                    %a{href: "#{class_dashboard_section_path(s.id)}"}
+                      %i.fa.fa-dashboard.fa-lg
+                    %a{href: "#{section_path(s.id)}"}
+                      %i.fa.fa-check.fa-lg
+                    %span.section.text-center="#{s.name} - #{s.line_number}"
                   %td.evid_count.text-center=s.evidence_section_outcomes.count
                   %td.evid_rated_count.text-center=s.rated_evidence_section_outcomes_count
                   %td.los_count.text-center=s.section_outcomes.count

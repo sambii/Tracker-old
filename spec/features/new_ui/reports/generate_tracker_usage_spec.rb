@@ -15,13 +15,61 @@ describe "Generate Tracker Usage Report", js:true do
 
     load_test_section(@section1_1, @teacher1)
 
+    # set of valid ratings for populating the sor and esor records
+    val_esors = ["B", "G", "Y", "R", "M", "U"]
+    val_sors = ["H", "P", "N", "U"]
+
+    # section outcome with no evidence and no ratings
+    @subjo_1_0_0_0 = FactoryGirl.create(:subject_outcome, subject: @subject1)
+    @secto_1_0_0_0 = FactoryGirl.create(:section_outcome, section: @section1_1, subject_outcome: @subjo_1_0_0_0, minimized: false) # don't minimize any
+    @ev_1_0_0_0 = FactoryGirl.create(:evidence, section: @section1_1)
+
+    # section outcome with one evidence and no ratings
+    @subjo_1_0_1_0 = FactoryGirl.create(:subject_outcome, subject: @subject1)
+    @secto_1_0_1_0 = FactoryGirl.create(:section_outcome, section: @section1_1, subject_outcome: @subjo_1_0_1_0, minimized: false) # don't minimize any
+    @ev_1_0_1_0 = FactoryGirl.create(:evidence, section: @section1_1)
+    @eso_1_0_1_0 = FactoryGirl.create :evidence_section_outcome, section_outcome: @secto_1_0_1_0, evidence: @ev_1_0_1_0
+
+    # section outcome with one evidence ratings
+    @subjo_1_1_1_0 = FactoryGirl.create(:subject_outcome, subject: @subject1)
+    @secto_1_1_1_0 = FactoryGirl.create(:section_outcome, section: @section1_1, subject_outcome: @subjo_1_1_1_0, minimized: false) # don't minimize any
+    @ev_1_1_1_0 = FactoryGirl.create(:evidence, section: @section1_1)
+    @sor_1_1_1_0 = FactoryGirl.create :section_outcome_rating, section_outcome: @secto_1_1_1_0, student: @student2, rating: val_sors[0]
+    @eso_1_1_1_0 = FactoryGirl.create :evidence_section_outcome, section_outcome: @secto_1_1_1_0, evidence: @ev_1_1_1_0
+    # @esor_1_1_1_0 = FactoryGirl.create :evidence_section_outcome_rating, evidence_section_outcome: @eso_1_1_1_0, student: @student2, rating: val_esors[0]
+
+    # section outcome rated with one evidence rated
+    @subjo_1_1_1_1 = FactoryGirl.create(:subject_outcome, subject: @subject1)
+    @secto_1_1_1_1 = FactoryGirl.create(:section_outcome, section: @section1_1, subject_outcome: @subjo_1_1_1_1, minimized: false) # don't minimize any
+    @ev_1_1_1_1 = FactoryGirl.create(:evidence, section: @section1_1)
+    @sor_1_1_1_1 = FactoryGirl.create :section_outcome_rating, section_outcome: @secto_1_1_1_1, student: @student2, rating: val_sors[0]
+    @eso_1_1_1_1 = FactoryGirl.create :evidence_section_outcome, section_outcome: @secto_1_1_1_1, evidence: @ev_1_1_1_1
+    @esor_1_1_1_1 = FactoryGirl.create :evidence_section_outcome_rating, evidence_section_outcome: @eso_1_1_1_1, student: @student2, rating: val_esors[0]
+
+    # section outcome rated with one deactivated evidence rated
+    @subjo_d0_1_1_1 = FactoryGirl.create(:subject_outcome, subject: @subject1)
+    @secto_d0_1_1_1 = FactoryGirl.create(:section_outcome, section: @section1_1, subject_outcome: @subjo_d0_1_1_1, minimized: false) # don't minimize any
+    @ev_d0_1_1_1 = FactoryGirl.create(:evidence, section: @section1_1, active: false)
+    @sor_d0_1_1_1 = FactoryGirl.create :section_outcome_rating, section_outcome: @secto_d0_1_1_1, student: @student2, rating: val_sors[0]
+    @eso_d0_1_1_1 = FactoryGirl.create :evidence_section_outcome, section_outcome: @secto_d0_1_1_1, evidence: @ev_d0_1_1_1
+    @esor_d0_1_1_1 = FactoryGirl.create :evidence_section_outcome_rating, evidence_section_outcome: @eso_d0_1_1_1, student: @student2, rating: val_esors[0]
+
+    # section outcome rated with one deactivated rated eso
+    @subjo_1_1_d0_1 = FactoryGirl.create(:subject_outcome, subject: @subject1)
+    @secto_1_1_d0_1 = FactoryGirl.create(:section_outcome, section: @section1_1, subject_outcome: @subjo_1_1_d0_1, minimized: false, active: false) # don't minimize any
+    @ev_1_1_d0_1 = FactoryGirl.create(:evidence, section: @section1_1)
+    @sor_1_1_d0_1 = FactoryGirl.create :section_outcome_rating, section_outcome: @secto_1_1_d0_1, student: @student2, rating: val_sors[0]
+    @eso_1_1_d0_1 = FactoryGirl.create :evidence_section_outcome, section_outcome: @secto_1_1_d0_1, evidence: @ev_1_1_d0_1
+    @esor_1_1_d0_1 = FactoryGirl.create :evidence_section_outcome_rating, evidence_section_outcome: @eso_1_1_d0_1, student: @student2, rating: val_esors[0]
+
   end
 
   describe "as teacher" do
     before do
-      sign_in(@teacher)
+      sign_in(@teacher1)
+      @err_page = "/teachers/#{@teacher1.id}"
     end
-    it { has_valid_tracker_usage_report(:teacher) }
+    it { has_no_tracker_usage_report }
   end
 
   describe "as school administrator" do
@@ -56,7 +104,7 @@ describe "Generate Tracker Usage Report", js:true do
       sign_in(@student)
       @err_page = "/students/#{@student.id}"
     end
-    it { has_no_tracker_usage_report }
+    it { has_no_reports }
   end
 
   describe "as parent" do
@@ -64,13 +112,13 @@ describe "Generate Tracker Usage Report", js:true do
       sign_in(@student.parent)
       @err_page = "/parents/#{@student.parent.id}"
     end
-    it { has_no_tracker_usage_report }
+    it { has_no_reports }
   end
 
   ##################################################
   # test methods
 
-  def has_no_tracker_usage_report
+  def has_no_reports
     # should not have a link to generate reports
     page.should_not have_css("#side-reports")
     page.should_not have_css("a", text: 'Generate Reports')
@@ -78,8 +126,28 @@ describe "Generate Tracker Usage Report", js:true do
     visit new_generate_path
     assert_equal(@err_page, current_path)
     page.should_not have_content('Internal Server Error')
-    # should fail when running attendance report directly
-    visit attendance_report_attendances_path
+    # should fail when running tracker usage report directly
+    visit tracker_usage_teachers_path
+    assert_equal(@err_page, current_path)
+    within('head title') do
+      page.should_not have_content('Internal Server Error')
+    end
+  end
+
+  def has_no_tracker_usage_report
+    page.should have_css("#side-reports a", text: 'Generate Reports')
+    find("#side-reports a", text: 'Generate Reports').click
+    page.should have_content('Generate Reports')
+    within("#page-content") do
+      within('form#new_generate') do
+        page.should have_selector("select#generate-type")
+        within('select#generate-type') do
+          page.should_not have_css('option#tracker_usage')
+        end
+      end
+    end
+    # should fail when running tracker usage report directly
+    visit tracker_usage_teachers_path
     assert_equal(@err_page, current_path)
     within('head title') do
       page.should_not have_content('Internal Server Error')
@@ -100,7 +168,6 @@ describe "Generate Tracker Usage Report", js:true do
         find("button", text: 'Generate').click
       end
     end
-    save_and_open_page
     assert_equal(tracker_usage_teachers_path(), current_path)
     page.should_not have_content('Internal Server Error')
 
@@ -110,170 +177,20 @@ describe "Generate Tracker Usage Report", js:true do
       end
       within('.report-body') do
         within("table tbody.tbody-header[data-tch-id='#{@teacher1.id}']") do
-
+          page.should have_css("td.evid_count", text: '27')
+          page.should have_css("td.evid_rated_count", text: '25')
+          page.should have_css("td.los_count", text: '9')
+          page.should have_css("td.los_rated_count", text: '7')
         end
         within("table tbody.tbody-body[data-tch-id='#{@teacher1.id}']") do
-
+          page.should have_css("td.evid_count", text: '27')
+          page.should have_css("td.evid_rated_count", text: '25')
+          page.should have_css("td.los_count", text: '9')
+          page.should have_css("td.los_rated_count", text: '7')
         end
       end
     end
-
-      # page.should_not have_content("#{@subject3.discipline.name} : #{@subject3.name}")
-      # within("tbody#subj_header_#{@subject1.id}") do
-      #   page.should have_content("#{@subject1.discipline.name} : #{@subject1.name}")
-      #   page.should_not have_content("#{@subject2.discipline.name} : #{@subject2.name}")
-      # end
-      # within("tbody#subj_body_#{@subject1.id}") do
-      #   within("#sect_#{@section1_1.id}") do
-      #     page.should have_content("#{@teacher1.full_name}")
-      #     page.should have_content("#{@section1_1.line_number}")
-      #     page.should have_content("#{@section1_1.active_students.count}")
-      #   end
-      #   within("#sect_#{@section1_2.id}") do
-      #     page.should have_content("#{@teacher1.full_name}")
-      #     page.should have_content("#{@section1_2.line_number}")
-      #     page.should have_content("#{@section1_2.active_students.count}")
-      #   end
-      #   within("#sect_#{@section1_3.id}") do
-      #     page.should have_content("#{@teacher1.full_name}")
-      #     page.should have_content("#{@section1_3.line_number}")
-      #     page.should have_content("#{@section1_3.active_students.count}")
-      #   end
-      #   page.should_not have_css("#sect_#{@section2_1.id}")
-      #   page.should_not have_css("#sect_#{@section2_2.id}")
-      #   page.should_not have_css("#sect_#{@section2_3.id}")
-      # end
-
-      # within("tbody#subj_header_#{@subject2.id}") do
-      #   page.should_not have_content("#{@subject1.discipline.name} : #{@subject1.name}")
-      #   page.should have_content("#{@subject2.discipline.name} : #{@subject2.name}")
-      # end
-      # within("tbody#subj_body_#{@subject2.id}") do
-      #   within("#sect_#{@section2_1.id}") do
-      #     page.should_not have_content("#{@teacher1.full_name}")
-      #     page.should have_content("#{@section2_1.line_number}")
-      #     page.should have_content("#{@section2_1.active_students.count}")
-      #   end
-      #   within("#sect_#{@section2_2.id}") do
-      #     page.should_not have_content("#{@teacher1.full_name}")
-      #     page.should have_content("#{@section2_2.line_number}")
-      #     page.should have_content("#{@section2_2.active_students.count}")
-      #   end
-      #   within("#sect_#{@section2_3.id}") do
-      #     page.should_not have_content("#{@teacher1.full_name}")
-      #     page.should have_content("#{@section2_3.line_number}")
-      #     page.should have_content("#{@section2_3.active_students.count}")
-      #   end
-      #   page.should_not have_css("#sect_#{@section1_1.id}")
-      #   page.should_not have_css("#sect_#{@section1_2.id}")
-      #   page.should_not have_css("#sect_#{@section1_3.id}")
-      # end
-
-      # # click on right arrow should minimize subject
-      # page.should have_css("tbody#subj_header_#{@subject1.id}.show-tbody-body")
-      # find("a#subj_header_#{@subject1.id}_a").click
-      # page.should_not have_css("tbody#subj_header_#{@subject1.id}.show-tbody-body")
-      # # click on down arrow should maximize subject
-      # find("a#subj_header_#{@subject1.id}_a").click
-      # page.should have_css("tbody#subj_header_#{@subject1.id}.show-tbody-body")
-
-      # # todo - click on right arrow at top of page should minimize all subjects
-
-      # # todo - click on down arrow at top of page should maximize all subjects
-
-    # end # within("#page-content") do
-
-    # if (can_create)
-    #   # click on add subject should show add subject popup
-    #   find("a#add-subject").click
-    #   within('#modal-body') do
-    #     within('h3') do
-    #       page.should have_content('Create Subject')
-    #     end
-    #     page.should have_content(@school1.name)
-    #     page.should have_selector("#subject-discipline-id")
-    #     # page.all('select#subject-discipline-id option').map(&:value).should == ['', '1', '2', '3' ]
-    #     find("select#subject-discipline-id").value.should == ''
-    #     select(@discipline.name, from: "subject-discipline-id")
-    #     page.fill_in 'subject-name', :with => 'New Subject Name'
-    #     select(@teacher1.full_name, from: 'subject_subject_manager_id')
-    #     page.click_button('Save')
-    #   end
-    #   # save should go back to subject / section listing
-    #   within('#page-content') do
-    #     page.should have_content("#{@discipline.name} : New Subject Name")
-    #   end
-
-    #   # click on edit subject should show edit subject popup
-    #   find("a[data-url='/subjects/#{@subject1.id}/edit.js']").click
-    #   within('#modal-body') do
-    #     within('h3') do
-    #       page.should have_content("Edit Subject - #{@subject1.name}")
-    #     end
-    #     page.should have_content(@school1.name)
-    #     page.should have_selector("#subject-discipline-id")
-    #     # page.all('select#subject-discipline-id option').map(&:value).should == ['', '1', '2', '3' ]
-    #     find("select#subject-discipline-id").value.should == "#{@discipline.id}"
-    #     select(@discipline2.name, from: "subject-discipline-id")
-    #     page.should have_selector("#subject-name", value: "#{@subject1.name}")
-    #     # todo - checks for duplicate subject name within school - is this allowed?
-    #     page.fill_in 'subject-name', :with => 'Changed Subject Name'
-    #     find("#subject_subject_manager_id").value.should == "#{@teacher1.id}"
-    #     select(@teacher2.full_name, from: 'subject_subject_manager_id')
-    #     page.click_button('Save')
-    #   end
-    #   # save should go back to subject / section listing
-    #   within('#page-content') do
-    #     page.should have_content("#{@discipline2.name} : Changed Subject Name")
-    #   end
-
-    #   # click on edit section should show edit section popup
-    #   find("a[data-url='/sections/#{@section1_2.id}/edit.js']").click
-    #   within('#modal-body') do
-    #     within('h3') do
-    #       page.should have_content("Edit Section: #{@section1_2.name} - #{@section1_2.line_number}")
-    #     end
-    #     within('#section_line_number') do
-    #       page.should_not have_content(@section1_2.subject.name)
-    #     end
-    #     page.should have_selector("#section_line_number", value: "#{@section1_2.line_number}")
-    #     page.fill_in 'section_line_number', :with => 'Changed Section ID'
-    #     within('#section_message') do
-    #       page.should have_content(@section1_2.message)
-    #     end
-    #     page.should have_selector("#section_school_year_id", value: "#{@section1_2.school_year.name}")
-    #     page.click_button('Save')
-    #   end
-    #   # save should go back to section listing
-    #   page.should have_selector("#sect_#{@section1_2.id}")
-    #   within("#sect_#{@section1_2.id}") do
-    #     page.should have_selector(".sect-section", value: "Changed Section ID")
-    #   end
-
-    #   # click on add section should show add section popup
-    #   # Rails.logger.debug("*** subj_header_#{@section1_2.subject.id}")
-    #   # find("subj_header_#{@section1_2.subject.id} a.add-section").click
-    #   # within('#modal-body') do
-    #   #   within('h3') do
-    #   #     page.should have_content("Add Section")
-    #   #   end
-    #   #   # within('#section_line_number') do
-    #   #   #   page.should_not have_content(@section1_2.subject.name)
-    #   #   # end
-    #   #   # page.should have_selector("#section_line_number", value: "#{@section1_2.line_number}")
-    #   #   # page.fill_in 'section_line_number', :with => 'Changed Section ID'
-    #   #   # within('#section_message') do
-    #   #   #   page.should have_content(@section1_2.message)
-    #   #   # end
-    #   #   # page.should have_selector("#section_school_year_id", value: "#{@section1_2.school_year.name}")
-    #   #   # page.click_button('Save')
-    #   # end
-
-    #   # # save should go back to section listing
-
-    # end
-
-  end # def has_valid_attendance_report
+  end # def has_valid_tracker_usage_report
 
 
 end
