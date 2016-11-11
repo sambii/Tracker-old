@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.046 Nov11, 2016
+- Tracker Usage report for Researchers and Admins
 PARLO Tracker version v2.01.045 Nov 4, 2016
 - fixes for 1a, 14, 15, and 16
 PARLO Tracker version v2.01.044  Oct 29, 2016
