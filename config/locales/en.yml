@@ -37,7 +37,7 @@ en:
   responses:
     are_you_sure: "Are you sure?"
   warnings:
-    date_change_warning: '(Note: if you change the date, it will not save any changes)'
+    date_change_warning: 'Click on Date to change date.  Be sure to save before changing dates.'
   success:
     was_created: " was successfully created!"
   alerts:

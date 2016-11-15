@@ -8,8 +8,15 @@
   = help_gen_breadcrumbs
 
 - types_empty_hash = Hash.new
+- val_att_type_ids = Array.new
+- deact_att_type_ids = Array.new
 - @attendance_types.each do |at|
   - types_empty_hash[at.id] = 0
+  - val_att_type_ids << at.id
+- @deact_attendance_types.each do |at|
+  - deact_att_type_ids << at.id
+- types_empty_hash[9999999] = 0
+
 
 / Header
 .header-block
@@ -55,9 +62,11 @@
               %th= 'Student Name'
               - @attendance_types.each do |at|
                 %th=at.description
+              %th='Type Inactive'
           - last_student_id = 0
           - last_student_xid = 0
           - last_student_name = ''
+          - deact_dates = []
           - by_type = types_empty_hash.clone
 
           - @attendances.each do |a|
@@ -67,6 +76,17 @@
             - last_student_id = a.user_id
             - last_student_xid = a.student.xid
             - last_student_name = a.student.full_name
-            - by_type[a.attendance_type_id] += 1
+            - if val_att_type_ids.include? a.attendance_type_id
+              - by_type[a.attendance_type_id] += 1
+            - elsif deact_att_type_ids.include? a.attendance_type_id
+              - deact_dates << a.attendance_date if !deact_dates.include? a.attendance_date
+              - by_type[9999999] += 1
           =render partial: 'student_attendance_break', locals: {student_id: last_student_id, xid: last_student_xid, name: last_student_name, by_type: by_type}
+          - if deact_dates.length > 0
+            %tbody
+              %tr.height-30
+                %td{colspan: 2}
+                  = "Type not active dates: #{deact_dates}"
+            %tbody.tbody-body
+
 

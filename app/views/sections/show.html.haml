@@ -150,7 +150,7 @@
                 %div.cloner
                   %div.clone
                     %div{data_template: "students/show", data_url: "students/#{student.id}.json"}
-                      %span.name= (show_name).html_safe
+                      %span.name{title: (show_name).html_safe}= (show_name).html_safe
                       %span.icon
                         %a{href: "#{student_path(student.id)}"}
                           %i.fa.fa-user
