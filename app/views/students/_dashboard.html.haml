@@ -153,7 +153,7 @@
                 %i.fa.fa-check
                 %span{title: 'Learning Outcomes completed at Proficient or higher'}='Learning Outcomes Progress'
           %tbody
-            - @student.cur_yr_enrollments.current.each do |e|
+            - @student.cur_yr_active_enrollments.current.each do |e|
               - e_ratings = @ratings[e.section.id]
               - complete = e_ratings[:H]+e_ratings[:P]
               - problems = e_ratings[:N]

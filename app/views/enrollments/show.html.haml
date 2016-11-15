@@ -14,7 +14,9 @@
   %h2.h1.page-title
     %strong
       ="#{@section.name} | #{@section.line_number}"
-      / %span.flash_alert="Student has been unenrolled from this class!"
+      - if !@enrollment.active
+        %span.flash_alert="Student has been unenrolled from this class!"
+
 .row
   .block-section.indent-block
     .row.height-30

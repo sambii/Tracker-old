@@ -21,7 +21,7 @@ class StudentsController < ApplicationController
     # @sections = @student.active_sections.includes(:subject, :teachers)
     # @section_outcome_rating_counts = @student.hash_of_section_outcome_rating_counts
     # @active_enrollments = Enrollment.includes(:section).alphabetical.current.where(student_id: @student)
-    @active_enrollments = Enrollment.includes(:section).current.where(student_id: @student)
+    @active_enrollments = Enrollment.includes(:section).current.active_enrollment.where(student_id: @student)
     current_sect_ids = @active_enrollments.pluck(:section_id)
     Rails.logger.debug("*** current_sect_ids: #{current_sect_ids}")
     @ratings = @student.hash_of_section_outcome_rating_counts(section_ids: current_sect_ids)

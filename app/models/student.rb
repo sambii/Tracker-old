@@ -71,7 +71,17 @@ class Student < User
     )
   end
 
-  def cur_yr_enrollments
+  def cur_yr_active_enrollments
+   enrollments.where(
+      sections: {
+        school_year_id: school.school_year_id
+      },
+      student_id: id,
+      active: true
+    )
+  end
+
+  def cur_yr_all_enrollments
    enrollments.where(
       sections: {
         school_year_id: school.school_year_id

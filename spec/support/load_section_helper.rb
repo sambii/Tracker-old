@@ -19,15 +19,15 @@ module LoadSectionHelper
     @enrollment5 = FactoryGirl.create :enrollment, section: section, student: @student5
     @student6   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Ln-6'
     @enrollment6 = FactoryGirl.create :enrollment, section: section, student: @student6
-    # unenrolled = student active, but unenrolled.
+    # unenrolled = student active, but unenrolled from section.
     @student_unenrolled   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Unenrolled'
-    @enrollment_unenrolled = FactoryGirl.create :enrollment, section: section, student: @student_unenrolled
+    @enrollment_unenrolled = FactoryGirl.create :enrollment, section: section, student: @student_unenrolled, active: false
     # transferred = student deactivated, but still enrolled.
-    @student_transferred   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Transferred'
+    @student_transferred   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Transferred', active: false
     @enrollment_transferred = FactoryGirl.create :enrollment, section: section, student: @student_transferred
     # out = student deactivated, and unenrolled.
-    @student_out   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Out'
-    @enrollment_out = FactoryGirl.create :enrollment, section: section, student: @student_out
+    @student_out   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'Out', active: false
+    @enrollment_out = FactoryGirl.create :enrollment, section: section, student: @student_out, active: false
     # new = student active and enrolled with no ratings.
     @student_new   = FactoryGirl.create :student, school: section.school, first_name: 'Student', last_name: 'New'
     @enrollment_new = FactoryGirl.create :enrollment, section: section, student: @student_new
@@ -35,7 +35,6 @@ module LoadSectionHelper
     # note: not including @student_new
     # note: used to populate ratings, so new student gets no ratings
     @students = {@student.id => @student, @student2.id => @student2, @student3 => @student3, @student4 => @student4, @student5 => @student5, @student6 => @student6, @student_unenrolled => @student_unenrolled, @student_transferred => @student_transferred, @student_out => @student_out}
-    # @enrollments = {@enrollment => @enrollment, @enrollment2 => @enrollment2, @enrollment3 => @enrollment3, @enrollment4 => @enrollment4, @enrollment5 => @enrollment5, @enrollment6 => @enrollment6, @enrollment_unenrolled => @enrollment_unenrolled, @enrollment_transferred => @enrollment_transferred, @enrollment_out => @enrollment_out}
     @enrollments = [ @enrollment, @enrollment2, @enrollment3, @enrollment4, @enrollment5, @enrollment6, @enrollment_unenrolled, @enrollment_transferred, @enrollment_out]
 
 

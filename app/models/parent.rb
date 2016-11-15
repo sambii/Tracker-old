@@ -19,7 +19,7 @@ class Parent < User
     Parent.where(subscription_status: status).each do |parent|
       if parent.email.present? && parent.active
         if parent.child.active
-          parent.child.cur_yr_enrollments.current.active_enrollment.each do |e|
+          parent.child.cur_yr_active_enrollments.current.active_enrollment.each do |e|
             StudentMailer.show(parent.email, parent.child.id, e.section.id).deliver
             File.open("log/email.log","a") do |f|
               f.puts "#{Time.now}: Sent #{subscription_status} email to Parent - #{parent.email}."
