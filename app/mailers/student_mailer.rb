@@ -14,6 +14,23 @@ class StudentMailer < ActionMailer::Base
     mail(from: get_support_email, to: address, subject: "PARLO Progress Tracker: #{@section.name}")
   end
 
+  def new_evidence_notify(enrollment_id, student, section, subject_line, tracker_url)
+    @enrollment_id = enrollment_id
+    @student = student
+    @section = section
+    @tracker_url = tracker_url
+    if @section.teachers.count > 0 && @section.teachers.first.email.present?
+      @email_from = @section.teachers.first.email
+      @email_from_name = @section.teachers.first.full_name
+    else
+      @email_from = get_support_email
+      @email_from_name = @server_config.support_team
+    end
+
+    mail(from: @email_from, to: @student.email, subject: subject_line) if @student.email.present?
+  end
+
+
   private
 
   def get_support_email

@@ -1,0 +1,19 @@
+
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+  %body
+    %p
+      ="Hello #{@student.full_name},"
+    %p
+      ="You have a new piece of evidence for your #{@section.name} - #{@section.line_number} class."
+      %br
+      ="Please go to #{@tracker_url} to view it."
+    %p
+      ="Thanks for using Tracker and have a great day!"
+      %br
+      ="Sincerely,"
+      %br
+      ="#{@email_from_name}"
+      %br

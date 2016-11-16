@@ -34,6 +34,12 @@
           %input{id: "evidence_reassessment_hidden", name: "evidence[reassessment]", type: "hidden", value: "false"}
           %input{id: "evidence_reassessment", name: "evidence[reassessment]", type: "checkbox", checked: @evidence.reassessment, value: "true"}
           %span.ui-error="#{@errors[:reassessment] if @errors[:reassessment].present?}"
+        - if @evidence.id.blank?
+          %fieldset.input-group
+            %label.col-sm-4.control-label{for: 'send_email'}='Notify Students'
+            %input{id: "send_email_hidden", name: "send_email", type: "hidden", value: "false"}
+            %input{id: "send_email", name: "send_email", type: "checkbox", value: "true"}
+
     .col-sm-7
       .block.block-alt-style
         #evid-current-los
