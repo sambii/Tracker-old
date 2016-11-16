@@ -78,24 +78,18 @@ class GeneratesController < ApplicationController
       @subject_sections = Section.includes(:subject).where(school_year_id: @school.school_year_id).order('subjects.name, sections.line_number')
       @marking_periods = Range::new(1,@school.marking_periods)
       @school_students = Student.alphabetical.where(school_id: @school.id)
-      @school_year_start = params[:start_date]
-      @school_year_end = params[:end_date]
+      @range_start = params_gen[:start_date].truncate(10, omission: '')
+      @range_end = params_gen[:end_date].truncate(10, omission: '')
     end
     respond_to do |format|
       if !current_user
-        Rails.logger.debug("*** no current user, go to root page")
         format.html { redirect_to root_path}
       elsif @school.id.nil?
-        Rails.logger.debug("*** no current school, go to school select page")
         flash[:alert] = I18n.translate('errors.invalid_school_pick_one')
         format.html { redirect_to schools_path}
       elsif @generate.errors.count > 0
-        Rails.logger.debug("*** errors, go back to form")
         format.html
       else
-        Rails.logger.debug("*** OK, run report")
-        Rails.logger.debug ("@generate = #{@generate.inspect.to_s}")
-        Rails.logger.debug ("subject_id = #{params_gen[:subject_id]}")
         format.html {redirect_to tracker_usage_teachers_path} if @generate.name == 'tracker_usage'
         format.html {redirect_to section_summary_outcome_section_path(@section.id)} if @generate.name == 'ss_by_lo'
         format.html {redirect_to section_summary_student_section_path(@section.id)} if @generate.name == 'ss_by_stud'
@@ -112,7 +106,7 @@ class GeneratesController < ApplicationController
         format.html {redirect_to create_report_card_path(grade_level: @generate.grade_level)} if @generate.name == 'report_cards'
         format.html {redirect_to account_activity_report_users_path()} if @generate.name == 'account_activity'
         format.html {redirect_to section_attendance_xls_attendances_path()} if @generate.name == 'section_attendance_xls'
-        format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], start_date: params_gen[:start_date], end_date: params_gen[:end_date]} if @generate.name == 'attendance_report'
+        format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], start_date: @range_start, end_date: @range_end} if @generate.name == 'attendance_report'
         format.html {redirect_to view_context.user_dashboard_path(current_user),
           alert: 'Invalid Report Chosen!'
         }

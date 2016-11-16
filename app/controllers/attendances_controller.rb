@@ -181,6 +181,7 @@ class AttendancesController < ApplicationController
     @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, sections: {subject_id: rpt_subject_id})
     @attendance_types = AttendanceType.where(school_id: @school.id, active: true).order(:description)
     @deact_attendance_types = AttendanceType.where(school_id: @school.id, active: false)
+    @attendance_count_deactivated = @attendances.where(attendance_type_id: @deact_attendance_types.pluck(:id)).count
     @att_types_names = @attendance_types.map {|at| at.description }
     @start_date = start_date.strftime('%v')
     @end_date = end_date.strftime('%v')
