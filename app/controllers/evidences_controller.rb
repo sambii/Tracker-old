@@ -148,24 +148,45 @@ class EvidencesController < ApplicationController
     end
 
     if errors == 0
-      if @evidence.save
-        # This is probably not the 'Rails way' to do this, but clone_into_section method takes
-        # an array of section ID's and creates the evidence, any absent learning outcomes, evidence
-        # attachments, and evidence_section_outcomes in the additional sections.
-        if params[:sections]
-          Rails.logger.debug("*** copy evidence to other sections")
-          params[:sections].each do |section_id|
-            @evidence.clone_into_section section_id
-            if @evidence.errors.count > 0
-              error_str += ', '+@evidence.errors.full_messages.to_s
-              errors += @evidence.errors.count
+      ActiveRecord::Base.transaction do
+        if @evidence.save
+          # This is model centric to do this. The clone_into_section method takes
+          # an array of section ID's and creates the evidence, any absent learning outcomes, evidence
+          # attachments, and evidence_section_outcomes in the additional sections.
+          if params[:sections]
+            Rails.logger.debug("*** copy evidence to other sections")
+            params[:sections].each do |section_id|
+              @evidence.clone_into_section section_id
+              if @evidence.errors.count > 0
+                error_str += ', '+@evidence.errors.full_messages.to_s
+                errors += @evidence.errors.count
+              end
             end
           end
+        else
+          error_str += ', '+@evidence.errors.full_messages.to_s
+          errors += @evidence.errors.count
+          Rails.logger.error("ERROR: EvidencesController.create error: #{error_str}")
         end
-      else
-        error_str += ', '+@evidence.errors.full_messages.to_s
-        errors += @evidence.errors.count
-        Rails.logger.error("ERROR: EvidencesController.create error: #{error_str}")
+      end
+    end
+    # if no errors, notify all students
+    Rails.logger.debug("+++ errors: #{errors} errors: #{errors}")
+    if errors == 0 && params[:send_email] == 'true'
+      @section.active_enrollments.each do |e|
+        # send new evidence email to student
+        Rails.logger.debug("+++ main section send new evidence email to student: #{e.student.full_name}")
+        StudentMailer.new_evidence_notify(@section, e, request).deliver
+      end
+      if params[:sections]
+        params[:sections].each do |section_id|
+          section = Section.find section_id
+          section.active_enrollments.each do |e|
+            # send new evidence email to student
+            Rails.logger.debug("+++ other section send new evidence email to student: #{e.student.full_name}")
+            StudentMailer.new_evidence_notify(section, e, request).deliver
+          end
+        end
       end
     end
     respond_to do |format|

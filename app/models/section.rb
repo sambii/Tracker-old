@@ -17,6 +17,10 @@ class Section < ActiveRecord::Base
                                   conditions: { users: { active: true } },
                                   dependent: :destroy
   accepts_nested_attributes_for   :enrollments
+  has_many                        :active_enrollments,
+                                  class_name: 'Enrollment',
+                                  include: :student,
+                                  conditions: { active: true, users: { active: true } }
   has_many                        :students, through: :enrollments,
                                   order: [:last_name, :first_name]
   has_many                        :section_outcomes,

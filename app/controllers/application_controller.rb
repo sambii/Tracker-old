@@ -503,6 +503,20 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def get_server_url(scr=nil, req)
+    scr = get_server_config if !scr.present?
+    return scr.server_url.present? ? scr.server_url : req.base_url
+  end
+
+  def get_server_support_email(scr=nil)
+    scr = get_server_config if !scr.present?
+    return scr.support_email.present? ? scr.support_email : ""
+  end
+
+  def get_server_support_team(scr=nil)
+    scr = get_server_config if !scr.present?
+    return scr.support_team.present? ? scr.support_team : ""
+  end
 
   private
 
