@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.048 Nov 18, 2016
+- Task 12 Student Notify of new evidence checkbox, item 25 Attendance report deactivated types, item 27 avoid error in section list.
 PARLO Tracker version v2.01.047 Nov 15, 2016
  - Student Dashboard to not display unenrolled sections
 PARLO Tracker version v2.01.046 Nov11, 2016
