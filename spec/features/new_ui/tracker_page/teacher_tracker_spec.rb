@@ -87,15 +87,40 @@ describe "Teacher Tracker", js:true do
           page.should have_content("#{@evidences.values[5].name}")
         end
       end
-      # page.should have_content('xxxx')
     end
     find("div#collapse-all-los-button").click
+
     page.should have_content("#{@subject_outcomes.values[0].name}")
     page.should have_css('tbody.tbody-header')
     page.should have_css("*[data-so-id='#{@subject_outcomes.values[0].id}']")
     page.should have_css("tbody.tbody-header[data-so-id='#{@subject_outcomes.values[0].id}']")
     page.should_not have_css("tbody.tbody-header[data-so-id='#{@subject_outcomes.values[0].id}'].tbody-open")
 
+    page.should have_css("li#side-add-evid a[href='/sections/#{@section.id}/new_evidence']")
+    find("li#side-add-evid a[href='/sections/#{@section.id}/new_evidence']").click
+
+    assert_equal("/sections/#{@section.id}/new_evidence", current_path)
+    page.should have_content('Add Evidence')
+    page.fill_in 'evidence_name', :with => 'Add and Notify'
+    page.fill_in 'evidence_description', :with => 'Add and notify student by email.'
+    find("#evidence_evidence_type_id option[value='7']").select_option
+    page.execute_script("$('#evid-date_evidence_assignment_date').val('2015-09-01')")
+    find("input#send_email").should_not be_checked
+    find("input#send_email").click
+    find("input#send_email").should be_checked
+
+    # add evidence to one learning outcome
+    find("#evid-current-los .block-title i").click
+    find("span.add_lo_to_evid[data-so-id='#{@section_outcomes.first[1].id}'] i").click
+    find("#evid-other-los .block-title i").click
+
+    find('button', text: 'Save').click
+
+    find("div#expand-all-los-button").click
+
+    within("tbody.tbody-section[data-so-id='#{@section_outcomes.first[1].id}']") do
+      page.should have_content('Add and Notify')
+    end
 
     # todo - validate links on page
     # page.find("tr a[href='/sections/#{@section.id}/class_dashboard']").click
