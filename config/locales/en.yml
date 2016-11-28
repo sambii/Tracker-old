@@ -60,6 +60,7 @@ en:
     unauthorized: 'You requested a page you are not allowed to see.'
     timeout_or_unauthorized: 'You were logged out or you requested a page you are not allowed to see.'
     is_invalid: 'is an invalid value.'
+    was_invalid: 'was an invalid value.'
     item_is_invalid: '%{item} is an invalid value.'
     is_required: 'is a required field.'
     must_pick_one_item: 'must pick at least one %{item}'

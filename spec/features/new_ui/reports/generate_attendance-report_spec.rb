@@ -112,7 +112,8 @@ describe "Generate Attendance Report", js:true do
 
   def has_valid_attendance_report(see_names)
 
-    # generate a report without a deactivated attendance type (no 'Other' column)
+    ###############################################################################
+    # generate a report with all attendance types used are active (no 'Other' column)
     page.should have_css("#side-reports a", text: 'Generate Reports')
     find("#side-reports a", text: 'Generate Reports').click
     page.should have_content('Generate Reports')
@@ -125,6 +126,8 @@ describe "Generate Attendance Report", js:true do
         find("select#generate-type").value.should == "attendance_report"
         page.should have_css('fieldset#ask-subjects', visible: true)
         page.should have_css('fieldset#ask-date-range', visible: true)
+        page.fill_in 'start-date', :with => '2015-06-02' # note: generates an invalid date in datepicker
+        page.fill_in 'end-date', :with => '2015-06-08' # note: generates an invalid date in datepicker
         find("button", text: 'Generate').click
       end
     end
@@ -134,22 +137,25 @@ describe "Generate Attendance Report", js:true do
     within("#page-content") do
       within('form#new_generate') do
         
+        sleep 20
+        save_and_open_page
+
         # confirm that the required fields errors are displaying
         find("select#generate-type").value.should == "attendance_report"
         page.should have_css('fieldset#ask-subjects', visible: true)
         page.should have_css('fieldset#ask-date-range', visible: true)
-        # within("fieldset#ask-subjects") do
-        #   page.should have_css('span.ui-error', text: 'is a required field')
-        # end
-        # within("fieldset#ask-date-range") do
-        #   page.should have_css('span.ui-error', text: 'is a required field')
-        # end
+        within("fieldset#ask-subjects") do
+          page.should have_content('is a required field')
+        end
+        within("fieldset#ask-date-range") do
+          page.should have_content('was an invalid value')
+        end
 
         # fill in values for the attendance report
         select(@section1_1.subject.name, from: 'subject')
         # page.fill_in 'start-date', :with => '2015-06-02'
         # page.fill_in 'end-date', :with => '2015-06-08'
-        # javascript to fill in datepicker value
+        # need to use javascript to fill in datepicker value
         page.execute_script("$('#start-date').val('2015-09-01')")
         page.execute_script("$('#end-date').val('2015-09-01')")
 
@@ -197,6 +203,7 @@ describe "Generate Attendance Report", js:true do
       end
     end
 
+    ###############################################################################
     # generate a report with a deactivated attendance type showing 'Other' column
     page.should have_css("#side-reports a", text: 'Generate Reports')
     find("#side-reports a", text: 'Generate Reports').click
