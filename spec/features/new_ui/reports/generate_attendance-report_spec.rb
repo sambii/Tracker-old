@@ -5,19 +5,33 @@ require 'spec_helper'
 describe "Generate Attendance Report", js:true do
   before (:each) do
 
-    load_multi_schools_sections # see load_section_helper.rb
+    create_and_load_arabic_model_school
+
+    # @school1
+    @school1 = FactoryGirl.create :school_current_year, :arabic
+    @teacher1 = FactoryGirl.create :teacher, school: @school1
+    @subject1 = FactoryGirl.create :subject, school: @school1, subject_manager: @teacher1
+    @section1_1 = FactoryGirl.create :section, subject: @subject1
+    @discipline = @subject1.discipline
     load_test_section(@section1_1, @teacher1)
 
 
+    @subject2 = FactoryGirl.create :subject, subject_manager: @teacher1
+    @section2_1 = FactoryGirl.create :section, subject: @subject2
+    @section2_2 = FactoryGirl.create :section, subject: @subject2
+    @discipline2 = @subject2.discipline
+
+    @enrollment2_1_2 = FactoryGirl.create :enrollment, section: @section2_1, student: @student2
+    @enrollment2_1_3 = FactoryGirl.create :enrollment, section: @section2_1, student: @student3
+    @enrollment2_2_4 = FactoryGirl.create :enrollment, section: @section2_2, student: @student4
+    @enrollment2_2_5 = FactoryGirl.create :enrollment, section: @section2_2, student: @student5
 
     @at_tardy = FactoryGirl.create :attendance_type, description: "Tardy", school: @school1
     @at_absent = FactoryGirl.create :attendance_type, description: "Absent", school: @school1
     @at_deact = FactoryGirl.create :attendance_type, description: "Deactivated", school: @school1, active: false
 
-    Rails.logger.debug("*** @enrollments: #{@enrollments.inspect}")
-
-    Rails.logger.debug("*** @section1_1: #{@section1_1.inspect}")
-
+    # 9/1 has tardy and absent
+    # in subject 1
     FactoryGirl.create :attendance,
       section: @enrollments[0].section,
       student: @enrollments[0].student,
@@ -28,6 +42,9 @@ describe "Generate Attendance Report", js:true do
       student: @enrollments[1].student,
       attendance_type: @at_absent,
       attendance_date: Date.new(2015,9,1)
+
+    # 9/2 has tardy and absent
+    # in subject 1
     FactoryGirl.create :attendance,
       section: @enrollments[0].section,
       student: @enrollments[0].student,
@@ -37,6 +54,38 @@ describe "Generate Attendance Report", js:true do
       section: @enrollments[1].section,
       student: @enrollments[1].student,
       attendance_type: @at_deact,
+      attendance_date: Date.new(2015,9,2)
+
+    # two sections of subject2 across two days
+    FactoryGirl.create :attendance,
+      section: @section2_1,
+      student: @student2,
+      attendance_type: @at_absent,
+      attendance_date: Date.new(2015,9,1)
+    FactoryGirl.create :attendance,
+      section: @section2_1,
+      student: @student3,
+      attendance_type: @at_tardy,
+      attendance_date: Date.new(2015,9,1)
+    FactoryGirl.create :attendance,
+      section: @section2_1,
+      student: @student2,
+      attendance_type: @at_absent,
+      attendance_date: Date.new(2015,9,2)
+    FactoryGirl.create :attendance,
+      section: @section2_1,
+      student: @student3,
+      attendance_type: @at_tardy,
+      attendance_date: Date.new(2015,9,2)
+    FactoryGirl.create :attendance,
+      section: @section2_2,
+      student: @student4,
+      attendance_type: @at_absent,
+      attendance_date: Date.new(2015,9,2)
+    FactoryGirl.create :attendance,
+      section: @section2_2,
+      student: @student5,
+      attendance_type: @at_tardy,
       attendance_date: Date.new(2015,9,2)
 
   end
@@ -131,15 +180,13 @@ describe "Generate Attendance Report", js:true do
         find("button", text: 'Generate').click
       end
     end
+
     # should return back to generate reports page with required fields errors
     page.should have_content('Generate Reports')
     page.should_not have_content('Internal Server Error')
     within("#page-content") do
       within('form#new_generate') do
         
-        sleep 20
-        save_and_open_page
-
         # confirm that the required fields errors are displaying
         find("select#generate-type").value.should == "attendance_report"
         page.should have_css('fieldset#ask-subjects', visible: true)
@@ -152,7 +199,7 @@ describe "Generate Attendance Report", js:true do
         end
 
         # fill in values for the attendance report
-        select(@section1_1.subject.name, from: 'subject')
+        select(@subject1.name, from: 'subject')
         # page.fill_in 'start-date', :with => '2015-06-02'
         # page.fill_in 'end-date', :with => '2015-06-08'
         # need to use javascript to fill in datepicker value
@@ -211,7 +258,7 @@ describe "Generate Attendance Report", js:true do
     within("#page-content") do
       within('form#new_generate') do
         select('Attendance Report', from: "generate-type")
-        select(@section1_1.subject.name, from: 'subject')
+        select(@subject1.name, from: 'subject')
         # javascript to fill in datepicker value
         page.execute_script("$('#start-date').val('2015-09-02')")
         page.execute_script("$('#end-date').val('2015-09-02')")
@@ -260,6 +307,82 @@ describe "Generate Attendance Report", js:true do
         end
         # should have inactive types dates listed at bottom of report
         page.should have_content('02 Sep 2015')
+      end
+    end
+
+    ###############################################################################
+    # generate a report for subject 2
+    page.should have_css("#side-reports a", text: 'Generate Reports')
+    find("#side-reports a", text: 'Generate Reports').click
+    page.should have_content('Generate Reports')
+    within("#page-content") do
+      within('form#new_generate') do
+        select('Attendance Report', from: "generate-type")
+        select(@section2_1.subject.name, from: 'subject')
+        # javascript to fill in datepicker value
+        page.execute_script("$('#start-date').val('2015-09-02')")
+        page.execute_script("$('#end-date').val('2015-09-02')")
+        # submit the request for the attendance report
+        find("button", text: 'Generate').click
+      end
+    end
+
+    assert_equal(attendance_report_attendances_path(), current_path)
+    page.should_not have_content('Internal Server Error')
+
+    within("#page-content") do
+      within('.report-body') do
+        
+        page.should have_content("Attendance Report")
+        within('table thead.table-title') do
+          page.should have_content('ID')
+          page.should have_content('Student Name')
+          page.should have_content(@at_tardy.description)
+          page.should have_content(@at_absent.description)
+          page.should_not have_content('Other')
+        end
+        within("table tbody.tbody-header tr[data-student-id='#{@student2.id}']") do
+          page.should have_content(@student2.full_name) if see_names
+          within("td[data-type-id='#{@at_absent.id}']") do
+            page.should have_content('1')
+          end
+          within("td[data-type-id='#{@at_tardy.id}']") do
+            page.should have_content('0')
+          end
+          page.should_not have_css("td[data-type-id='9999999']")
+        end
+        within("table tbody.tbody-header tr[data-student-id='#{@student3.id}']") do
+          page.should have_content(@student3.full_name) if see_names
+          within("td[data-type-id='#{@at_absent.id}']") do
+            page.should have_content('0')
+          end
+          within("td[data-type-id='#{@at_tardy.id}']") do
+            page.should have_content('1')
+          end
+          page.should_not have_css("td[data-type-id='9999999']")
+        end
+        within("table tbody.tbody-header tr[data-student-id='#{@student4.id}']") do
+          page.should have_content(@student4.full_name) if see_names
+          within("td[data-type-id='#{@at_absent.id}']") do
+            page.should have_content('1')
+          end
+          within("td[data-type-id='#{@at_tardy.id}']") do
+            page.should have_content('0')
+          end
+          page.should_not have_css("td[data-type-id='9999999']")
+        end
+        within("table tbody.tbody-header tr[data-student-id='#{@student5.id}']") do
+          page.should have_content(@student5.full_name) if see_names
+          within("td[data-type-id='#{@at_absent.id}']") do
+            page.should have_content('0')
+          end
+          within("td[data-type-id='#{@at_tardy.id}']") do
+            page.should have_content('1')
+          end
+          page.should_not have_css("td[data-type-id='9999999']")
+        end
+        # should have inactive types dates listed at bottom of report
+        page.should_not have_content('02 Sep 2015')
       end
     end
 
