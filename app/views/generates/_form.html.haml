@@ -10,6 +10,8 @@
   .col-sm-12
     =form_for @generate do |f|
       - @errors = @generate.errors
+      - school_year_id = @school.present? ? @school.school_year_id : nil
+      %input#school_year_id{type: 'hidden', value: school_year_id}
       %fieldset.input-group
         %label.col-sm-4.col-lg-4.control-label='Report Type'
         %select#generate-type.col-sm-8.col-lg-4.select-select2{name: "generate[name]", placeholder: 'Select Report to generate:', class: (@generate.errors[:name] ? 'ui_error' : 'no_ui_error' )}
@@ -42,7 +44,7 @@
             %option{id: 'account_activity', value: 'account_activity', selected: (@generate.name == 'account_activity'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Account Activity Report'
           - if can? :read, Attendance
             / %option{id: 'section_attendance_xls', value: 'section_attendance_xls', selected: (@generate.name == 'section_attendance_xls'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Attendance Spreadsheet by Sections'
-            %option{id: 'attendance_report', value: 'attendance_report', selected: (@generate.name == 'attendance_report'), data: { ask_subjects: 1, ask_date_range: 1}}='Attendance Report'
+            %option{id: 'attendance_report', value: 'attendance_report', selected: (@generate.name == 'attendance_report'), data: { ask_subjects: 1, ask_subject_sections: 1, ask_date_range: 1}}='Attendance Report'
         %span.ui-error="#{@errors[:name] if @errors[:name].present?}"
       %fieldset.input-group.display-none{id: 'ask-subjects'}
         %label.col-sm-4.col-lg-4.control-label='Subject:'
@@ -52,6 +54,13 @@
             %option{value: "#{subj.id}", selected: (@generate.subject_id == subj.id)}= "#{subj.name}"
         %span.ui-required{title: 'Required'}='*'
         %span.ui-error="#{@errors[:subject_id] if @errors[:subject_id].present?}"
+      %fieldset.input-group.display-none{id: 'ask-subject-sections'}
+        %label.col-sm-4.col-lg-4.control-label='Section:'
+        %select#subject-section-select.col-sm-8.col-lg-4.select-select2{name: "generate[subject_section_id]", placeholder: 'Select Section:'}
+          %option{value: "subj"}= ""
+          -# @subject_sections.each do |sect|
+          -#  %option{value: "#{sect.id}", selected: (@generate.section_id == sect.id)}= "#{sect.subject.name} - #{sect.line_number}"
+        %span.ui-error="#{@errors[:section_id] if @errors[:section_id].present?}"
       %fieldset.input-group.display-none{id: 'ask-grade-level'}
         %label.col-sm-4.col-lg-4.control-label='Grade Level:'
         %select#subject-section.col-sm-8.col-lg-4.select-select2{name: "generate[grade_level]", placeholder: 'Select grade Level:'}

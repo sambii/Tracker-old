@@ -176,7 +176,7 @@ class SectionsController < ApplicationController
     sections_select_info = []
     @sections = @school_year_id.present? ? Section.where(subject_id: @subject_id, school_year_id: @school_year_id) : Section.where(subject_id: @subject_id)
     @sections.each do |s|
-      sections_select_info << {id: s.id, name: "#{s.name} - #{s.line_number}"}
+      sections_select_info << {id: s.id, name: "#{s.section_name}"}
     end
     respond_to do |format|
       format.js {render json: sections_select_info.to_json, status: :ok}

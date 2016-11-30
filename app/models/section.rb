@@ -166,8 +166,13 @@ class Section < ActiveRecord::Base
     subject.name
   end
 
+  # is this used?
   def full_name
     subject.name + ": " + line_number
+  end
+
+  def section_name
+    subject.name + " - " + line_number
   end
 
   def teacher_names

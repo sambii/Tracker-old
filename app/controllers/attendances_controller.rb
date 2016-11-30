@@ -173,12 +173,24 @@ class AttendancesController < ApplicationController
     authorize! :read, Generate
     @school = get_current_school
     @school_year = SchoolYear.where(id: @school.school_year_id).first
-    @subject = Subject.find(params[:subject_id]) if params[:subject_id]
+    @subject = params[:subject_id].present? ? Subject.find(params[:subject_id]) : nil
+    @section = params[:subject_section_id].present? && params[:subject_section_id] != 'subj' ? Section.find(params[:subject_section_id]) : nil
     rpt_subject_id = params[:subject_id].to_i
     start_date = Time.new(*(params[:start_date].split('-'))).to_date
     end_date = Time.new(*(params[:end_date].split('-'))).to_date
 
-    @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, sections: {subject_id: rpt_subject_id})
+    if @section
+      # section report
+      rpt_sections = [@section.id]
+    elsif @subject
+      # subject report
+      rpt_sections = Section.where(subject_id: @subject.id, school_year_id: @school_year.id)
+    else
+      # error 
+      rpt_sections = []
+    end
+
+    @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, section_id: rpt_sections)
     @attendance_types = AttendanceType.where(school_id: @school.id, active: true).order(:description)
     @deact_attendance_types = AttendanceType.where(school_id: @school.id, active: false)
     @attendance_count_deactivated = @attendances.where(attendance_type_id: @deact_attendance_types.pluck(:id)).count

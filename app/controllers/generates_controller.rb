@@ -106,7 +106,7 @@ class GeneratesController < ApplicationController
         format.html {redirect_to create_report_card_path(grade_level: @generate.grade_level)} if @generate.name == 'report_cards'
         format.html {redirect_to account_activity_report_users_path()} if @generate.name == 'account_activity'
         format.html {redirect_to section_attendance_xls_attendances_path()} if @generate.name == 'section_attendance_xls'
-        format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], start_date: @range_start, end_date: @range_end} if @generate.name == 'attendance_report'
+        format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], subject_section_id: params_gen[:subject_section_id], start_date: @range_start, end_date: @range_end} if @generate.name == 'attendance_report'
         format.html {redirect_to view_context.user_dashboard_path(current_user),
           alert: 'Invalid Report Chosen!'
         }

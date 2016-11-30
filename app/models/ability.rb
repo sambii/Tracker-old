@@ -153,7 +153,7 @@ class Ability
 
         # Section
         can [:create, :new_enrollment, :new_evidence, :new_section_outcome,
-             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :section_outcomes],
+             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :section_outcomes, :index],
             Section,
             { teaching_assignments: {teacher_id: user.id }}
         # teachers can create new sections in their school for any subject
