@@ -30,6 +30,7 @@ class GeneratesController < ApplicationController
       @school_year = SchoolYear.where(id: @school.school_year_id).first
       @range_start = @school_year.starts_at
       @range_end = @school_year.ends_at
+      @attendance_types = AttendanceType.all_attendance_types.where(school_id: @school.id)
     end
     respond_to do |format|
       if !current_user
@@ -80,6 +81,7 @@ class GeneratesController < ApplicationController
       @school_students = Student.alphabetical.where(school_id: @school.id)
       @range_start = params_gen[:start_date].truncate(10, omission: '')
       @range_end = params_gen[:end_date].truncate(10, omission: '')
+      @attendance_types = AttendanceType.all_attendance_types.where(school_id: @school.id)
     end
     respond_to do |format|
       if !current_user
@@ -106,7 +108,7 @@ class GeneratesController < ApplicationController
         format.html {redirect_to create_report_card_path(grade_level: @generate.grade_level)} if @generate.name == 'report_cards'
         format.html {redirect_to account_activity_report_users_path()} if @generate.name == 'account_activity'
         format.html {redirect_to section_attendance_xls_attendances_path()} if @generate.name == 'section_attendance_xls'
-        format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], subject_section_id: params_gen[:subject_section_id], start_date: @range_start, end_date: @range_end} if @generate.name == 'attendance_report'
+        format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], subject_section_id: params_gen[:subject_section_id], start_date: @range_start, end_date: @range_end, attendance_type_id: params_gen[:attendance_type_id]} if @generate.name == 'attendance_report'
         format.html {redirect_to view_context.user_dashboard_path(current_user),
           alert: 'Invalid Report Chosen!'
         }

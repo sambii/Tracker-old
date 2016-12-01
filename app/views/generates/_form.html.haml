@@ -44,7 +44,7 @@
             %option{id: 'account_activity', value: 'account_activity', selected: (@generate.name == 'account_activity'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Account Activity Report'
           - if can? :read, Attendance
             / %option{id: 'section_attendance_xls', value: 'section_attendance_xls', selected: (@generate.name == 'section_attendance_xls'), data: { ask_subjects: 0, ask_grade_level: 0, ask_sections: 0, ask_los: 0, ask_student: 0, ask_marking_periods: 0}}='Attendance Spreadsheet by Sections'
-            %option{id: 'attendance_report', value: 'attendance_report', selected: (@generate.name == 'attendance_report'), data: { ask_subjects: 1, ask_subject_sections: 1, ask_date_range: 1}}='Attendance Report'
+            %option{id: 'attendance_report', value: 'attendance_report', selected: (@generate.name == 'attendance_report'), data: { ask_subjects: 1, ask_subject_sections: 1, ask_date_range: 1, ask_attendance_type: 1}}='Attendance Report'
         %span.ui-error="#{@errors[:name] if @errors[:name].present?}"
       %fieldset.input-group.display-none{id: 'ask-subjects'}
         %label.col-sm-4.col-lg-4.control-label='Subject:'
@@ -101,6 +101,17 @@
           %input#end-date.input-datepicker-close{data: {date_format: "yyyy-mm-dd"}, placeholder: "yyyy-mm-dd", type: "text", name: "generate[end_date]", value: @range_end}
           %span.ui-required{title: 'Required'}='*'
           %span.ui-error="#{@errors[:end_date] if @errors[:end_date].present?}"
+      %fieldset.input-group.display-none{id: 'ask-attendance-type'}
+        %label.col-sm-4.col-lg-4.control-label='Attendance Type:'
+        %select#attendance-type-select.col-sm-8.col-lg-4.select-select2{name: "generate[attendance_type_id]"}
+          %option{value: ""}= "All Attendance Types"
+          - @attendance_types.each do |att|
+            %option{value: "#{att.id}", selected: (@generate.attendance_type_id.to_i == att.id)}= "#{att.description}"
+      %fieldset.input-group.display-none{id: 'ask-date-details'}
+        %label.col-sm-4.col-lg-4.control-label='Show Date Details:'
+        .pull-left.value-fields.col-sm-8.col-lg-4
+          %input{type: 'hidden', name: "generate[date_details]", value: 'N'}
+          %input#date-details-box.checkbox-input.pull-left{name: "generate[date_details]", type: "checkbox", value: "Y", checked: (@generate.date_details == 'Y')}
       %fieldset
         %button.pull-left.btn.btn-primary{name: 'commit', type: "submit"}='Generate'
 

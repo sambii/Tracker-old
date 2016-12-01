@@ -1,0 +1,19 @@
+%tbody.tbody-header.show-tbody.show-tbody-body
+  %tr.height-30{data: {date: attend.attendance_date}}
+    %td
+    %td
+      .attendance_date=attend.attendance_date
+    - is_other = true
+    - @attendance_types.each do |at|
+      - if at.id == attend.attendance_type_id
+        - is_other = false
+        %td.centered{data: {type_id: at.id}}=1
+      - else
+        - is_other = false
+        %td.centered{data: {type_id: at.id}}=0
+    - if deact_column == 1
+      - if is_other
+        %td.centered{data: {type_id: 9999999}}=1
+      - else
+        %td.centered{data: {type_id: 9999999}}=0
+%tbody.tbody-body

@@ -186,14 +186,24 @@ class AttendancesController < ApplicationController
       # subject report
       rpt_sections = Section.where(subject_id: @subject.id, school_year_id: @school_year.id)
     else
-      # error 
+      # error
       rpt_sections = []
     end
 
-    @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, section_id: rpt_sections)
-    @attendance_types = AttendanceType.where(school_id: @school.id, active: true).order(:description)
-    @deact_attendance_types = AttendanceType.where(school_id: @school.id, active: false)
-    @attendance_count_deactivated = @attendances.where(attendance_type_id: @deact_attendance_types.pluck(:id)).count
+    # see if attendance type filter is set
+    if params[:attendance_type_id].present?
+      # attendance report for only attendance type specified
+      @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, section_id: rpt_sections, attendance_type_id: params[:attendance_type_id])
+      @attendance_types = AttendanceType.where(id: params[:attendance_type_id])
+      @deact_attendance_types = []
+      @attendance_count_deactivated = 0
+    else
+      # regular attendance report (for all attendance_types)
+      @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, section_id: rpt_sections)
+      @attendance_types = AttendanceType.where(school_id: @school.id, active: true).order(:description)
+      @deact_attendance_types = AttendanceType.where(school_id: @school.id, active: false)
+      @attendance_count_deactivated = @attendances.where(attendance_type_id: @deact_attendance_types.pluck(:id)).count
+    end
     @att_types_names = @attendance_types.map {|at| at.description }
     @start_date = start_date.strftime('%v')
     @end_date = end_date.strftime('%v')

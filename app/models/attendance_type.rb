@@ -9,6 +9,10 @@ class AttendanceType < ActiveRecord::Base
   validates :description, presence: {message: I18n.translate('errors.cant_be_blank')}
   validates :school, presence: {message: I18n.translate('errors.cant_be_blank')}
 
+  # scopes
+  scope :active_attendance_types, conditions: {active: true}
+  scope :all_attendance_types, conditions: {active: [true, false]}
+
   # returns all valid Attendance Types for an attendance record.
   # - it will include a deactivated record matching the ID passed.
   # - this is for select boxes so the attendance record can show deactivated items (if it was saved before deactivation).

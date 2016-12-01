@@ -51,6 +51,12 @@ $ ->
       $('#ask-date-range').hide()
       if $(that).find('#'+val).data('ask-date-range') == 1
         $('#ask-date-range').show()
+      $('#ask-attendance-type').hide()
+      if $(that).find('#'+val).data('ask-attendance-type') == 1
+        $('#ask-attendance-type').show()
+      $('#ask-date-details').hide()
+      if $(that).find('#'+val).data('ask-date-details') == 1
+        $('#ask-date-details').show()
 
 
     # show subject-section (if enabled) and populate with sections for subject
