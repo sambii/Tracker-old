@@ -53,12 +53,14 @@ class Student < User
 
 
   #scopes
-  default_scope where(student: true)
-  scope :active, where(active: true)
+  default_scope where(student: true) # deprecate this ?
+  scope :active, where(active: true) # deprecate this for active_student
   scope :active_student, where(active: true)
   scope :special_ed_status, lambda { |statuses| where(special_ed: statuses) }
-  scope :alphabetical, where(active: true).order("last_name", "first_name")
-  scope :first_last, order("first_name", "last_name")
+  scope :alphabetical, where(active: true).order("last_name", "first_name") # deprecate this for active_student and last_then_first
+  scope :first_last, order("first_name", "last_name") # deprecate this for first_then_last
+  scope :first_then_last, order("first_name", "last_name")
+  scope :last_then_first, order("first_name", "last_name")
 
 
   # other definitions

@@ -26,7 +26,11 @@ class GeneratesController < ApplicationController
       @subjects = Subject.accessible_by(current_ability, :show).where(school_id: @school.id).order('subjects.name')
       @subject_sections = Section.accessible_by(current_ability, :show).includes(:subject).where(school_year_id: @school.school_year_id).order('subjects.name, sections.line_number')
       @marking_periods = Range::new(1,@school.marking_periods)
-      @school_students = Student.accessible_by(current_ability, :show).alphabetical.where(school_id: @school.id)
+      if @school.has_flag?(School::USER_BY_FIRST_LAST)
+        @school_students = Student.accessible_by(current_ability).order(:first_name, :last_name).where(school_id: @school.id)
+      else
+        @school_students = Student.accessible_by(current_ability).order(:last_name, :first_name).where(school_id: @school.id)
+      end
       @school_year = SchoolYear.where(id: @school.school_year_id).first
       @range_start = @school_year.starts_at
       @range_end = @school_year.ends_at
@@ -78,7 +82,11 @@ class GeneratesController < ApplicationController
       @subjects = Subject.where(school_id: @school.id).order('subjects.name')
       @subject_sections = Section.includes(:subject).where(school_year_id: @school.school_year_id).order('subjects.name, sections.line_number')
       @marking_periods = Range::new(1,@school.marking_periods)
-      @school_students = Student.alphabetical.where(school_id: @school.id)
+      if @school.has_flag?(School::USER_BY_FIRST_LAST)
+        @school_students = Student.accessible_by(current_ability).order(:first_name, :last_name).where(school_id: @school.id)
+      else
+        @school_students = Student.accessible_by(current_ability).order(:last_name, :first_name).where(school_id: @school.id)
+      end
       @range_start = params_gen[:start_date].truncate(10, omission: '')
       @range_end = params_gen[:end_date].truncate(10, omission: '')
       @attendance_types = AttendanceType.all_attendance_types.where(school_id: @school.id)
@@ -92,6 +100,7 @@ class GeneratesController < ApplicationController
       elsif @generate.errors.count > 0
         format.html
       else
+        Rails.logger.debug("*** @generate.name: #{@generate.name}")
         format.html {redirect_to tracker_usage_teachers_path} if @generate.name == 'tracker_usage'
         format.html {redirect_to section_summary_outcome_section_path(@section.id)} if @generate.name == 'ss_by_lo'
         format.html {redirect_to section_summary_student_section_path(@section.id)} if @generate.name == 'ss_by_stud'
@@ -109,6 +118,7 @@ class GeneratesController < ApplicationController
         format.html {redirect_to account_activity_report_users_path()} if @generate.name == 'account_activity'
         format.html {redirect_to section_attendance_xls_attendances_path()} if @generate.name == 'section_attendance_xls'
         format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], subject_section_id: params_gen[:subject_section_id], start_date: @range_start, end_date: @range_end, attendance_type_id: params_gen[:attendance_type_id]} if @generate.name == 'attendance_report'
+        format.html {redirect_to controller: :attendances, action: :student_attendance_detail_report, student_id: params_gen[:student_id], start_date: @range_start, end_date: @range_end, attendance_type_id: params_gen[:attendance_type_id]} if @generate.name == 'student_attendance_detail_report'
         format.html {redirect_to view_context.user_dashboard_path(current_user),
           alert: 'Invalid Report Chosen!'
         }

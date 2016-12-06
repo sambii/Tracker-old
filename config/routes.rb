@@ -201,6 +201,7 @@ Tracker2::Application.routes.draw do
       get 'section_attendance_xls', defaults: {format: :xlsx}
       get 'attendance_maintenance'
       get 'attendance_report'
+      get 'student_attendance_detail_report'
     end
   end
   resources :generates, except: [:show, :update, :destroy]

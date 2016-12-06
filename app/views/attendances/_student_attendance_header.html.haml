@@ -1,0 +1,12 @@
+%tbody.tbody-header.show-tbody.show-tbody-body
+  %tr.height-30{data: {student_id: student_id}}
+    %td
+      %strong.lmargin5=xid
+    %td
+      %a{href: "#{user_path(student_id)}"}
+        .user-full-name=name
+    - @attendance_types.each do |at|
+      %td.centered{data: {type_id: at.id}}=''
+    - if deact_column == 1
+      %td.centered{data: {type_id: 9999999}}=''
+%tbody.tbody-body

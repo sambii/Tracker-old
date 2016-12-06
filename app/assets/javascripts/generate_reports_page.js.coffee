@@ -42,9 +42,12 @@ $ ->
       $('#ask-los').hide()
       if $(that).find('#'+val).data('ask-los') == 1
         $('#ask-los').show()
-      $('#ask-students').hide()
-      # if $(that).find('#'+val).data('ask-student') == 1
-      #   $('#ask-student').show()
+      $('#ask-student').hide()
+      if $(that).find('#'+val).data('ask-student') == 1
+        $('#ask-student').show()
+      $('#ask-single-student').hide()
+      if $(that).find('#'+val).data('ask-single-student') == 1
+        $('#ask-single-student').show()
       $('#ask-marking-periods').hide()
       if $(that).find('#'+val).data('ask-marking-periods') == 1
         $('#ask-marking-periods').show()

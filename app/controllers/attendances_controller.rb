@@ -193,12 +193,14 @@ class AttendancesController < ApplicationController
     # see if attendance type filter is set
     if params[:attendance_type_id].present?
       # attendance report for only attendance type specified
+      # to do remove student name from order clause (see student_attendance_detail_report)
       @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, section_id: rpt_sections, attendance_type_id: params[:attendance_type_id])
       @attendance_types = AttendanceType.where(id: params[:attendance_type_id])
       @deact_attendance_types = []
       @attendance_count_deactivated = 0
     else
       # regular attendance report (for all attendance_types)
+      # to do remove student name from order clause (see student_attendance_detail_report)
       @attendances = Attendance.includes(:student, :section => :subject).order("users.last_name, users.first_name, subjects.name").where(school_id: @school.id, attendance_date: start_date..end_date, section_id: rpt_sections)
       @attendance_types = AttendanceType.where(school_id: @school.id, active: true).order(:description)
       @deact_attendance_types = AttendanceType.where(school_id: @school.id, active: false)
@@ -208,6 +210,55 @@ class AttendancesController < ApplicationController
     @start_date = start_date.strftime('%v')
     @end_date = end_date.strftime('%v')
     respond_with @attendances
+  end
+
+  def student_attendance_detail_report
+    Rails.logger.debug("*** student_attendance_detail_report params: #{params.inspect}")
+    authorize! :read, Generate
+    @school = get_current_school
+    @student = params[:student_id].present? ? Student.find(params[:student_id]) : nil
+    start_date = Time.new(*(params[:start_date].split('-'))).to_date
+    end_date = Time.new(*(params[:end_date].split('-'))).to_date
+
+    if @school.id.present? && @student.present?
+      @school_year = SchoolYear.where(id: @school.school_year_id).first
+
+      if @school.has_flag?(School::USER_BY_FIRST_LAST)
+        @attendances = Attendance.includes(:student).order("users.first_name, users.last_name", "attendances.attendance_date").scoped
+      else
+        @attendances = Attendance.includes(:student).order("users.last_name, users.first_name", "attendances.attendance_date").scoped
+      end
+      # see if attendance type filter is set
+      if params[:attendance_type_id].present?
+        # attendance report for only attendance type specified
+        @attendances = @attendances.where(school_id: @school.id, attendance_date: start_date..end_date, attendance_type_id: params[:attendance_type_id], user_id: @student.id)
+        @attendance_types = AttendanceType.where(id: params[:attendance_type_id])
+        @deact_attendance_types = []
+        @attendance_count_deactivated = 0
+      else
+        # regular attendance report (for all attendance_types)
+        @attendances = @attendances.where(school_id: @school.id, attendance_date: start_date..end_date, user_id: @student.id)
+        @attendance_types = AttendanceType.where(school_id: @school.id, active: true).order(:description)
+        @deact_attendance_types = AttendanceType.where(school_id: @school.id, active: false)
+        @attendance_count_deactivated = @attendances.where(attendance_type_id: @deact_attendance_types.pluck(:id)).count
+      end
+    end
+    @att_types_names = @attendance_types.map {|at| at.description }
+    @start_date = start_date.strftime('%v')
+    @end_date = end_date.strftime('%v')
+    respond_to do |format|
+      if @school.id.nil?
+        Rails.logger.debug("*** no current school, go to school select page")
+        flash[:alert] = I18n.translate('errors.invalid_school_pick_one')
+        format.html { redirect_to schools_path}
+      elsif @student.school_id != @school.id
+        Rails.logger.debug("*** student not in this school")
+        flash[:alert] = "Student not in this school."
+        format.html { redirect_to schools_path}
+      else
+        format.html
+      end
+    end
   end
 
   def attendance_maintenance

@@ -21,6 +21,7 @@ class GenerateValidator < ActiveModel::Validator
     when 'account_activity' then account_activity(record)
     when 'section_attendance_xls' then section_attendance_xls(record)
     when 'attendance_report' then attendance_report(record)
+    when 'student_attendance_detail_report' then student_attendance_detail_report(record)
     else
       record.errors[:name] = I18n.translate('errors.is_invalid')
     end
@@ -80,6 +81,9 @@ class GenerateValidator < ActiveModel::Validator
     record.errors[:subject_id] = I18n.translate('errors.is_required') if record.subject_id.blank?
     record.errors[:start_date] = I18n.translate('errors.was_invalid') if start_date.blank?
     record.errors[:end_date] = I18n.translate('errors.was_invalid') if end_date.blank?
+  end
+  def student_attendance_detail_report(record)
+    record.errors[:student_id] = I18n.translate('errors.is_required') if record.student_id.blank?
   end
 
 end
