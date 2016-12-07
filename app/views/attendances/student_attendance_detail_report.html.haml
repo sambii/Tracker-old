@@ -1,6 +1,6 @@
 
-- content_for(:title, 'Student Attendance Report')
-- content_for(:page_name, 'Student Attendance Report')
+- content_for(:title, 'Student Attendance Detail Report')
+- content_for(:page_name, 'Student Attendance Detail Report')
 - content_for(:page_class, 'generate-reports misc')
 - content_for :layout_breadcrumbs do
   - breadcrumb :root # to ensure breadcrumbs always show
@@ -24,7 +24,7 @@
   %h1.h3.page-title
     %strong="Generate Reports"
   %h2.h1.page-title
-    %strong="Student Attendance Report"
+    %strong="Student Attendance Detail Report"
   .row
     %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
       %i.fa.fa-lg.fa-filter
@@ -41,7 +41,7 @@
           %th='Attendance Type'
       %tbody
         %tr
-          %td=@student.full_name
+          %td=@student.present? ? @student.full_name : 'All Students'
           %td="#{@start_date} thru #{@end_date}"
           %td=@attendance_types.count == 1 ? @attendance_types.first.description : 'All'
 .row.report-body
@@ -54,8 +54,8 @@
               %th{colspan: "#{2 + deact_column + @attendance_types.length}"}
                 ='Student Attendance Report'
             %tr
-              %th= 'ID'
-              %th= 'Student Name'
+              %th= 'Date'
+              %th= 'Section'
               - @attendance_types.each do |at|
                 %th=at.description
               - if deact_column == 1
@@ -63,30 +63,41 @@
           - last_student_id = 0
           - last_student_xid = 0
           - last_student_name = ''
+          - last_date = ''
           - first = true
           - deact_dates = []
           - by_type = types_empty_hash.clone
+          - date_by_type = types_empty_hash.clone
           - detail_by_type = types_empty_hash.clone
 
           - @attendances.each do |a|
-            - if first || (last_student_id != a.user_id && last_student_id != 0)
-              =render partial: 'student_attendance_total', locals: {student_id: last_student_id, xid: last_student_xid, name: last_student_name, by_type: by_type, deact_column: deact_column} if !first
-              - first = false
+            - if !first && (last_student_id != a.user_id || last_date != a.attendance_date.to_s)
+              =render partial: 'student_attendance_date', locals: {last_date: last_date, student_id: last_student_id, date_by_type: date_by_type, deact_column: deact_column, details: @details}
+              - date_by_type = types_empty_hash.clone
+            - if !first && (last_student_id != a.user_id)
+              =render partial: 'student_attendance_total', locals: {student_id: last_student_id, xid: last_student_xid, name: last_student_name, by_type: by_type, deact_column: deact_column}
               - by_type = types_empty_hash.clone
               =render partial: 'student_attendance_header', locals: {student_id: a.user_id, xid: a.student.xid, name: a.student.full_name, by_type: by_type, deact_column: deact_column}
+            - elsif first
+              =render partial: 'student_attendance_header', locals: {student_id: a.user_id, xid: a.student.xid, name: a.student.full_name, by_type: by_type, deact_column: deact_column}
+              - first = false
             - last_student_id = a.user_id
             - last_student_xid = a.student.xid
             - last_student_name = a.student.full_name
+            - last_date = a.attendance_date.to_s
             - if val_att_type_ids.include? a.attendance_type_id
               - by_type[a.attendance_type_id] += 1
+              - date_by_type[a.attendance_type_id] += 1
               - detail_by_type[a.attendance_type_id] += 1
             - elsif deact_att_type_ids.include? a.attendance_type_id
               - deact_dates << a.attendance_date if !deact_dates.include? a.attendance_date 
               - by_type[9999999] += 1
+              - date_by_type[9999999] += 1
               - detail_by_type[9999999] += 1
-            =render partial: 'student_attendance_detail', locals: {attendance: a, by_type: detail_by_type, deact_column: deact_column}
+            =render partial: 'student_attendance_detail', locals: {attendance: a, by_type: detail_by_type, deact_column: deact_column} if @details == 'Y'
             - detail_by_type = types_empty_hash.clone
           - if last_student_id != 0
+            =render partial: 'student_attendance_date', locals: {last_date: last_date, student_id: last_student_id, date_by_type: date_by_type, deact_column: deact_column, details: @details}
             =render partial: 'student_attendance_total', locals: {student_id: last_student_id, xid: last_student_xid, name: last_student_name, by_type: by_type, deact_column: deact_column}
           - eor_msg = "End of Report"
           - if deact_dates.length > 0

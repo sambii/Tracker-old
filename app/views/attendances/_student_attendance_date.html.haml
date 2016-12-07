@@ -1,0 +1,7 @@
+%tr.height-30{class: (details == 'Y' ? 'total-row' : ''), data: {student_id: student_id, date: last_date.to_s}}
+  %td
+  %td.attendance-date="Total #{last_date.to_s}"
+  - @attendance_types.each do |at|
+    %td.centered{class: (details == 'Y' ? 'total-cell' : ''), data: {type_id: at.id}}=date_by_type[at.id]
+  - if deact_column == 1
+    %td.centered{class: (details == 'Y' ? 'total-cell' : ''), data: {type_id: 9999999}}=date_by_type[9999999]

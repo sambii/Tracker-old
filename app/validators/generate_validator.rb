@@ -83,7 +83,11 @@ class GenerateValidator < ActiveModel::Validator
     record.errors[:end_date] = I18n.translate('errors.was_invalid') if end_date.blank?
   end
   def student_attendance_detail_report(record)
-    record.errors[:student_id] = I18n.translate('errors.is_required') if record.student_id.blank?
+    start_date = Date.parse(record.start_date) rescue nil
+    end_date = Date.parse(record.end_date) rescue nil
+    record.errors[:student_id] = I18n.translate('errors.is_required') if record.student_id.blank? # note 'all' is not blank
+    record.errors[:start_date] = I18n.translate('errors.was_invalid') if start_date.blank?
+    record.errors[:end_date] = I18n.translate('errors.was_invalid') if end_date.blank?
   end
 
 end

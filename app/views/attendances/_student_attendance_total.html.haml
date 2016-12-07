@@ -1,12 +1,10 @@
-%tbody
-  %tr.height-30{data: {student_id: student_id}}
-    %td
-      %strong.lmargin5=xid
-    %td
-      %a{href: "#{user_path(student_id)}"}
-        .user-full-name='Student Totals:'
-    - @attendance_types.each do |at|
-      %td.centered{data: {type_id: at.id}}=by_type[at.id]
-    - if deact_column == 1
-      %td.centered{data: {type_id: 9999999}}=by_type[9999999]
-%tbody.tbody-body
+%tr.total-row.height-30{data: {student_id: student_id}}
+  %td
+    %strong.lmargin5
+  %td
+    %a{href: "#{user_path(student_id)}"}
+      ='Total:'
+  - @attendance_types.each do |at|
+    %td.total-cell.centered{data: {type_id: at.id}}=by_type[at.id]
+  - if deact_column == 1
+    %td.total-cell.centered{data: {type_id: 9999999}}=by_type[9999999]

@@ -683,6 +683,19 @@ table.manual-break {
 }
 
 
+table.titled-table tbody tr.header-row {
+    background-color: @expand-collapse-header-color;
+    border-top: 2px solid @tracker_cell_bg_color;
+    border-bottom: 1px solid @tracker_cell_bg_color !important;
+    border-collapse: separate;
+}
+table.titled-table tbody tr.total-row {
+    background-color: @tracker_lt_gray_bg_color !important;
+}
+table.titled-table tbody td.total-cell {
+    border-top: 2px solid @tracker_cell_bg_color !important;
+}
+
 .expand-collapse-tbody .tbody-header {
     display: none;
     background-color: @expand-collapse-header-color;

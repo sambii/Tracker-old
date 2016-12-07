@@ -214,44 +214,53 @@ class AttendancesController < ApplicationController
 
   def student_attendance_detail_report
     Rails.logger.debug("*** student_attendance_detail_report params: #{params.inspect}")
-    authorize! :read, Generate
+    # authorize! :read, Generate
+    # using cancan's accessible_by, so if not authorized, nothing will be returned.
     @school = get_current_school
-    @student = params[:student_id].present? ? Student.find(params[:student_id]) : nil
+    p_student_id = params[:student_id]
+    @student = (p_student_id.present? && p_student_id != 'all') ? Student.find(params[:student_id]) : nil
     start_date = Time.new(*(params[:start_date].split('-'))).to_date
     end_date = Time.new(*(params[:end_date].split('-'))).to_date
 
-    if @school.id.present? && @student.present?
+    if @school.id.present?
       @school_year = SchoolYear.where(id: @school.school_year_id).first
-
       if @school.has_flag?(School::USER_BY_FIRST_LAST)
-        @attendances = Attendance.includes(:student).order("users.first_name, users.last_name", "attendances.attendance_date").scoped
+        @attendances = Attendance.includes(:student).order("users.first_name, users.last_name", "attendances.attendance_date").accessible_by(current_ability).scoped
       else
-        @attendances = Attendance.includes(:student).order("users.last_name, users.first_name", "attendances.attendance_date").scoped
+        @attendances = Attendance.includes(:student).order("users.last_name, users.first_name", "attendances.attendance_date").accessible_by(current_ability).scoped
       end
       # see if attendance type filter is set
       if params[:attendance_type_id].present?
         # attendance report for only attendance type specified
-        @attendances = @attendances.where(school_id: @school.id, attendance_date: start_date..end_date, attendance_type_id: params[:attendance_type_id], user_id: @student.id)
+        @attendances = @attendances.where(school_id: @school.id, attendance_date: start_date..end_date, attendance_type_id: params[:attendance_type_id]).scoped
         @attendance_types = AttendanceType.where(id: params[:attendance_type_id])
         @deact_attendance_types = []
         @attendance_count_deactivated = 0
       else
         # regular attendance report (for all attendance_types)
-        @attendances = @attendances.where(school_id: @school.id, attendance_date: start_date..end_date, user_id: @student.id)
+        @attendances = @attendances.where(school_id: @school.id, attendance_date: start_date..end_date).scoped
         @attendance_types = AttendanceType.where(school_id: @school.id, active: true).order(:description)
         @deact_attendance_types = AttendanceType.where(school_id: @school.id, active: false)
         @attendance_count_deactivated = @attendances.where(attendance_type_id: @deact_attendance_types.pluck(:id)).count
       end
     end
+    if @student.present?
+      @attendances = @attendances.where(user_id: @student.id)
+    else
+      @attendances = @attendances.all
+    end
+
     @att_types_names = @attendance_types.map {|at| at.description }
     @start_date = start_date.strftime('%v')
     @end_date = end_date.strftime('%v')
+    @details = params[:details]
+    Rails.logger.debug("*** details: #{@details.inspect}")
     respond_to do |format|
       if @school.id.nil?
         Rails.logger.debug("*** no current school, go to school select page")
         flash[:alert] = I18n.translate('errors.invalid_school_pick_one')
         format.html { redirect_to schools_path}
-      elsif @student.school_id != @school.id
+      elsif @student.present? && @student.school_id != @school.id
         Rails.logger.debug("*** student not in this school")
         flash[:alert] = "Student not in this school."
         format.html { redirect_to schools_path}
