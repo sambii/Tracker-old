@@ -46,11 +46,11 @@ describe "Generate Student Attendance Detail Report", js:true do
       student: @student,
       attendance_type: @at_absent,
       attendance_date: Date.new(2015,9,2)
-    FactoryGirl.create :attendance,
-      section: @section1_1,
-      student: @student,
-      attendance_type: @at_absent,
-      attendance_date: Date.new(2015,9,3)
+    # FactoryGirl.create :attendance,
+    #   section: @section1_1,
+    #   student: @student,
+    #   attendance_type: @at_absent,
+    #   attendance_date: Date.new(2015,9,3)
     FactoryGirl.create :attendance,
       section: @section1_1,
       student: @student,
@@ -67,11 +67,11 @@ describe "Generate Student Attendance Detail Report", js:true do
       student: @student,
       attendance_type: @at_absent,
       attendance_date: Date.new(2015,9,2)
-    FactoryGirl.create :attendance,
-      section: @section2_1,
-      student: @student,
-      attendance_type: @at_absent,
-      attendance_date: Date.new(2015,9,3)
+    # FactoryGirl.create :attendance,
+    #   section: @section2_1,
+    #   student: @student,
+    #   attendance_type: @at_absent,
+    #   attendance_date: Date.new(2015,9,3)
     FactoryGirl.create :attendance,
       section: @section2_1,
       student: @student,
@@ -222,11 +222,11 @@ describe "Generate Student Attendance Detail Report", js:true do
           page.should have_content('was an invalid value')
         end
 
-        # fill in values for the attendance report (detail report for all students)
+        # fill in values for the attendance report (detail report for all students with deactivated types)
         # select(@student.full_name, from: 'student')
         # need to use javascript to properly fill in datepicker value
         # entering dates including 9/5 so teacher1 should not be able to see
-        page.execute_script("$('#start-date').val('2015-09-02')")
+        page.execute_script("$('#start-date').val('2015-09-01')")
         page.execute_script("$('#end-date').val('2015-09-05')")
         find('fieldset#ask-details #details-box').should_not be_checked
         find('fieldset#ask-details #details-box').click
@@ -237,9 +237,6 @@ describe "Generate Student Attendance Detail Report", js:true do
       end
     end
 
-    sleep 20
-    save_and_open_page
-    
     assert_equal(student_attendance_detail_report_attendances_path(), current_path)
     page.should_not have_content('Internal Server Error')
 
@@ -252,42 +249,152 @@ describe "Generate Student Attendance Detail Report", js:true do
           page.should have_content('Section')
           page.should have_content(@at_tardy.description)
           page.should have_content(@at_absent.description)
-          page.should_not have_content('Other')
+          page.should have_content('Other')
         end
-        within("table tbody.tbody-header tr[data-student-id='#{@enrollments[0].student.id}']") do
-          page.should have_content(@enrollments[0].student.full_name) if see_names
-          within("td[data-type-id='#{@at_absent.id}']") do
-            page.should have_content('2')
+        
+        # @student
+        within("table tr.header-row[data-student-id='#{@student.id}']") do
+          if see_names
+            page.should have_content(@student.full_name)
+          else
+            page.should_not have_content(@student.full_name)
           end
-          within("td[data-type-id='#{@at_tardy.id}']") do
-            page.should have_content('1')
-          end
-          page.should_not have_css("td[data-type-id='9999999']")
         end
-        within("table tbody.tbody-header tr[data-student-id='#{@enrollments[1].student.id}']") do
-          page.should have_content(@enrollments[1].student.full_name) if see_names
-          within("td[data-type-id='#{@at_absent.id}']") do
-            page.should have_content('1')
-          end
-          within("td[data-type-id='#{@at_tardy.id}']") do
-            page.should have_content('0')
-          end
-          page.should_not have_css("td[data-type-id='9999999']")
+
+        # @student 9/1
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section1_1.id}'][data-date='2015-09-01']") do
+          page.should have_css('td .attendance-date', text: '2015-09-01')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '')
+          page.should have_css("td[data-type-id='9999999']", text: '1')
         end
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section2_1.id}'][data-date='2015-09-01']") do
+          page.should have_css('td .attendance-date', text: '2015-09-01')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '')
+          page.should have_css("td[data-type-id='9999999']", text: '1')
+        end
+        within("table tr.total-row[data-student-id='#{@student.id}'][data-date='2015-09-01']") do
+          page.should have_css('td.attendance-date', text: 'Total 2015-09-01')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '0')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '0')
+          page.should have_css("td[data-type-id='9999999']", text: '2')
+        end
+
+        # @student 9/2
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section1_1.id}'][data-date='2015-09-02']") do
+          page.should have_css('td .attendance-date', text: '2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '1')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '')
+          page.should have_css("td[data-type-id='9999999']", text: '')
+        end
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section2_1.id}'][data-date='2015-09-02']") do
+          page.should have_css('td .attendance-date', text: '2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '1')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '')
+          page.should have_css("td[data-type-id='9999999']", text: '')
+        end
+        within("table tr.total-row[data-student-id='#{@student.id}'][data-date='2015-09-02']") do
+          page.should have_css('td.attendance-date', text: 'Total 2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '2')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '0')
+          page.should have_css("td[data-type-id='9999999']", text: '0')
+        end
+        
+        # @student 9/4
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section1_1.id}'][data-date='2015-09-04']") do
+          page.should have_css('td .attendance-date', text: '2015-09-04')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '1')
+          page.should have_css("td[data-type-id='9999999']", text: '')
+        end
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section2_1.id}'][data-date='2015-09-04']") do
+          page.should have_css('td .attendance-date', text: '2015-09-04')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '1')
+          page.should have_css("td[data-type-id='9999999']", text: '')
+        end
+        within("table tr.total-row[data-student-id='#{@student.id}'][data-date='2015-09-04']") do
+          page.should have_css('td.attendance-date', text: 'Total 2015-09-04')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '0')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '2')
+          page.should have_css("td[data-type-id='9999999']", text: '0')
+        end
+
+        # total @student
+        within("table tr.total-student-row[data-student-id='#{@student.id}']") do
+          page.should have_css("a[href='/users/#{@student.id}']")
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '2')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '2')
+          page.should have_css("td[data-type-id='9999999']", text: '2')
+        end
+
+        # @student2
+        within("table tr.header-row[data-student-id='#{@student2.id}']") do
+          if see_names
+            page.should have_content(@student2.full_name)
+          else
+            page.should_not have_content(@student2.full_name)
+          end
+        end
+
+        # @student2 9/2
+        within("table tr[data-student-id='#{@student2.id}'][data-section-id='#{@section2_1.id}'][data-date='2015-09-02']") do
+          page.should have_css('td .attendance-date', text: '2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '1')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '')
+          page.should have_css("td[data-type-id='9999999']", text: '')
+        end
+        within("table tr.total-row[data-student-id='#{@student2.id}'][data-date='2015-09-02']") do
+          page.should have_css('td.attendance-date', text: 'Total 2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '1')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '0')
+          page.should have_css("td[data-type-id='9999999']", text: '0')
+        end
+
+        # total @student
+        within("table tr.total-row[data-student-id='#{@student2.id}']") do
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '1')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '0')
+          page.should have_css("td[data-type-id='9999999']", text: '0')
+        end
+
+        # @student3 9/2
+        within("table tr[data-student-id='#{@student3.id}'][data-section-id='#{@section2_1.id}'][data-date='2015-09-02']") do
+          page.should have_css('td .attendance-date', text: '2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '1')
+          page.should have_css("td[data-type-id='9999999']", text: '')
+        end
+        within("table tr.total-row[data-student-id='#{@student3.id}'][data-date='2015-09-02']") do
+          page.should have_css('td.attendance-date', text: 'Total 2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '0')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '1')
+          page.should have_css("td[data-type-id='9999999']", text: '0')
+        end
+
+        # total @student
+        within("table tr.total-row[data-student-id='#{@student3.id}']") do
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '0')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '1')
+          page.should have_css("td[data-type-id='9999999']", text: '0')
+        end
+
         # should have inactive types dates listed at bottom of report
         page.should_not have_content('02 Sep 2015')
       end
     end
 
     ###############################################################################
-    # generate a report with a deactivated attendance type showing 'Other' column
+    # generate a report with no 'Other' column for @student
     page.should have_css("#side-reports a", text: 'Generate Reports')
     find("#side-reports a", text: 'Generate Reports').click
     page.should have_content('Generate Reports')
     within("#page-content") do
       within('form#new_generate') do
         select('Student Attendance Detail Report', from: "generate-type")
-        select(@subject1.name, from: 'subject')
+        find("select#generate-type").value.should == "student_attendance_detail_report"
+        select(@student.full_name, from: 'student')
         # javascript to fill in datepicker value
         page.execute_script("$('#start-date').val('2015-09-01')")
         page.execute_script("$('#end-date').val('2015-09-04')")
@@ -298,42 +405,48 @@ describe "Generate Student Attendance Detail Report", js:true do
 
     assert_equal(student_attendance_detail_report_attendances_path(), current_path)
     page.should_not have_content('Internal Server Error')
-
+save_and_open_page
     within("#page-content") do
       within('.report-body') do
 
         page.should have_content("Attendance Report")
         within('table thead.table-title') do
-          page.should have_content('ID')
-          page.should have_content('Student Name')
+          page.should have_content('Date')
+          page.should have_content('Section')
           page.should have_content(@at_tardy.description)
           page.should have_content(@at_absent.description)
           page.should have_content('Other')
         end
-        within("table tbody.tbody-header tr[data-student-id='#{@enrollments[0].student.id}']") do
-          page.should have_content(@enrollments[0].student.full_name) if see_names
-          within("td[data-type-id='#{@at_absent.id}']") do
-            page.should have_content('0')
-          end
-          within("td[data-type-id='#{@at_tardy.id}']") do
-            page.should have_content('1')
-          end
-          within("td[data-type-id='9999999']") do
-            page.should have_content('0')
+        
+        # @student
+        within("table tr.header-row[data-student-id='#{@student.id}']") do
+          if see_names
+            page.should have_content(@student.full_name)
+          else
+            page.should_not have_content(@student.full_name)
           end
         end
-        within("table tbody.tbody-header tr[data-student-id='#{@enrollments[1].student.id}']") do
-          page.should have_content(@enrollments[1].student.full_name) if see_names
-          within("td[data-type-id='#{@at_absent.id}']") do
-            page.should have_content('0')
-          end
-          within("td[data-type-id='#{@at_tardy.id}']") do
-            page.should have_content('0')
-          end
-          within("td[data-type-id='9999999']") do
-            page.should have_content('1')
-          end
+
+        # @student 9/2
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section1_1.id}'][data-date='2015-09-02']") do
+          page.should have_css('td .attendance-date', text: '2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '1')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '')
+          page.should_not have_css("td[data-type-id='9999999']")
         end
+        within("table tr[data-student-id='#{@student.id}'][data-section-id='#{@section2_1.id}'][data-date='2015-09-02']") do
+          page.should have_css('td .attendance-date', text: '2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '1')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '')
+          page.should_not have_css("td[data-type-id='9999999']")
+        end
+        within("table tr.total-row[data-student-id='#{@student.id}'][data-date='2015-09-02']") do
+          page.should have_css('td.attendance-date', text: 'Total 2015-09-02')
+          page.should have_css("td[data-type-id='#{@at_absent.id}']", text: '2')
+          page.should have_css("td[data-type-id='#{@at_tardy.id}']", text: '0')
+          page.should_not have_css("td[data-type-id='9999999']")
+        end
+
         # should have inactive types dates listed at bottom of report
         page.should have_content('02 Sep 2015')
       end

@@ -6,4 +6,4 @@
   - @attendance_types.each do |at|
     %td.centered{data: {type_id: at.id}}=by_type[at.id] if by_type[at.id] > 0
   - if deact_column == 1
-    %td.centered{data: {type_id: 9999999}}=by_type[9999999]
+    %td.centered{data: {type_id: 9999999}}=by_type[9999999] if by_type[9999999] > 0
