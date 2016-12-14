@@ -318,7 +318,7 @@ FactoryGirl.define do
     attendance_type   { FactoryGirl.create(:attendance_type, school: section.school) }
     attendance_date   { Date.today }
     excuse            { FactoryGirl.create(:excuse, school: section.school) }
-    comment           { |n| "Comment #{n}" }
+    sequence(:comment) { |n| "Comment #{n}" }
   end
 
   factory :announcement do

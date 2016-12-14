@@ -17,14 +17,23 @@ module AttendancesHelper
       # loop through enrollments, to ensure that there is an attendance record for every student in the class (use existing attendance records, or an empty one)
       @enrollments.each do |e|
         if a_by_student[e.student_id]
-          # add existing student attendance record
-          a_by_name << [e.student.last_name, e.student.first_name, a_by_student[e.student_id]]
+          # use existing student attendance record
+          att_rec = a_by_student[e.student_id]
         else
-          # add a new student attendance record to be displayed to the user to fill in
+          # use a new student attendance record to be displayed to the user to fill in
           att_rec = Attendance.new(attendance_date: date)
           att_rec.school_id = @school.id
           att_rec.section_id = e.section_id
           att_rec.user_id = e.student_id
+        end
+        # add attendance record with name fields in order
+        if @school.has_flag?(School::USER_BY_FIRST_LAST)
+          a_by_name << [
+            e.student.first_name,
+            e.student.last_name,
+            att_rec
+          ]
+        else
           a_by_name << [
             e.student.last_name,
             e.student.first_name,
