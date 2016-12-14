@@ -219,7 +219,7 @@ describe "Generate Attendance Report", js:true do
 
     assert_equal(attendance_report_attendances_path(), current_path)
     page.should_not have_content('Internal Server Error')
-save_and_open_page
+
     within("#page-content") do
       within('.report-body') do
 

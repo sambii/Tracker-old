@@ -172,26 +172,23 @@ class AttendancesController < ApplicationController
     Rails.logger.debug("*** attendance_report params: #{params.inspect}")
     authorize! :read, Generate
     @school = get_current_school
-    @subject = (params[:subject_id].present? && params[:subject_section_id] != 'subj') ? Subject.find(params[:subject_id]) : nil
-    Rails.logger.debug("*** @subject: #{@subject.inspect}")
+    @subject = (params[:subject_id].present?) ? Subject.find(params[:subject_id]) : nil
     @section = (params[:subject_section_id].present? && params[:subject_section_id] != 'subj') ? Section.find(params[:subject_section_id]) : nil
-    Rails.logger.debug("*** @section: #{@section.inspect}")
     start_date = Time.new(*(params[:start_date].split('-'))).to_date
     end_date = Time.new(*(params[:end_date].split('-'))).to_date
 
-    if @section
-      # section report
-      rpt_sections = [@section.id]
-    elsif @subject
-      # subject report
-      rpt_sections = Section.where(subject_id: @subject.id, school_year_id: @school_year.id)
-    else
-      # error
-      rpt_sections = []
-    end
-
     if @school.id.present?
       @school_year = SchoolYear.where(id: @school.school_year_id).first
+      if @section
+        # section report
+        rpt_sections = [@section.id]
+      elsif @subject
+        # subject report
+        rpt_sections = Section.where(subject_id: @subject.id, school_year_id: @school_year.id)
+      else
+        # error
+        rpt_sections = []
+      end
       @attendances = Attendance.includes(:student, :section => :subject).where(school_id: @school.id, attendance_date: start_date..end_date, section_id: rpt_sections).scoped
       # see if attendance type filter is set
       if params[:attendance_type_id].present?
@@ -212,7 +209,7 @@ class AttendancesController < ApplicationController
         @attendances = @attendances.order("subjects.name, sections.line_number, users.last_name, users.first_name").all
       end
     else
-      # empty scope
+      # missing school - set empty scope
       @attendances.where('false').all
     end
     @att_types_names = @attendance_types.map {|at| at.description }
@@ -223,7 +220,7 @@ class AttendancesController < ApplicationController
         Rails.logger.debug("*** no current school, go to school select page")
         flash[:alert] = I18n.translate('errors.invalid_school_pick_one')
         format.html { redirect_to schools_path}
-      elsif @subject.present? && @subject.school_id != @subject.id
+      elsif @subject.present? && @subject.school_id != @school.id
         Rails.logger.debug("*** subject not in this school")
         flash[:alert] = "Subject not in this school."
         format.html { redirect_to schools_path}
