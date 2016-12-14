@@ -36,26 +36,26 @@ describe "Generate Attendance Report", js:true do
     # 9/1 has tardy and absent
     # in subject 1
     FactoryGirl.create :attendance,
-      section: @enrollments[0].section,
-      student: @enrollments[0].student,
+      section: @section1_1,
+      student: @student,
       attendance_type: @at_tardy,
       attendance_date: Date.new(2015,9,1)
     FactoryGirl.create :attendance,
-      section: @enrollments[1].section,
-      student: @enrollments[1].student,
+      section: @section1_1,
+      student: @student2,
       attendance_type: @at_absent,
       attendance_date: Date.new(2015,9,1)
 
     # 9/2 has tardy and absent
     # in subject 1
     FactoryGirl.create :attendance,
-      section: @enrollments[0].section,
-      student: @enrollments[0].student,
+      section: @section1_1,
+      student: @student,
       attendance_type: @at_tardy,
       attendance_date: Date.new(2015,9,2)
     FactoryGirl.create :attendance,
-      section: @enrollments[1].section,
-      student: @enrollments[1].student,
+      section: @section1_1,
+      student: @student2,
       attendance_type: @at_deact,
       attendance_date: Date.new(2015,9,2)
 
@@ -219,7 +219,7 @@ describe "Generate Attendance Report", js:true do
 
     assert_equal(attendance_report_attendances_path(), current_path)
     page.should_not have_content('Internal Server Error')
-
+save_and_open_page
     within("#page-content") do
       within('.report-body') do
 
@@ -231,7 +231,7 @@ describe "Generate Attendance Report", js:true do
           page.should have_content(@at_absent.description)
           page.should_not have_content('Other')
         end
-        within("table tbody.tbody-header tr[data-student-id='#{@enrollments[0].student.id}']") do
+        within("table tbody.tbody-header tr[data-student-id='#{@student.id}']") do
           page.should have_content(@enrollments[0].student.full_name) if see_names
           within("td[data-type-id='#{@at_absent.id}']") do
             page.should have_content('0')
@@ -241,7 +241,7 @@ describe "Generate Attendance Report", js:true do
           end
           page.should_not have_css("td[data-type-id='9999999']")
         end
-        within("table tbody.tbody-header tr[data-student-id='#{@enrollments[1].student.id}']") do
+        within("table tbody.tbody-header tr[data-student-id='#{@student2.id}']") do
           page.should have_content(@enrollments[1].student.full_name) if see_names
           within("td[data-type-id='#{@at_absent.id}']") do
             page.should have_content('1')

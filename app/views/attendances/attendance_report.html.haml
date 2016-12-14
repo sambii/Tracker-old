@@ -45,8 +45,8 @@
           %th='Date Range'
       %tbody
         %tr
-          %td=@subject.name
-          %td=''
+          %td=(@subject.present?) ? @subject.name : 'All'
+          %td=(@section.present?) ? @section.line_number : 'All'
           %td="#{@start_date} thru #{@end_date}"
 .row.report-body
   .col-md-12
@@ -81,7 +81,7 @@
             - if val_att_type_ids.include? a.attendance_type_id
               - by_type[a.attendance_type_id] += 1
             - elsif deact_att_type_ids.include? a.attendance_type_id
-              - deact_dates << a.attendance_date if !deact_dates.include? a.attendance_date 
+              - deact_dates << a.attendance_date if !deact_dates.include? a.attendance_date
               - by_type[9999999] += 1
           - if last_student_id != 0
             =render partial: 'student_attendance_break', locals: {student_id: last_student_id, xid: last_student_xid, name: last_student_name, by_type: by_type, deact_column: deact_column}
