@@ -139,7 +139,7 @@ describe "Teacher Tracker", js:true do
 
   describe "as school administrator" do
     before do
-      @school_administrator = FactoryGirl.create :school_administrator, school: @section.school
+      @school_administrator = FactoryGirl.create :school_administrator, school: @school1
       sign_in(@school_administrator)
       @err_page = "/school_administrators/#{@school_administrator.id}"
     end
@@ -150,7 +150,7 @@ describe "Teacher Tracker", js:true do
     before do
       @researcher = FactoryGirl.create :researcher
       sign_in(@researcher)
-      set_users_school(@section.school)
+      set_users_school(@school1)
       @err_page = "/researchers/#{@researcher.id}"
     end
     it { cannot_see_section_attendance_entry }
@@ -160,7 +160,7 @@ describe "Teacher Tracker", js:true do
     before do
       @system_administrator = FactoryGirl.create :system_administrator
       sign_in(@system_administrator)
-      set_users_school(@section.school)
+      set_users_school(@school1)
       @err_page = "/system_administrators/#{@system_administrator.id}"
     end
     it { section_attendance_entry_is_valid }
@@ -171,7 +171,7 @@ describe "Teacher Tracker", js:true do
       sign_in(@student)
       @err_page = "/students/#{@student.id}"
     end
-    it { cannot_see_section_attendance_entry }
+    it { has_no_attendance }
   end
 
   describe "as parent" do
@@ -179,22 +179,45 @@ describe "Teacher Tracker", js:true do
       sign_in(@student.parent)
       @err_page = "/parents/#{@student.parent.id}"
     end
-    it { cannot_see_section_attendance_entry }
+    it { has_no_attendance }
   end
 
   ##################################################
   # test methods
 
+  def has_no_attendance
+    # should not have toolkit item to enter attendance
+    page.should_not have_css("#side-attend")
+    # should fail when going to section page directly
+    visit section_path(@section1_1.id)
+    assert_equal(@err_page, current_path)
+    # should fail when going to section attendance page directly
+    visit section_attendance_attendance_path(@section1_1.id)
+    assert_equal(@err_page, current_path)
+    page.should_not have_content('Internal Server Error')
+  end
+
   def cannot_see_section_attendance_entry
+    # should not have a active toolkit item to enter attendance
+    page.should have_css("#side-attend")
+    # visit section to see if section attendance becomes active link in toolkit
+    visit section_path(@section1_1.id)
+    within("#side-attend") do
+      page.should have_css("a.disabled")
+    end
     # it "should not let unauthorized user see the section attendance page" do
-    visit "/attendances/section_attendance/?section_id=#{@section.id}&layout=html_popup"
-    page.should_not have_css('#attendance_date')
+    visit section_attendance_attendance_path(@section1_1.id)
+    assert_equal(@err_page, current_path)
   end
 
   def section_attendance_entry_is_valid
 
-    visit "/attendances/#{@section1_1.id}/section_attendance"
+    # should not have a active toolkit item to enter attendance
+    page.should have_css("#side-attend")
+    # visit section to see if section attendance becomes active link
+    visit section_path(@section1_1.id)
 
+    visit section_attendance_attendance_path(@section1_1.id)
     # page should show attendance for current date
     within("form .block-title") do
       page.should have_content("Section Attendance for #{Date.today.to_s}")
@@ -240,6 +263,22 @@ describe "Teacher Tracker", js:true do
     page.should have_css("table#attendance_table tbody tr:nth-of-type(8)[id='attendance_#{@student_new.id}']")
     page.should have_css("table#attendance_table tbody tr:nth-of-type(9)[id='attendance_#{@student_transferred.id}']")
 
+    page.fill_in "attendance_#{@student_fname1.id}_comment", :with => 'Changed comment!'
+    select('Tardy', from: "attendance_#{@student.id}_attendance_type_id")
+    select('Field Trip', from: "attendance_#{@student.id}_excuse_id")
+    find("input#save_attendance").click
+
+    # confirm updated values are displayed.
+    within("table#attendance_table tbody tr:nth-of-type(1)") do
+      find("input#attendance_#{@student_fname1.id}_comment").value.should == 'Changed comment!'
+    end
+    page.should have_css("table#attendance_table tbody tr:nth-of-type(1)[id='attendance_#{@student_fname1.id}']")
+    within("table#attendance_table tbody tr:nth-of-type(2)") do
+      page.should have_content("#{@student.full_name}")
+      find("select#attendance_#{@student.id}_attendance_type_id").value.should == @at_tardy.id.to_s
+      find("select#attendance_#{@student.id}_excuse_id").value.should ==  @excuse3.id.to_s
+      find("input#attendance_#{@student.id}_comment").value.should == ""
+    end
 
   end  # section_attendance_entry_is_valid
 

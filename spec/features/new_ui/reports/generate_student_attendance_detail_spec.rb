@@ -112,6 +112,7 @@ describe "Generate Student Attendance Detail Report", js:true do
     before do
       @school_administrator = FactoryGirl.create :school_administrator, school: @school1
       sign_in(@school_administrator)
+      @err_page = "/school_administrators/#{@school_administrator.id}"
     end
     it { has_valid_student_attendance_detail_report(true, true) }
   end
@@ -131,6 +132,7 @@ describe "Generate Student Attendance Detail Report", js:true do
       @system_administrator = FactoryGirl.create :system_administrator
       sign_in(@system_administrator)
       set_users_school(@school1)
+      @err_page = "/system_administrators/#{@system_administrator.id}"
     end
     it { has_valid_student_attendance_detail_report(true, true) }
   end
@@ -174,7 +176,7 @@ describe "Generate Student Attendance Detail Report", js:true do
     # should not have a link to generate reports
     page.should have_css("#side-reports")
     page.should have_css("a", text: 'Generate Reports')
-    # should fail when going to generate reports page directly
+    # should not fail when going to generate reports page directly
     visit new_generate_path
     assert_not_equal(@err_page, current_path)
     page.should_not have_content('Internal Server Error')

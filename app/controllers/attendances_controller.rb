@@ -94,7 +94,7 @@ class AttendancesController < ApplicationController
     a_user = User.where(school_id: current_school_id).first
     @test_auth_item.user_id = a_user.id
     @test_auth_item.section_id = @section_id
-    authorize! :read, @test_auth_item
+    authorize! :manage, @test_auth_item # only let maintainers do these things
     @attendance_date_field = params[:attendance_date_field] ? params[:attendance_date_field] : I18n.localize(Time.now.to_date)
     load_non_attendance_section_attendance_fields(@section_id)
     load_section_attendance_fields(@section_id, @attendance_date_field)
@@ -113,7 +113,7 @@ class AttendancesController < ApplicationController
     raise("ERROR: no users in this school") if a_user.blank?
     @test_auth_item.user_id = a_user.id
     @test_auth_item.section_id = @section_id
-    authorize! :read, @test_auth_item
+    authorize! :manage, @test_auth_item # only let maintainers do these things
     @attendance_date_field = params[:attendance_date] ? params[:attendance_date] : I18n.localize(Time.now.to_date)
     load_non_attendance_section_attendance_fields(@section_id)
     load_section_attendance_fields(@section_id, @attendance_date_field)
@@ -130,7 +130,7 @@ class AttendancesController < ApplicationController
     a_user = User.where(school_id: current_school_id).first
     @test_auth_item.user_id = a_user.id
     @test_auth_item.section_id = params[:section_id] if params[:section_id]
-    authorize! :manage, @test_auth_item
+    authorize! :manage, @test_auth_item # only let maintainers do these things
 
     @attendance_date_field = params[:attendance_date] ? params[:attendance_date] : I18n.localize(Time.now.to_date)
     load_non_attendance_section_attendance_fields(@section_id)
@@ -171,6 +171,7 @@ class AttendancesController < ApplicationController
   def attendance_report
     Rails.logger.debug("*** attendance_report params: #{params.inspect}")
     authorize! :read, Generate
+    authorize! :attendance_report, Attendance
     @school = get_current_school
     @subject = (params[:subject_id].present?) ? Subject.find(params[:subject_id]) : nil
     @section = (params[:subject_section_id].present? && params[:subject_section_id] != 'subj') ? Section.find(params[:subject_section_id]) : nil
@@ -233,6 +234,7 @@ class AttendancesController < ApplicationController
   def student_attendance_detail_report
     Rails.logger.debug("*** student_attendance_detail_report params: #{params.inspect}")
     authorize! :read, Generate
+    authorize! :student_attendance_detail_report, Attendance
     # using cancan's accessible_by, so if not authorized, nothing will be returned.
     @school = get_current_school
     p_student_id = params[:student_id]

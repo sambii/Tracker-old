@@ -114,7 +114,8 @@ class Ability
             { id: user.id }
 
         # Attendance
-        can [:read, :student_attendance_detail_report], 
+        can [:student_attendance_detail_report, :attendance_report], Attendance
+        can [:read], 
           Attendance,
           { school_id: user.school_id, section_id: user.teacher.teaching_assignments.pluck(:section_id) }
         can :read,
@@ -218,7 +219,8 @@ class Ability
         can [:create, :update, :dashboard, :security, :set_temporary_password], User, { parent: true}
 
         # Attendance
-        can [:manage, :student_attendance_detail_report], 
+        can [:student_attendance_detail_report, :attendance_report], Attendance
+        can [:manage], 
           Attendance,
           { school_id: user.school_id, section_id: user.teacher.teaching_assignments.pluck(:section_id) }
         can :read,
@@ -343,7 +345,8 @@ class Ability
         can [:new], ReportCardRequest
 
         # Attendance
-        can [:manage, :student_attendance_detail_report],
+        can [:student_attendance_detail_report, :attendance_report], Attendance
+        can [:manage],
           Attendance,
           { school_id: user.school_id }
         can :manage,

@@ -105,6 +105,7 @@ describe "Generate Attendance Report", js:true do
     before do
       @school_administrator = FactoryGirl.create :school_administrator, school: @school1
       sign_in(@school_administrator)
+      @err_page = "/school_administrators/#{@school_administrator.id}"
     end
     it { has_valid_attendance_report(true) }
   end
@@ -114,8 +115,9 @@ describe "Generate Attendance Report", js:true do
       @researcher = FactoryGirl.create :researcher
       sign_in(@researcher)
       set_users_school(@school1)
+      @err_page = "/researchers/#{@researcher.id}"
     end
-    it { has_valid_attendance_report(false) }
+    it { has_no_attendance_report }
   end
 
   describe "as system administrator" do
@@ -123,6 +125,7 @@ describe "Generate Attendance Report", js:true do
       @system_administrator = FactoryGirl.create :system_administrator
       sign_in(@system_administrator)
       set_users_school(@school1)
+      @err_page = "/system_administrators/#{@system_administrator.id}"
     end
     it { has_valid_attendance_report(true) }
   end
@@ -132,7 +135,7 @@ describe "Generate Attendance Report", js:true do
       sign_in(@student)
       @err_page = "/students/#{@student.id}"
     end
-    it { has_no_attendance_report }
+    it { has_no_reports }
   end
 
   describe "as parent" do
@@ -140,19 +143,35 @@ describe "Generate Attendance Report", js:true do
       sign_in(@student.parent)
       @err_page = "/parents/#{@student.parent.id}"
     end
-    it { has_no_attendance_report }
+    it { has_no_reports }
   end
 
   ##################################################
   # test methods
 
-  def has_no_attendance_report
-    # should not have a link to generate reports
+  def has_no_reports
+    # students and parents should not have a link to generate reports
     page.should_not have_css("#side-reports")
     page.should_not have_css("a", text: 'Generate Reports')
     # should fail when going to generate reports page directly
     visit new_generate_path
     assert_equal(@err_page, current_path)
+    page.should_not have_content('Internal Server Error')
+    # should fail when running attendance report directly
+    visit attendance_report_attendances_path
+    assert_equal(@err_page, current_path)
+    within('head title') do
+      page.should_not have_content('Internal Server Error')
+    end
+  end
+
+  def has_no_attendance_report
+    # researcher should have a link to generate reports
+    page.should have_css("#side-reports")
+    page.should have_css("a", text: 'Generate Reports')
+    # should not fail when going to generate reports page directly
+    visit new_generate_path
+    assert_not_equal(@err_page, current_path)
     page.should_not have_content('Internal Server Error')
     # should fail when running attendance report directly
     visit attendance_report_attendances_path
