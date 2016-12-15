@@ -19,8 +19,10 @@ describe "User can change password", js:true do
       @teacher1.temporary_password='temporary'
       @teacher1.save
       sign_in(@teacher1)
+      @username = @teacher1.username
+      @err_page = "/teachers/#{@teacher1.id}"
     end
-    it { can_login_first_time(@teacher1) }
+    it { can_login_first_time_and_reset_pwd(@teacher1, true, false) }
   end
 
   describe "as school administrator" do
@@ -29,8 +31,10 @@ describe "User can change password", js:true do
       @school_administrator.temporary_password='temporary'
       @school_administrator.save
       sign_in(@school_administrator)
+      @username = @school_administrator.username
+      @err_page = "/school_administrators/#{@school_administrator.id}"
     end
-    it { can_login_first_time(@school_administrator) }
+    it { can_login_first_time_and_reset_pwd(@school_administrator, true, true) }
   end
 
   describe "as researcher" do
@@ -40,8 +44,10 @@ describe "User can change password", js:true do
       @researcher.save
       sign_in(@researcher)
       # set_users_school(@school1)
+      @username = @researcher.username
+      @err_page = "/researchers/#{@researcher.id}"
     end
-    it { can_login_first_time(@researcher) }
+    it { can_login_first_time_and_reset_pwd(@researcher, false, false) }
   end
 
   describe "as system administrator" do
@@ -51,8 +57,10 @@ describe "User can change password", js:true do
       @system_administrator.save
       sign_in(@system_administrator)
       # set_users_school(@school1)
+      @username = @system_administrator.username
+      @err_page = "/system_administrators/#{@system_administrator.id}"
     end
-    it { can_login_first_time(@system_administrator) }
+    it { can_login_first_time_and_reset_pwd(@system_administrator, true, true) }
   end
 
   describe "as student" do
@@ -60,8 +68,10 @@ describe "User can change password", js:true do
       @student.temporary_password='temporary'
       @student.save
       sign_in(@student)
+      @username = @student.username
+      @err_page = "/students/#{@student.id}"
     end
-    it { can_login_first_time(@student) }
+    it { can_login_first_time_and_reset_pwd(@student, false, false) }
   end
 
   describe "as parent" do
@@ -69,19 +79,45 @@ describe "User can change password", js:true do
       @student.parent.temporary_password='temporary'
       @student.parent.save
       sign_in(@student.parent)
+      @username = @student.parent.username
+      @err_page = "/parents/#{@student.parent.id}"
     end
-    it { can_login_first_time(@student.parent) }
+    it { can_login_first_time_and_reset_pwd(@student.parent, false, false) }
   end
 
   ##################################################
   # test methods
 
-  def can_login_first_time(user)
+  def can_login_first_time_and_reset_pwd(user, edit_student=false, edit_staff=false)
     assert_equal("/users/#{user.id}/change_password", current_path)
     page.fill_in 'user_password', :with => 'newpassword'
     page.fill_in 'user_password_confirmation', :with => 'newpassword'
     page.find("input[name='commit']").click
     assert_equal("/", current_path)
+    page.fill_in 'user_username', :with => @username
+    page.fill_in 'user_password', :with => 'newpassword'
+    find("input[name='commit']").click
+    # save_and_open_page
+    if edit_student
+      # reset student's password after confirming screen is correct
+      # confirm screen has changed with new temp password
+      # student login with temp password
+      # student login with updated password
+      # reset parent's password after confirming screen is correct
+      # confirm screen has changed with new temp password
+      # parent login with temp password
+      # parent login with updated password
+    else
+      # cannot get to security screen or update password for student
+    end
+    if edit_staff
+      # reset teacher's password after confirming screen is correct
+      # confirm screen has changed with new temp password
+      # teacher login with temp password
+      # teacher login with updated password
+    else
+      # cannot get to security screen or update password for staff
+    end 
   end
 
 

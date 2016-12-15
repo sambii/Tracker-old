@@ -104,11 +104,12 @@ module ApplicationHelper
 
 
   def set_temporary_password user
+    out_str = ''
     if user.temporary_password.present?
-      user.temporary_password
-    else
-      link_to "(Reset Password)", set_temporary_password_user_path(user), remote: true
+      out_str += "<span.nowrap>#{user.temporary_password}</span><br>"
     end
+    out_str += "<span.nowrap>#{link_to '(Reset Password)', set_temporary_password_user_path(user), remote: true}</span>"
+    return out_str.html_safe
   end
 
   def to_excel_column integer
