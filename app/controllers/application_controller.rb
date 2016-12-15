@@ -271,16 +271,20 @@ class ApplicationController < ActionController::Base
       Rails.logger.debug("*** session[:school_context]: #{session[:school_context]}")
       Rails.logger.debug("*** session[:this_original_url]: #{session[:this_original_url].inspect.to_s}")
       Rails.logger.debug("*** session[:last_original_url]: #{session[:last_original_url].inspect.to_s}")
-      route_path = (request.method == 'GET') ? Rails.application.routes.recognize_path( orig_url, :method => :get ) : Hash.new
-      Rails.logger.debug("*** route_path : #{route_path.inspect.to_s}")
       # create last_original_url to be last page viewed by user for last page link next to breadcrumbs
       update_url = true
       update_url = false if orig_url.blank?
       update_url = false if orig_path.blank?
       update_url = false if orig_path == '/'
       update_url = false if orig_path == '/users/sign_out'
-      type_of_users = %w(users system_administrators school_administrators teacher students parents counselors researchers)
-      update_url = false if (route_path[:action] == 'show' && type_of_users.include?(route_path[:controller]) && !current_user.nil? && route_path[:id] == current_user.id.to_s )
+      begin
+        # to do get this from users model
+        type_of_users = %w(users system_administrators school_administrators teacher students parents counselors researchers)
+        route_path = (request.method == 'GET') ? Rails.application.routes.recognize_path( orig_url, :method => :get ) : Hash.new
+        Rails.logger.debug("*** route_path : #{route_path.inspect.to_s}")
+        update_url = false if (route_path[:action] == 'show' && type_of_users.include?(route_path[:controller]) && !current_user.nil? && route_path[:id] == current_user.id.to_s )
+      rescue
+      end
       update_url = false if request.format != 'text/html'
       update_url = false if session[:this_original_url] == orig_url # dont update if same
       Rails.logger.debug("*** update_url: #{update_url}")
