@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.050 Dec 15, 2016
+- Task 16 Student Atendance Detail Report and Attendance tests and security cleanups.
 PARLO Tracker version v2.01.049 Dec 1, 2016
 - Task 13 Attendance Report by Section, Task 14 Attendance report filter by Attendance Type
 PARLO Tracker version v2.01.048 Nov 18, 2016
