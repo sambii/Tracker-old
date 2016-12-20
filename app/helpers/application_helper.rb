@@ -106,9 +106,9 @@ module ApplicationHelper
   def set_temporary_password user
     out_str = ''
     if user.temporary_password.present?
-      out_str += "<span.nowrap>#{user.temporary_password}</span><br>"
+      out_str += "<span class='nowrap height-30'>#{user.temporary_password}</span><br>"
     end
-    out_str += "<span.nowrap>#{link_to '(Reset Password)', set_temporary_password_user_path(user), remote: true}</span>"
+    out_str += "<span class='height-30'>#{link_to 'Reset Password', set_temporary_password_user_path(user), remote: true, class: 'btn btn-xs btn-primary pointer-cursor'}</span>"
     return out_str.html_safe
   end
 

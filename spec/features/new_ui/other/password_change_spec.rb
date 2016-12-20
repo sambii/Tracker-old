@@ -97,9 +97,16 @@ describe "User can change password", js:true do
     page.fill_in 'user_username', :with => @username
     page.fill_in 'user_password', :with => 'newpassword'
     find("input[name='commit']").click
-    # save_and_open_page
     if edit_student
-      # reset student's password after confirming screen is correct
+      # # reset student's password after confirming screen is correct
+      # assert_equal("/", current_path)
+      # visit('students_path')
+      # assert_equal("/students", current_path)
+      # save_and_open_page
+      # find("a[data-url='/students/#{@student.id}/security.js']").click
+      # save_and_open_page
+
+
       # confirm screen has changed with new temp password
       # student login with temp password
       # student login with updated password
