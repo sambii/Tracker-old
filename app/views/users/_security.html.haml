@@ -51,7 +51,7 @@
                 %td{id: "user_#{@user.id}"}
                   .row
                     .col-md-5='Temporary Password:'
-                    .col-md-7{id: "user_#{@user.id}_password"}=set_temporary_password(@user)
+                    .col-md-7{id: "user_#{@user.id}_password"}=render(partial: 'users/temporary_password', locals: {user: @user})
   .modal-footer
     %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} Close
 

@@ -20,7 +20,7 @@ describe "User can change password", js:true do
       @teacher1.save
       sign_in(@teacher1)
       @username = @teacher1.username
-      @err_page = "/teachers/#{@teacher1.id}"
+      @home_page = "/teachers/#{@teacher1.id}"
     end
     it { can_login_first_time_and_reset_pwd(@teacher1, true, false) }
   end
@@ -32,7 +32,7 @@ describe "User can change password", js:true do
       @school_administrator.save
       sign_in(@school_administrator)
       @username = @school_administrator.username
-      @err_page = "/school_administrators/#{@school_administrator.id}"
+      @home_page = "/school_administrators/#{@school_administrator.id}"
     end
     it { can_login_first_time_and_reset_pwd(@school_administrator, true, true) }
   end
@@ -45,7 +45,7 @@ describe "User can change password", js:true do
       sign_in(@researcher)
       # set_users_school(@school1)
       @username = @researcher.username
-      @err_page = "/researchers/#{@researcher.id}"
+      @home_page = "/researchers/#{@researcher.id}"
     end
     it { can_login_first_time_and_reset_pwd(@researcher, false, false) }
   end
@@ -58,7 +58,7 @@ describe "User can change password", js:true do
       sign_in(@system_administrator)
       # set_users_school(@school1)
       @username = @system_administrator.username
-      @err_page = "/system_administrators/#{@system_administrator.id}"
+      @home_page = "/system_administrators/#{@system_administrator.id}"
     end
     it { can_login_first_time_and_reset_pwd(@system_administrator, true, true) }
   end
@@ -69,7 +69,7 @@ describe "User can change password", js:true do
       @student.save
       sign_in(@student)
       @username = @student.username
-      @err_page = "/students/#{@student.id}"
+      @home_page = "/students/#{@student.id}"
     end
     it { can_login_first_time_and_reset_pwd(@student, false, false) }
   end
@@ -80,7 +80,7 @@ describe "User can change password", js:true do
       @student.parent.save
       sign_in(@student.parent)
       @username = @student.parent.username
-      @err_page = "/parents/#{@student.parent.id}"
+      @home_page = "/parents/#{@student.parent.id}"
     end
     it { can_login_first_time_and_reset_pwd(@student.parent, false, false) }
   end
@@ -98,7 +98,23 @@ describe "User can change password", js:true do
     page.fill_in 'user_password', :with => 'newpassword'
     find("input[name='commit']").click
     if edit_student
-      # # reset student's password after confirming screen is correct
+      # reset student's password
+      assert_equal(@home_page, current_path)
+      within('#side-students') do
+        find("a[href='/students']").click
+      end
+      assert_equal('/students', current_path)
+      within("#student_#{@student.id}") do
+        find("a[data-url='/students/#{@student.id}/security.js']").click
+      end
+      within("td#user_#{@student.id}") do
+        page.should_not have_css("td.student-temp-pwd span.temp-pwd")
+        find("a[href='/users/#{@student.id}/set_temporary_password']").click
+      end
+      page.should_not have_css("td.student-temp-pwd span.temp-pwd")
+      sleep 20
+      save_and_open_page
+
       # assert_equal("/", current_path)
       # visit('students_path')
       # assert_equal("/students", current_path)
