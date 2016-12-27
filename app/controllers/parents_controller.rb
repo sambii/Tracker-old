@@ -47,4 +47,17 @@ class ParentsController < ApplicationController
       end
     end
   end
+
+  # set temporary password for student in student listing security popup
+  def set_parent_temporary_password
+    @school = get_current_school
+    @parent.set_temporary_password
+    @parent.save
+    UserMailer.changed_user_password(@parent, @school, get_server_config).deliver # deliver after save
+
+    respond_to do |format|
+      format.js
+    end
+  end
+
 end

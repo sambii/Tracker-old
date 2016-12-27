@@ -182,12 +182,16 @@ class Ability
             { section_outcome_id: user.teacher.section_outcomes.pluck(:id) }
 
         # Student
-        can [:create, :read, :update, :dashboard, :security, :index],
-            [Student], {school_id: user.school_id }
-        can :new, [Student]
+        can [:create, :read, :update, :dashboard, :security, :index, :set_student_temporary_password],
+            Student, {school_id: user.school_id }
+        can :new, Student
 
         # Parent
-        can [:create, :read, :update, :dashboard, :security, :index, :new], [Parent]
+        can [:create, :read, :update, :dashboard, :security, :index, :new, :set_parent_temporary_password],
+          Parent,
+          { school_id: user.school_id }
+        # to do - school admin does not have the following abilities for parents, so does teacher need these?: :create, :read, :update, :dashboard, :security, :index, :new
+
 
         # Subject
         can [:read],
@@ -308,10 +312,16 @@ class Ability
         can [:new], SectionOutcomeRating
 
         # Student
-        can [:create, :deactivate, :read, :update, :dashboard, :security, :proficiency_bars, :bulk_upload, :bulk_update],
+        can [:create, :deactivate, :read, :update, :dashboard, :security, :proficiency_bars, :bulk_upload, :bulk_update, :set_student_temporary_password],
           Student,
           { school_id: user.school_id }
         can [:new], Student
+
+        # Parent
+        can [:set_parent_temporary_password],
+          Parent,
+          { school_id: user.school_id }
+        # note teacher has following abilities for parents, so does school admin need these?: :create, :read, :update, :dashboard, :security, :index, :new, 
 
         # Subject
         can [:read, :view_subject_outcomes, :proficiency_bars, :progress_meters],

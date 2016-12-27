@@ -15,7 +15,7 @@ Tracker2::Application.routes.draw do
     get 'new_staff', on: :new, defaults: { format: :js } # new UI
     member do
       get 'change_password'
-      get 'set_temporary_password'
+      get 'set_temporary_password' # to be deprecated - use set_user_temporary_password
       get 'security' # new UI
       get 'create_staff', defaults: { format: :js } # new UI
       get 'profile' # new UI
@@ -101,6 +101,7 @@ Tracker2::Application.routes.draw do
   match "students/bulk_update" => "home#index", via: :get
   resources :students do
     member do
+      get 'set_student_temporary_password'
       get 'dashboard'
       get 'security'
       get 'sections_list' # new UI
@@ -121,7 +122,11 @@ Tracker2::Application.routes.draw do
     end
   end
 
-  resources :parents
+  resources :parents do
+    member do
+      get 'set_parent_temporary_password'
+    end
+  end
 
   match "subject_outcomes/lo_matching" => "home#index", via: :get
   match "subject_outcomes/lo_matching_update" => "home#index", via: :get

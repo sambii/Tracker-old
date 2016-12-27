@@ -218,13 +218,10 @@ class UsersController < ApplicationController
     end
   end
 
-  # Other Methods
-  # TODO: Finish this method!
+  # to do  - change name to set_user_temporary_password
   def set_temporary_password
-    Rails.logger.debug("*** @user.temporary_password: #{@user.temporary_password}")
     @school = get_current_school
     @user.set_temporary_password
-    Rails.logger.debug("*** updated @user.temporary_password: #{@user.temporary_password}")
     @user.save
     UserMailer.changed_user_password(@user, @school, get_server_config).deliver # deliver after save
 

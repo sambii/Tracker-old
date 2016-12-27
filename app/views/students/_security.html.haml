@@ -52,8 +52,8 @@
               %tr
                 %td.text-right
                   %strong='Temporary Password:'
-                %td.student-temp-pwd{id: "user_#{@student.id}"}=render(partial: 'users/temporary_password', locals: {user: @student})
-                %td.parent-temp-pwd{id: "user_#{@parent.id}"}=render(partial: 'users/temporary_password', locals: {user: @parent})
+                %td.student-temp-pwd{id: "user_#{@student.id}"}=render(partial: 'students/temporary_password', locals: {user: @student})
+                %td.parent-temp-pwd{id: "user_#{@parent.id}"}=render(partial: 'parents/temporary_password', locals: {user: @parent})
   .modal-footer
     %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} Close
 

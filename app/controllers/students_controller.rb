@@ -215,6 +215,18 @@ class StudentsController < ApplicationController
     end
   end
 
+  # set temporary password for student in student listing security popup
+  def set_student_temporary_password
+    @school = get_current_school
+    @student.set_temporary_password
+    @student.save
+    UserMailer.changed_user_password(@student, @school, get_server_config).deliver # deliver after save
+
+    respond_to do |format|
+      format.js
+    end
+  end
+
 
   # New UI
   # listing of current and previous sections for a student

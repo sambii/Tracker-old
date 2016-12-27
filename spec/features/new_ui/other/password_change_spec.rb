@@ -98,6 +98,14 @@ describe "User can change password", js:true do
     page.fill_in 'user_password', :with => 'newpassword'
     find("input[name='commit']").click
     if edit_student
+      # if user has to pick a school, pick it and go to home page
+      if !user.school_id.present?
+        find("#side-schools a[href='/schools']").click
+        within("table tbody tr#school-#{@school1.id}") do
+          find("a[href='/schools/#{@school1.id}']").click
+        end
+        visit @home_page
+      end
       # reset student's password
       assert_equal(@home_page, current_path)
       within('#side-students') do
@@ -107,37 +115,75 @@ describe "User can change password", js:true do
       within("#student_#{@student.id}") do
         find("a[data-url='/students/#{@student.id}/security.js']").click
       end
-      within("td#user_#{@student.id}") do
-        page.should_not have_css("td.student-temp-pwd span.temp-pwd")
-        find("a[href='/users/#{@student.id}/set_temporary_password']").click
+
+      within("#modal-body") do
+        within("td#user_#{@student.parent.id}.parent-temp-pwd") do
+          page.should have_css("span.temp-pwd")
+          page.should have_css("a[href='/parents/#{@student.parent.id}/set_parent_temporary_password']")
+        end
+        within("td#user_#{@student.id}.student-temp-pwd") do
+          page.should_not have_css("span.temp-pwd")
+          find("a[href='/students/#{@student.id}/set_student_temporary_password']").click
+        end
       end
-      page.should_not have_css("td.student-temp-pwd span.temp-pwd")
-      sleep 20
-      save_and_open_page
 
-      # assert_equal("/", current_path)
-      # visit('students_path')
-      # assert_equal("/students", current_path)
-      # save_and_open_page
-      # find("a[data-url='/students/#{@student.id}/security.js']").click
-      # save_and_open_page
+      within("#modal-body") do
+        # confirm screen has changed with new temp password
+        within("td#user_#{@student.id}.student-temp-pwd") do
+          within("span.temp-pwd") do
+            page.should have_content("#{@student.temporary_password}")
+          end
+          page.should have_css("a[href='/students/#{@student.id}/set_student_temporary_password']")
+        end
+        # reset parent's password after confirming screen is correct
+        within("td#user_#{@student.parent.id}.parent-temp-pwd") do
+          page.should have_css("span.temp-pwd")
+          find("a[href='/parents/#{@student.parent.id}/set_parent_temporary_password']").click
+        end
+      end
 
-
-      # confirm screen has changed with new temp password
-      # student login with temp password
-      # student login with updated password
-      # reset parent's password after confirming screen is correct
-      # confirm screen has changed with new temp password
-      # parent login with temp password
-      # parent login with updated password
+      within("#modal-body") do
+        # confirm screen has changed with new temp password
+        within("td#user_#{@student.parent.id}.parent-temp-pwd") do
+          within("span.temp-pwd") do
+            @student.parent.reload
+            page.should have_content("#{@student.parent.temporary_password}")
+          end
+          page.should have_css("span.temp-pwd")
+          find("a[href='/parents/#{@student.parent.id}/set_parent_temporary_password']").click
+        end
+      end
     else
       # cannot get to security screen or update password for student
     end
     if edit_staff
-      # reset teacher's password after confirming screen is correct
-      # confirm screen has changed with new temp password
-      # teacher login with temp password
-      # teacher login with updated password
+      # reset staff member's password
+      within('#side-staff') do
+        find("a[href='/users/staff_listing']").click
+      end
+      # orig_pwd = @teacher1.temporary_password
+      assert_equal('/users/staff_listing', current_path)
+      within("#user_#{@teacher1.id}") do
+        find("a[data-url='/users/#{@teacher1.id}/security.js']").click
+      end
+
+      within("#modal-body") do
+        within("td#user_#{@teacher1.id}") do
+          page.should_not have_css("span.temp-pwd")
+          find("a[href='/users/#{@teacher1.id}/set_temporary_password']").click
+        end
+      end
+
+      within("#modal-body") do
+        # confirm screen has changed with new temp password
+        within("td#user_#{@teacher1.id}") do
+          within("span.temp-pwd") do
+            page.should have_content("#{@teacher1.temporary_password}")
+          end
+          page.should have_css("a[href='/users/#{@teacher1.id}/set_temporary_password']")
+        end
+      end
+
     else
       # cannot get to security screen or update password for staff
     end 
