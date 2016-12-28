@@ -119,8 +119,6 @@ describe "School Listing", js:true do
   # test methods
 
   def has_nav_to_schools_page(school_assigned)
-    page.should have_css("li#side-schools")
-    find('li#side-schools').click
     if !school_assigned
       # confirm school is not assigned
       within("#head-current-school") do
@@ -128,6 +126,8 @@ describe "School Listing", js:true do
         page.should_not have_content("Switch School")
       end
     end
+    page.should have_css("li#side-schools")
+    find('li#side-schools a').click
     page.should have_css("a[href='/schools/#{@school2.id}']")
     find("a[href='/schools/#{@school2.id}']").click
     assert_equal("/schools/#{@school2.id}", current_path)

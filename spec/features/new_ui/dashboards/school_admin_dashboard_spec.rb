@@ -44,7 +44,7 @@ describe "School Admin Dashboard", js:true do
       sign_in(@researcher)
       set_users_school(@section.school)
     end
-    it { cannot_see_school_admin_dashboard }
+    it { school_admin_dashboard_is_valid }
   end
 
   describe "as system administrator" do
