@@ -15,14 +15,16 @@ describe "Generate Reports", js:true do
   describe "as teacher" do
     before do
       sign_in(@teacher)
+      @home_page = "/teachers/#{@teacher.id}"
     end
     it { has_valid_generate_reports }
   end
 
   describe "as school administrator" do
     before do
-      @school_administrator = FactoryGirl.create :school_administrator, school: @school1
+      @school_administrator = FactoryGirl.create :school_administrator, school: @school
       sign_in(@school_administrator)
+      @home_page = "/school_administrators/#{@school_administrator.id}"
     end
     it { has_valid_generate_reports }
   end
@@ -32,8 +34,9 @@ describe "Generate Reports", js:true do
       @researcher = FactoryGirl.create :researcher
       sign_in(@researcher)
       set_users_school(@school)
+      @home_page = "/researchers/#{@researcher.id}"
     end
-    it { has_valid_generate_reports }
+    it { has_no_attendance_report }
   end
 
   describe "as system administrator" do
@@ -41,6 +44,7 @@ describe "Generate Reports", js:true do
       @system_administrator = FactoryGirl.create :system_administrator
       sign_in(@system_administrator)
       set_users_school(@school)
+      @home_page = "/system_administrators/#{@system_administrator.id}"
     end
     it { has_valid_generate_reports }
   end
@@ -48,33 +52,52 @@ describe "Generate Reports", js:true do
   describe "as student" do
     before do
       sign_in(@student)
+      @home_page = "/students/#{@student.id}"
     end
-    it { has_no_generate_reports }
+    it { has_no_reports }
   end
 
   describe "as parent" do
     before do
       sign_in(@student.parent)
+      @home_page = "/parents/#{@student.parent.id}"
     end
-    it { has_no_generate_reports }
+    it { has_no_reports }
   end
 
   ##################################################
   # test methods
 
-  def has_no_generate_reports
+  def has_no_reports
     # should not have a link to generate reports
     page.should_not have_css("#side-reports")
     page.should_not have_css("a", text: 'Generate Reports')
     # should fail when going to generate reports page directly
     visit new_generate_path
-    assert_equal("/students/#{@student.id}", current_path)
+    assert_equal(@home_page, current_path)
     page.should_not have_content('Internal Server Error')
     # should fail when running attendance report directly
     visit attendance_report_attendances_path
-    assert_equal("/students/#{@student.id}", current_path)
+    assert_equal(@home_page, current_path)
     within('head title') do
       page.should_not have_content('Internal Server Error')
+    end
+  end
+
+  def has_no_attendance_report
+    page.should have_css("#side-reports a", text: 'Generate Reports')
+    find("#side-reports a", text: 'Generate Reports').click
+    page.should have_content('Generate Reports')
+    within("#page-content") do
+      within('form#new_generate') do
+        page.should have_css('fieldset#ask-subjects', visible: false)
+        page.should have_css('fieldset#ask-date-range', visible: false)
+        page.should have_selector("select#generate-type")
+
+        # confirm attendance report options are not available
+        page.should have_css("select#generate-type")
+        page.should_not have_css("select#generate-type option#attendance_report")
+      end
     end
   end
 

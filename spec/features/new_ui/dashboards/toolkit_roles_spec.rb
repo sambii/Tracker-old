@@ -5,7 +5,8 @@ require 'spec_helper'
 describe "Student Dashboard", js:true do
   before (:each) do
     @section = FactoryGirl.create :section
-    @teacher = FactoryGirl.create :teacher, school: @section.school
+    @school = @section.school
+    @teacher = FactoryGirl.create :teacher, school: @school
 
     # load_multi_schools_sections # see load_section_helper.rb
     load_test_section(@section, @teacher)
@@ -21,7 +22,7 @@ describe "Student Dashboard", js:true do
 
   describe "as school administrator" do
     before do
-      @school_administrator = FactoryGirl.create :school_administrator, school: @section.school
+      @school_administrator = FactoryGirl.create :school_administrator, school: @school
       sign_in(@school_administrator)
       @current_role = 'school_administrator'
     end
@@ -33,7 +34,7 @@ describe "Student Dashboard", js:true do
       @researcher = FactoryGirl.create :researcher
       sign_in(@researcher)
       @current_role = 'researcher'
-      set_users_school(@section.school)
+      set_users_school(@school)
     end
     it { role_display_is_valid }
     it { researcher_toolkit_no_changes }
@@ -44,7 +45,7 @@ describe "Student Dashboard", js:true do
       @system_administrator = FactoryGirl.create :system_administrator
       sign_in(@system_administrator)
       @current_role = 'system_administrator'
-      set_users_school(@section.school)
+      set_users_school(@school)
     end
     it { role_display_is_valid }
   end
@@ -73,24 +74,22 @@ describe "Student Dashboard", js:true do
      # note role starts out as highest
       @current_role = 'school_administrator'
     end
-    it { role_display_is_valid }
+    it { role_display_is_valid(true) }
   end
 
   ##################################################
   # test methods
 
-  def role_display_is_valid
+  def role_display_is_valid(dual_role=false)
     visit root_path()
-    Rails.logger.debug("+++ @test_user.role_symbols.inspect: #{@test_user.role_symbols.inspect}")
     assert_equal("/#{@current_role.pluralize}/#{@test_user.id}", current_path)
-    Rails.logger.debug("+++ @test_user.role_symbols.length: #{@test_user.role_symbols.length}")
     if @test_user.role_symbols.length > 1
       page.should have_css('li#side-role')
       within("li#side-role") do
         if @test_user.system_administrator?
-          page.should have_content('System Administrator')
+          page.should have_content('Sys Admin')
         else
-          page.should_not have_content('System Administrator')
+          page.should_not have_content('Sys Admin')
         end
         if @test_user.researcher?
           page.should have_content('Researcher')
@@ -98,9 +97,9 @@ describe "Student Dashboard", js:true do
           page.should_not have_content('Researcher')
         end
         if @test_user.school_administrator?
-          page.should have_content('School Administrator')
+          page.should have_content('School Admin')
         else
-          page.should_not have_content('School Administrator')
+          page.should_not have_content('School Admin')
         end
         if @test_user.teacher?
           page.should have_content('Teacher')
@@ -121,9 +120,15 @@ describe "Student Dashboard", js:true do
     else
       page.should_not have_css('li#side-role')
     end
-    Rails.logger.debug("+++ @test_user.teacher? #{@test_user.teacher?}")
     if @test_user.teacher?
-      Rails.logger.debug("+++ @teaching_assignment.inspect: #{@teaching_assignment.inspect}")
+      if dual_role
+        # open up list of available roles if needed
+        if !find("#side-role a[href='/teachers/#{@teacher.id}?role=teacher']").visible?
+          find("#side-role a.sidebar-nav-menu").click
+        end
+        # change role to teacher if school admin and teacher
+        find("#side-role a[href='/teachers/#{@teacher.id}?role=teacher']").click
+      end
       page.should have_css('li#side-current')
       within ('li#side-current') do
         page.should have_css('a.sidebar-nav-menu')
@@ -146,25 +151,26 @@ describe "Student Dashboard", js:true do
   end
   def researcher_toolkit_no_changes
     visit root_path()
-    Rails.logger.debug("+++ @test_user.role_symbols.inspect: #{@test_user.role_symbols.inspect}")
     assert_equal("/#{@current_role.pluralize}/#{@test_user.id}", current_path)
-    Rails.logger.debug("+++ @test_user.role_symbols.length: #{@test_user.role_symbols.length}")
     @test_user.role_symbols.length .should be 1
     page.should_not have_css('li#side-role')
-    Rails.logger.debug("+++ @test_user.researcher? #{@test_user.researcher?}")
     @test_user.researcher?.should be true
-    Rails.logger.debug("+++ @teaching_assignment.inspect: #{@teaching_assignment.inspect}")
-    # page.should_not have_css('li#side-current a')
-    # page.should_not have_css('li#side-past a')
+    page.should have_css('li#side-current a.disabled')
+    page.should have_css('li#side-past a.disabled')
     page.should have_css('li#side-add-lo a.disabled')
     page.should have_css('li#side-add-evid a.disabled')
     page.should have_css('li#side-restore-evid a.disabled')
     page.should have_css('li#side-attend a.disabled')
     page.should have_css('li#side-attendance-maint a.disabled')
+    page.should have_css('li#side-reports a')
     page.should_not have_css('li#side-reports a.disabled')
-    # page.should_not have_css('li#side-staff a.disabled')
+    page.should have_css('li#side-staff a')
+    page.should_not have_css('li#side-staff a.disabled')
+    page.should have_css('li#side-students a')
     page.should_not have_css('li#side-students a.disabled')
+    page.should have_css('li#side-subjects a')
     page.should_not have_css('li#side-subjects a.disabled')
+    page.should have_css('li#side-schools a')
     page.should_not have_css('li#side-schools a.disabled')
     page.should_not have_css('li#side-templates')
     visit section_path(@section.id)
@@ -172,8 +178,8 @@ describe "Student Dashboard", js:true do
     page.should have_css('li#side-add-lo a.disabled')
     page.should have_css('li#side-add-evid a.disabled')
     page.should have_css('li#side-restore-evid a.disabled')
-    # confirm researcher
-    page.should_not have_css('li#side-attend a.disabled')
+    # confirm researcher cannot see link to enter attendance
+    page.should have_css('li#side-attend a.disabled')
 
   end
 

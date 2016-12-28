@@ -181,7 +181,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       find('#save_matches').click
-      save_and_open_page
+      # save_and_open_page
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
       page.should have_css('#count_errors', text: '0')
