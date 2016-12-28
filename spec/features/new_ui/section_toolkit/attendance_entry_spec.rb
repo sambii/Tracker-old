@@ -203,10 +203,10 @@ describe "Teacher Tracker", js:true do
     # visit section to see if section attendance becomes active link in toolkit
     visit section_path(@section1_1.id)
     # need to tighten up security on this.  note they cannot see page, just have a link to it
-    # within("#side-attend") do
-    #   page.should have_css("a.disabled")
-    # end
-    # it "should not let unauthorized user see the section attendance page" do
+    within("#side-attend") do
+      page.should have_css("a.disabled")
+    end
+    # should not let unauthorized user see the section attendance page
     visit section_attendance_attendance_path(@section1_1.id)
     assert_equal(@err_page, current_path)
   end
@@ -216,11 +216,12 @@ describe "Teacher Tracker", js:true do
     # should not have a active toolkit item to enter attendance
     # visit section to see if section attendance becomes active link
     visit section_path(@section1_1.id)
+
     within("#side-attend") do
       page.should_not have_css("a.disabled")
+      find("a[href='/attendances/#{@section1_1.id}/section_attendance']").click
     end
 
-    visit section_attendance_attendance_path(@section1_1.id)
     # page should show attendance for current date
     within("form .block-title") do
       page.should have_content("Section Attendance for #{Date.today.to_s}")

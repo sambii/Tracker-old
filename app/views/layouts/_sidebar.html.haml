@@ -105,8 +105,7 @@
         %i.fa.fa-repeat.sidebar-nav-icon>
         ='Restore Evidence'
     %li#side-attend
-      - # %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : section_attendance_attendance_path(@section) ), class: (@section.nil? || @section.id.nil? || !can?(:section_attendance, @section) ? 'disabled' : '')}
-      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : section_attendance_attendance_path(@section) ), class: (@section.nil? || @section.id.nil? ? 'disabled' : '')}
+      %a{href: ( @section.nil? || @section.id.nil? ? 'javascript:void(0)' : section_attendance_attendance_path(@section) ), class: (@section.nil? || @section.id.nil? || !can?(:section_attendance, @section) ? 'disabled' : '')}
         %i.fa.fa-calendar.sidebar-nav-icon>
         ='Section Attendance'
     %li#side-attendance-maint

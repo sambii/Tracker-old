@@ -92,7 +92,7 @@ class Ability
           { school_id: user.school_id }
 
         # Section
-        can [:section_outcomes],
+        can [:section_outcomes, :section_attendance],
           Section,
           { subject: { school_id: user.school_id } }
 
@@ -157,7 +157,7 @@ class Ability
 
         # Section
         can [:create, :new_enrollment, :new_evidence, :new_section_outcome,
-             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :section_outcomes, :index],
+             :section_outcomes, :show, :sort, :update, :restore_evidence, :section_summary_outcome, :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout, :progress_rpt_gen, :class_dashboard, :edit_section_message, :exp_col_all_evid, :list_enrollments, :remove_enrollment, :section_outcomes, :index, :section_attendance],
             Section,
             { teaching_assignments: {teacher_id: user.id }}
         # teachers can create new sections in their school for any subject
@@ -288,7 +288,7 @@ class Ability
              :section_summary_student, :nyp_student, :nyp_outcome, :student_info_handout,
              :student_info_handout_by_grade, :progress_rpt_gen, :class_dashboard, :edit_section_message,
              :exp_col_all_evid, :list_enrollments, :remove_enrollment, :enter_bulk, :update_bulk,
-             :section_outcomes, :new, :create],
+             :section_outcomes, :new, :create, :section_attendance],
           Section,
           { subject: {school_id: user.school_id }}
         can [:new], Section
