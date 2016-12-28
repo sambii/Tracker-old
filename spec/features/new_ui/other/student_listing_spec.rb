@@ -149,7 +149,7 @@ describe "Student Listing", js:true do
     can_see_student_sections(@student, @enrollment, @enrollment_s2, can_see_all)
     visit students_path
     assert_equal("/students", current_path)
-    can_reset_student_password(@student) if !read_only
+    can_reset_student_password(@student) if !read_only # note: tested more completely in password_change_spec.rb
     can_change_student(@student) if !read_only
     can_create_student(@student) if !read_only
   end # def has_valid_subjects_listing
@@ -196,8 +196,8 @@ describe "Student Listing", js:true do
     end
     page.should have_content("Student/Parent Security and Access")
     within("#user_#{student.id}") do
-      page.should have_css("a[href='/users/#{student.id}/set_temporary_password']")
-      find("a[href='/users/#{student.id}/set_temporary_password']").click
+      page.should have_css("a[href='/students/#{student.id}/set_student_temporary_password']")
+      find("a[href='/students/#{student.id}/set_student_temporary_password']").click
     end
     within("#user_#{student.id}.student-temp-pwd") do
       page.should_not have_content('(Reset Password')
