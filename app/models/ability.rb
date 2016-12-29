@@ -244,7 +244,7 @@ class Ability
         can [:switch, :dashboard], School
         can [:exp_col_all_evid, :section_outcomes],
             Section
-        can :proficiency_bars, Student
+        # can :proficiency_bars, Student
         can [:proficiency_bars, :progress_meters, :view_subject_outcomes], Subject
         can [:staff_listing, :sections_list], User
         can [:tracker_usage], Teacher

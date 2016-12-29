@@ -25,4 +25,5 @@
         %a#add-school.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_school_path(format: :js)}}
           %i.fa.fa-lg.fa-plus-square
 
-=render('schools/listing')
+.row.indent-row
+  =render('schools/listing')

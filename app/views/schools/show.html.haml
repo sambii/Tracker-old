@@ -12,5 +12,27 @@
   %h1.h3.page-title
     %strong=''
   %h2.h1.page-title
-    %strong="School: #{@school.name}"
-=render('schools/show')
+    - if can? :dashboard, @school
+      %a{href: dashboard_school_path(@school.id), title: 'School Dashboard'}
+        %i.fa.fa-dashboard
+    %strong="School Summary: #{@school.name}"
+
+/ First Row
+.row.indent-row
+  - if can? :dashboard, @school
+    .col-sm-6.col-lg-6
+      #summary.block.block-alt-style.full
+        .block-title.text-center
+          %h3.h2
+            ='School Summary Reports'
+        .row
+          =render('schools/summary_reports')
+
+  .col-sm-6.col-lg-6
+    #overall.block.block-alt-style.full
+      .block-title.text-center
+        %h3.h2
+          ='School Details'
+      .row
+        =render('schools/show')
+

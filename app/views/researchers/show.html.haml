@@ -1,2 +1,54 @@
-// show.html.haml
-=render('researchers/dashboard')
+
+- content_for(:title, 'Researcher Home')
+- content_for(:page_name, 'Researcher Home')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Home'
+  %h2.page-title
+    %strong="#{@researcher.full_name}"
+  - si_time = (@researcher.current_sign_in_at.nil?) ? 'Never' : @researcher.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
+  .row="(Latest signin time at: #{si_time})"
+
+  - if @current_school.id.nil?
+    %h3.h1.page-title.text-center
+      %strong.red="Please Choose a School"
+    .row
+      =render('schools/listing')
+  - else
+    %h3.h1.page-title.text-center
+      - if can? :dashboard, @school
+        %a{href: dashboard_school_path(@school.id), title: 'School Dashboard'}
+          %i.fa.fa-dashboard
+      %strong=@school.name
+
+- if !@current_school.id.nil?
+  / First Row
+  .row
+    - if can? :dashboard, @school
+      .col-sm-6.col-lg-6
+        #overall.block.block-alt-style.full
+          .block-title.text-center
+            %h2
+              ='School Summary Reports'
+          .row
+            =render('schools/summary_reports')
+
+    .col-sm-6.col-lg-6
+      #overall.block.block-alt-style.full
+        .block-title.text-center
+          %h2
+            ='School Details'
+        .row
+          =render('schools/show')
+
+  / Second Row
+  #school_listing
+    =render('schools/listing')
+
+

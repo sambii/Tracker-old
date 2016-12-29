@@ -15,7 +15,9 @@
       - else
         - if can? :switch, School
           %a{href: schools_path, title: 'Switch School'}
-            %i.fa.fa-lg.fa-building-o
+            %i.fa.fa-lg.fa-ellipsis-v.fa-fw
+          %a{href: school_path(@current_school.id), title: 'School Summary'}
+            %i.fa.fa-lg.fa-building-o.fa-fw
           %span{title: 'Current School'}= "#{@current_school.name}"
           - if @current_school.school_year.present?
             %span{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
@@ -35,17 +37,16 @@
             %i.fa.fa-dashboard
 
         %strong.hidden-xs Dashboard:
-        %select#subject.select-select2{onchange: 'location=this.options[this.selectedIndex].value;', style: "width: 200px;"}
-          %option{value: ''}=''
-          %option{value: "#{root_path}"}= "Summary"
-          - if @current_school.id == nil
-            %option{value: "#{schools_path}"}= "No Subjects, Choose a School"
-          - @toolkit_subjects.each do |s|
-            - is_sel = (current_page?(controller: 'subjects', action: 'show', id: s.id)) ? 'selected' : false
-            %option{value: "#{subject_path(s.id)}", selected: is_sel}= "#{s.name}"
-          - @toolkit_current_sections.each do |s|
-            - is_sel = (current_page?(controller: 'sections', action: 'class_dashboard', id: s.id)) ? 'selected' : false
-            %option{value: "#{class_dashboard_section_path(s.id)}", selected: is_sel}= "#{s.subject.name} - #{s.line_number}"
+        - if !@current_school.id.blank?
+          %select#subject.select-select2{onchange: 'location=this.options[this.selectedIndex].value;', style: "width: 200px;"}
+            %option{value: ''}=''
+            %option{value: "#{dashboard_school_path(@current_school.id)}"}= "School Summary"
+            - @toolkit_subjects.each do |s|
+              - is_sel = (current_page?(controller: 'subjects', action: 'show', id: s.id)) ? 'selected' : false
+              %option{value: "#{subject_path(s.id)}", selected: is_sel}= "#{s.name}"
+            - @toolkit_current_sections.each do |s|
+              - is_sel = (current_page?(controller: 'sections', action: 'class_dashboard', id: s.id)) ? 'selected' : false
+              %option{value: "#{class_dashboard_section_path(s.id)}", selected: is_sel}= "#{s.subject.name} - #{s.line_number}"
   / User Dropdown
   %li#head-user-dropdown.dropdown
     %a.dropdown-toggle{"data-toggle" => "dropdown", href: "javascript:void(0)"}

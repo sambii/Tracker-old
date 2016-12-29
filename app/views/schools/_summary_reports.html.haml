@@ -1,0 +1,33 @@
+
+#school-summary.div.show-label-value
+  - if can? :dashboard, @school
+    .row
+      %span.col-sm-6.control-label='School Dashboard:'
+      %span#school-name.col-sm-6.value
+        %a{href: "#{dashboard_school_path(@school.id)}"}
+          %i.fa.fa-dashboard
+  - if can? :tracker_usage, Teacher
+    .row
+      %span.col-sm-6.control-label='Tracker Usage:'
+      %span#school-name.col-sm-6.value
+        %a{href: "#{tracker_usage_teachers_path}"}='Tracker Usage Report'
+  - if can? :progress_rpt_gen, Section
+    .row
+      %span.col-sm-6.control-label='LOs Covered:'
+      %span#school-name.col-sm-6.value
+        %a{href: "#{progress_meters_subjects_path}"}='Subject Progress Meters'
+  - if can? :proficiency_bars, Subject
+    .row
+      %span.col-sm-6.control-label='Proficiency Bar Chart:'
+      %span#school-name.col-sm-6.value
+        %a{href: "#{proficiency_bars_subjects_path}"}='Subject Bar Charts'
+  - if can? :proficiency_bars, Student
+    .row
+      %span.col-sm-6.control-label='Student Proficiency:'
+      %span#school-name.col-sm-6.value
+        %a{href: "#{students_report_path(report: "proficiency_bar_chart")}"}='Student Bar Charts'
+  - if can? :account_activity_report, User
+    .row
+      %span.col-sm-6.control-label='Users Activity:'
+      %span#school-name.col-sm-6.value
+        %a{href: "#{account_activity_report_users_path}"}='Account Activity Report'
