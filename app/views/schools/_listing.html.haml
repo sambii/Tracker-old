@@ -25,7 +25,7 @@
                 - else
                   %td.school-year=''
                 %td.text-center
-                  - if can? :switch, school
+                  - if can? :summary, school
                     %a{href: school_path(school.id), title: "Make '#{school.acronym} - #{school.name}'' curent school"}
                       %i.fa.fa-lg.fa-building-o
                 %td.text-center

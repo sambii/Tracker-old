@@ -13,10 +13,10 @@
     %span.col-sm-6.control-label='Marking Periods:'
     %span#school-marking-periods.col-sm-6.value=@school.marking_periods
   .row
-    %span.col-sm-6.control-label='Use Family Name):'
+    %span.col-sm-6.control-label='Use Family Name:'
     %span#school-use-family-name.col-sm-6.value=@school.has_flag?(School::USE_FAMILY_NAME)
   .row
-    %span.col-sm-6.control-label='User Sort by:'
+    %span.col-sm-6.control-label='Names by First, Last/Family:'
     %span#school-sort-by.col-sm-6.value=@school.has_flag?(School::USER_BY_FIRST_LAST)
   .row
     %span.col-sm-6.control-label='Grade in Subject Name:'

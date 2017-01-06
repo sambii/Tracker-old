@@ -13,6 +13,7 @@ class SchoolsController < ApplicationController
     template = "schools/reports/#{params[:report]}" if params[:report]
 
     if template == "schools/show"
+      # to do - review this commented out code for possible extra security precautions.
       # @school = School.includes(students: {enrollments: {section: [:subject, teaching_assignments: :teacher]}}).find(params[:id])
       # @school = School.includes(:school_year).find(params[:id])
       set_school_context
@@ -21,12 +22,10 @@ class SchoolsController < ApplicationController
     end
 
     respond_to do |format|
-      # when send to school page from no current school error, go to last page
       # todo - review this flow, maybe show should not be used here.
       if template == "schools/show"
-        Rails.logger.debug("*** return_to: #{session[:return_to]}")
-        Rails.logger.debug("*** this_original_url: #{session[:this_original_url]}")
-        Rails.logger.debug("*** last_original_url: #{session[:last_original_url]}")
+        # to do - authorize only user types given :summary action on School (action used in many places - needs full testing)
+        # authorize! :summary, School
         format.html
       else
         format.html { render template }

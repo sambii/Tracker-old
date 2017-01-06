@@ -12,9 +12,6 @@
   %h1.h3.page-title
     %strong=''
   %h2.h1.page-title
-    - if can? :dashboard, @school
-      %a{href: dashboard_school_path(@school.id), title: 'School Dashboard'}
-        %i.fa.fa-dashboard
     %strong="School Summary: #{@school.name}"
 
 / First Row

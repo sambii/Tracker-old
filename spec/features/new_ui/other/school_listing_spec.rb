@@ -37,11 +37,8 @@ describe "School Listing", js:true do
       sign_in(@teacher1)
       @home_page = "/teachers/#{@teacher1.id}"
     end
-    it { no_nav_to_schools_page }
-    it { has_no_schools_summary }
-    it { only_list_one_school }
-    it { no_rollover_school_year }
-    it { no_new_year_rollover }
+    it { has_valid_school_navigations(:school_administrator) }
+    it { no_model_new_year_rollover }
   end
 
   describe "as school administrator" do
@@ -50,11 +47,9 @@ describe "School Listing", js:true do
       sign_in(@school_administrator)
       @home_page = "/school_administrators/#{@school_administrator.id}"
     end
-    it { no_nav_to_schools_page }
-    it { has_valid_schools_summary }
-    it { only_list_one_school }
-    it { has_rollover_school_year }
-    it { no_new_year_rollover }
+    it { has_valid_schools_summary(:school_administrator) }
+    it { has_valid_school_navigations(:school_administrator) }
+    it { no_model_new_year_rollover }
   end
 
   describe "as researcher" do
@@ -65,10 +60,10 @@ describe "School Listing", js:true do
       @home_page = "/researchers/#{@researcher.id}"
     end
     it { has_nav_to_schools_page(true) }
-    it { has_valid_schools_summary }
+    it { has_valid_schools_summary(:researcher) }
     it { lists_all_schools(false, true) }
-    it { no_rollover_school_year }
-    it { no_new_year_rollover }
+    it { has_valid_school_navigations(:researcher) }
+    it { no_model_new_year_rollover }
   end
 
   describe "as researcher with no school selected" do
@@ -78,9 +73,6 @@ describe "School Listing", js:true do
       @home_page = "/researchers/#{@researcher.id}"
     end
     it { has_nav_to_schools_page(false) }
-    # it { lists_all_schools(false, false) }
-    # it { no_rollover_school_year }
-    # it { no_new_year_rollover }
   end
 
   describe "as system administrator" do
@@ -91,10 +83,10 @@ describe "School Listing", js:true do
       @home_page = "/system_administrators/#{@system_administrator.id}"
     end
     it { has_nav_to_schools_page(true) }
-    it { has_valid_schools_summary }
+    it { has_valid_schools_summary(:system_administrator)}
+    it { has_valid_school_navigations(:system_administrator) }
     it { lists_all_schools(true, true) }
-    it { has_rollover_school_year }
-    it { has_new_year_rollover }
+    it { has_model_new_year_rollover }
   end
 
   describe "as system administrator with no school selected" do
@@ -104,9 +96,6 @@ describe "School Listing", js:true do
       @home_page = "/system_administrators/#{@system_administrator.id}"
     end
     it { has_nav_to_schools_page(false) }
-    # it { lists_all_schools(true, false) }
-    # it { has_rollover_school_year }
-    # it { has_new_year_rollover }
   end
 
   describe "as student" do
@@ -114,9 +103,7 @@ describe "School Listing", js:true do
       sign_in(@student)
       @home_page = "/students/#{@student.id}"
     end
-    it { no_nav_to_schools_page }
-    it { has_no_schools_summary }
-    it { no_school_listing }
+    it { has_valid_school_navigations(:student) }
   end
 
   describe "as parent" do
@@ -124,15 +111,14 @@ describe "School Listing", js:true do
       sign_in(@student.parent)
       @home_page = "/parents/#{@student.parent.id}"
     end
-    it { no_nav_to_schools_page }
-    it { has_no_schools_summary }
-    it { no_school_listing }
+    it { has_valid_school_navigations(:parent) }
   end
 
   ##################################################
   # test methods
 
   def has_nav_to_schools_page(school_assigned)
+    # only for system_administrators and researchers
     if !school_assigned
       # confirm school is not assigned
       within("#head-current-school") do
@@ -150,6 +136,9 @@ describe "School Listing", js:true do
       page.should_not have_content("Select a School")
       within("span[title='Current School']") do
         page.should have_content(@school2.name)
+        page.should have_css("a[href='/schools'] i.fa-ellipsis-v")
+        page.should have_css("a[href='/schools/#{@school2.id}'] i.fa-building-o")
+        page.should have_css("a[href='/schools/#{@school2.id}/dashboard'] i.fa-dashboard")
       end
     end
 
@@ -165,81 +154,142 @@ describe "School Listing", js:true do
 
   def has_valid_schools_summary(role)
     # access to school listing and school summary page in header
+    # to be run only for ('system_administrator' || 'researcher' || 'school_administrator')
 
     # has link to school listing page in header
-    if role == 'school_administrator'
-      page.should_not have_css("#head-current-school a[href='/schools']")
-    else
+    if (role == :system_administrator || role == :researcher)
+      # note: this is called only after school has been assigned
       page.should have_css("#head-current-school a[href='/schools']")
+    elsif (role == :school_administrator)
+      page.should_not have_css("#head-current-school a[href='/schools']")
+      # if going directly to schools page, should only show one school
+      visit schools_path
+      assert_equal("/schools", current_path)
+      page.should have_css("tr#school-#{@school1.id}")
+      page.all("tr td.school-acronym").count.should == 1
+    else
+      # should not be run for other roles
+      assert_equal(false, true)
     end
-    
+
     # has valid school summary page accessible from header
     within("#head-current-school") do
-      find("a[href='/schools/#{@school2.id}']").click
+      find("a[href='/schools/#{@school1.id}']").click
     end
-    assert_equal("/schools/#{@school2.id}", current_path)
-    within("header-block h2") do
-      page.should have_content(@school2.name)
+
+    # validate the school summary page
+    assert_equal("/schools/#{@school1.id}", current_path)
+    within(".header-block h2") do
+      page.should have_content(@school1.name)
     end
     within("#overall #school-acronym") do
-      page.should have_content(@school2.acronym)
+      page.should have_content(@school1.acronym)
     end
     within("#summary") do
-      page.should have_css("/schools/#{@school1.id}/dashboard")
-      page.should have_css("/teachers/tracker_usage")
-      page.should have_css("/subjects/progress_meters")
-      page.should have_css("/subjects/proficiency_bars")
-      if role == 'researcher'
-        page.should_not have_css("/students/reports/proficiency_bar_chart")
-        page.should_not have_css("/users/account_activity_report")
-        page.should_not have_css("/users/staff_activity_report")
+      page.should have_css("a[href='/schools/#{@school1.id}/dashboard']")
+      page.should have_css("a[href='/teachers/tracker_usage']")
+      page.should have_css("a[href='/subjects/progress_meters']")
+      page.should have_css("a[href='/subjects/proficiency_bars']")
+      # to do - create staff activity report as in school dashboard page, except more/all? recent activity
+      # page.should have_css("a[href='/users/staff_activity_report']")
+      if role == :researcher
+        page.should_not have_css("a[href='/students/reports/proficiency_bar_chart']")
+        page.should_not have_css("a[href='/users/account_activity_report']")
       else
-        page.should have_css("/students/reports/proficiency_bar_chart")
-        page.should_not have_css("/users/account_activity_report")
-        page.should have_css("/users/staff_activity_report")
+        page.should have_css("a[href='/students/reports/proficiency_bar_chart']")
+        page.should have_css("a[href='/users/account_activity_report']")
       end
     end
 
   end # has_valid_schools_summary
 
-  def has_no_schools_summary
+  def has_valid_school_navigations(role)
+
+    # confirm header has correct icons and links for current school.
+    within("#head-current-school") do
+      page.should_not have_content("Select a School")
+      within("span[title='Current School']") do
+        page.should have_content(@school2.name)
+        if (role == :system_administrator || role == :researcher)
+          page.should have_css("a[href='/schools'] i.fa-list-ul")
+        else
+          page.should_not have_css("a[href='/schools']")
+          page.should_not have_css("a[href='/schools'] i.fa-list-ul")
+        end
+        if (role == :system_administrator || role == :researcher || role == :school_administrator)
+          page.should have_css("a[href='/schools/#{@school2.id}'] i.fa-building-o")
+          page.should have_css("a[href='/schools/#{@school2.id}/dashboard'] i.fa-dashboard")
+        else
+          page.should_not have_css("a[href='/schools/#{@school2.id}']")
+          page.should_not have_css("a[href='/schools/#{@school2.id}'] i.fa-building-o")
+          page.should_not have_css("a[href='/schools/#{@school2.id}/dashboard']")
+          page.should_not have_css("a[href='/schools/#{@school2.id}/dashboard'] i.fa-dashboard")
+        end
+      end
+    end
     # no access to school listing and school summary page in header
     page.should_not have_css("#head-current-school a[href='/schools']")
     page.should_not have_css("#head-current-school a[href='/schools/#{@school1.id}']")
+    page.should_not have_css("#head-current-school a[href='/schools/#{@school1.id}/dashboard']")
     visit("/schools/#{@school1.id}")
-    assert_equal(current_path, "/schools/#{@school1.id}")
-    within("#summary") do
-      page.should_not have_css("/schools/#{@school1.id}/dashboard")
-      page.should_not have_css("/teachers/tracker_usage")
-      page.should_not have_css("/subjects/progress_meters")
-      page.should_not have_css("/subjects/proficiency_bars")
-      page.should_not have_css("/students/reports/proficiency_bar_chart")
-      page.should_not have_css("/users/account_activity_report")
+    assert_equal(current_path, @home_page)
+
+    # confirm sidebar only shows the school listing toolkit item if allowed
+    if (role == :system_administrator || role == :researcher)
+      page.should have_css("li#side-schools a[href='/schools']")
+    else
+      page.should_not have_css("li#side-schools")
+      page.should_not have_css("a[href='/schools']")
     end
-    # to do - shut down school summary listing page to all except admins and researcher
-    assert_not_equal(current_path, "/schools/#{@school1.id}")
-    assert_equal(current_path, @home_page)
-  end
 
-  def no_nav_to_schools_page
-    page.should_not have_css("li#side-schools")
-  end # no_nav_to_schools_page
+    # attempt to go to school listing and confirm it only lists proper navigations correct if returned
+    if (role == :system_administrator || role == :researcher)
+      within("#head-current-school span[title='Current School']") do
+        find("a[href='/schools'] i.fa-list-ul").click
+      end
+    else
+      visit(schools_path)
+    end
+    if (role == :student || role == :parent)
+      assert_equal(current_path, @home_page)
+    else
+      assert_equal(current_path, schools_path)
+      if (role == :teacher || role == :school_administrator || role == :system_administrator || role == :researcher)
+        page.should have_css("tr#school-#{@school1.id}")
+        page.all("tr td.school-acronym").count.should == 1
+        within("tr#school-#{@school1.id}") do
+          page.should have_css("a[href='/schools/#{@school1.id}'] i.fa-building-o")
+          page.should have_css("a[href='/schools/#{@school1.id}/dashboard'] i.fa-dashboard")
+          if (role == :teacher || role == :researcher)
+            # to do - prevent edit box from showing up for teachers
+            page.should_not have_css("a[data-url='/schools/#{@school1.id}/edit.js']")
+            page.should_not have_css("a[data-url='/schools/#{@school1.id}/edit.js'] i.fa-edit")
+            page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
+            page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover'] i.fa-forward")
+            page.should_not have_css("a[id='rollover-#{@school1.id}']")
+          elsif (role == :school_administrator || role == :system_administrator)
+            page.should have_css("a[href='/schools/#{@school1.id}/edit.js'] i.fa-edit")
+            page.should have_css("a[href='/schools/#{@school1.id}/new_year_rollover'] i.fa-forward")
+            page.should have_css("a[id='rollover-#{@school1.id}']")
+            page.should have_css("a.dim[id='rollover-#{@school1.id}']")
+          end
+        end
+        if (role == :teacher || role == :school_administrator)
+          page.should have_css("tr#school-#{@school1.id}")
+          page.all("tr td.school-acronym").count.should == 1
+        elsif (role == :system_administrator || role == :researcher)
+          page.should have_css("tr#school-#{@school1.id}")
+          page.should have_css("tr#school-#{@school2.id}")
+          page.all("tr td.school-acronym").count.should == 2
+        end
+      else
+        # no tests for these roles yet
+      end
+    end
 
-  def no_school_listing
-    # should not allow user to go directly to schools page
-    visit schools_path
-    assert_not_equal("/schools", current_path)
-    assert_equal(current_path, @home_page)
-  end # no_school_listing
+  end # has_valid_school_navigations
 
-  def only_list_one_school
-    # if going directly to schools page, should only show one school
-    visit schools_path
-    assert_equal("/schools", current_path)
-    page.should have_css("tr#school-#{@school1.id}")
-    page.all("tr td.school-acronym").count.should == 1
-  end # only_list_one_school
-
+  # to do - is this a duplication of newer tests?
   def lists_all_schools(sys_admin, school_assigned)
     visit schools_path()
     assert_equal("/schools", current_path)
@@ -323,29 +373,16 @@ describe "School Listing", js:true do
 
   end # def lists_all_schools
 
-  def no_rollover_school_year
-    visit schools_path()
-    assert_equal("/schools", current_path)
-    page.should_not have_css("a[id='rollover-#{@school1.id}']")
-  end # def no_rollover_school_year
-
-  def has_rollover_school_year
-    visit schools_path()
-    assert_equal("/schools", current_path)
-    page.should have_css("a[id='rollover-#{@school1.id}']")
-    page.should have_css("a.dim[id='rollover-#{@school1.id}']")
-  end # def has_rollover_school_year
-
-  def no_new_year_rollover
+  def no_model_new_year_rollover
     visit schools_path()
     assert_equal("/schools", current_path)
     page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
-  end # def no_new_year_rollover
+  end # def no_model_new_year_rollover
 
-  def has_new_year_rollover
+  def has_model_new_year_rollover
     visit schools_path()
     assert_equal("/schools", current_path)
     page.should have_css("a[href='/schools/#{@school2.id}/new_year_rollover']")
-  end # def has_new_year_rollover
+  end # def has_model_new_year_rollover
 
 end

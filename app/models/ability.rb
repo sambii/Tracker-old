@@ -241,7 +241,7 @@ class Ability
 
         can :manage, Generate
         can [:section_summary_outcome, :section_summary_student, :nyp_outcome, :nyp_student, :progress_rpt_gen, :class_dashboard], Section
-        can [:switch, :dashboard], School
+        can [:switch, :dashboard, :summary], School
         can [:exp_col_all_evid, :section_outcomes],
             Section
         # can :proficiency_bars, Student
@@ -278,7 +278,7 @@ class Ability
         can [:new], EvidenceSectionOutcomeRating
 
         # School
-        can [:read, :edit, :update, :new_year_rollover],
+        can [:read, :edit, :update, :new_year_rollover, :dashboard, :summary],
           School,
           { id: user.school_id }
 

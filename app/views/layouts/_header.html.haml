@@ -15,16 +15,16 @@
       - else
         - if can? :switch, School
           %a{href: schools_path, title: 'Switch School'}
-            %i.fa.fa-lg.fa-ellipsis-v.fa-fw
+            %i.fa.fa-lg.fa-list-ul.fa-fw
+        - if can? :summary, School
           %a{href: school_path(@current_school.id), title: 'School Summary'}
             %i.fa.fa-lg.fa-building-o.fa-fw
-          %span{title: 'Current School'}= "#{@current_school.name}"
-          - if @current_school.school_year.present?
-            %span{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
-        - else
-          %span.text-muted= "#{@current_school.name}"
-          - if @current_school.school_year.present?
-            %span.text-muted{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
+        - if can? :dashboard, School
+          %a{href: dashboard_school_path(@current_school.id), title: 'School Dashboard'}
+            %i.fa.fa-lg.fa-dashboard.fa-fw
+        %span.text-muted{title: 'Current School'}= "#{@current_school.name}"
+        - if @current_school.school_year.present?
+          %span.text-muted{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
 / END Left Header Navigation
 / Right Header Navigation
 %ul.nav.navbar-nav-custom.pull-right
