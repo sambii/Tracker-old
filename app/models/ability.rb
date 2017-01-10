@@ -278,7 +278,7 @@ class Ability
         can [:new], EvidenceSectionOutcomeRating
 
         # School
-        can [:read, :edit, :update, :new_year_rollover, :dashboard, :summary],
+        can [:read, :new_year_rollover, :dashboard, :summary],
           School,
           { id: user.school_id }
 

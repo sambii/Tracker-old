@@ -9,21 +9,22 @@
   .row
     %span.col-sm-6.control-label='City / Town:'
     %span#school-city.col-sm-6.value=@school.city
-  .row
-    %span.col-sm-6.control-label='Marking Periods:'
-    %span#school-marking-periods.col-sm-6.value=@school.marking_periods
-  .row
-    %span.col-sm-6.control-label='Use Family Name:'
-    %span#school-use-family-name.col-sm-6.value=@school.has_flag?(School::USE_FAMILY_NAME)
-  .row
-    %span.col-sm-6.control-label='Names by First, Last/Family:'
-    %span#school-sort-by.col-sm-6.value=@school.has_flag?(School::USER_BY_FIRST_LAST)
-  .row
-    %span.col-sm-6.control-label='Grade in Subject Name:'
-    %span#school-grade-in-subject.col-sm-6.value=@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
-  .row
-    %span.col-sm-6.control-label='Username from email:'
-    %span#username-from-email.col-sm-6.value=@school.has_flag?(School::USERNAME_FROM_EMAIL)
+  - if can? :see_school_flags, @school
+    .row
+      %span.col-sm-6.control-label='Marking Periods:'
+      %span#school-marking-periods.col-sm-6.value=@school.marking_periods
+    .row
+      %span.col-sm-6.control-label='Use Family Name:'
+      %span#school-use-family-name.col-sm-6.value=@school.has_flag?(School::USE_FAMILY_NAME)
+    .row
+      %span.col-sm-6.control-label='Names by First, Last/Family:'
+      %span#school-sort-by.col-sm-6.value=@school.has_flag?(School::USER_BY_FIRST_LAST)
+    .row
+      %span.col-sm-6.control-label='Grade in Subject Name:'
+      %span#school-grade-in-subject.col-sm-6.value=@school.has_flag?(School::GRADE_IN_SUBJECT_NAME)
+    .row
+      %span.col-sm-6.control-label='Username from email:'
+      %span#username-from-email.col-sm-6.value=@school.has_flag?(School::USERNAME_FROM_EMAIL)
   - if @school.school_year.present?
     .row
       %span.col-sm-6.control-label='Start Date:'

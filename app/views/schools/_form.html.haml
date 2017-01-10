@@ -44,7 +44,7 @@
 - #     %span.ui-error="#{@errors[f] if @errors[f].present?}"
 %fieldset.input-group
   %label.col-sm-5.control-label='Surname:'
-  %input{type: 'hidden', name: "school[flag_pars][#{School::USE_FAMILY_NAME}]", value: 'false'}
+  %input#use-family-name{type: 'hidden', name: "school[flag_pars][#{School::USE_FAMILY_NAME}]", value: 'false'}
   %input.pull-left{:name => "school[flag_pars][#{School::USE_FAMILY_NAME}]", :type => "checkbox", checked: @school.has_flag?(School::USE_FAMILY_NAME)}
   %label.checkbox-right-label.pull-left="Use Family Name"
   %span.ui-error="#{@errors[School::USE_FAMILY_NAME] if @errors[School::USE_FAMILY_NAME].present?}"
@@ -85,6 +85,6 @@
 
 
 %fieldset.text-center
-  -# %input{type: :hidden, name: 'school[id]', value: @school.id}
-  %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
-  %button.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'
+-# %input{type: :hidden, name: 'school[id]', value: @school.id}
+%button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+%button.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'

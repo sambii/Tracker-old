@@ -81,6 +81,7 @@ describe "School Listing", js:true do
     it { has_nav_to_schools_page(true) }
     it { has_valid_schools_summary(:system_administrator)}
     it { has_valid_school_navigations(:system_administrator) }
+    it { valid_edit_school }
   end
 
   describe "as system administrator with no school selected" do
@@ -141,8 +142,8 @@ describe "School Listing", js:true do
     within("h2") do
       page.should have_content(@school2.name)
     end
-    page.should have_css("#overall")
     page.should have_css("#summary")
+    page.should have_css("#overall")
 
   end # has_nav_to_schools_page
 
@@ -193,6 +194,29 @@ describe "School Listing", js:true do
         page.should have_css("a[href='/students/reports/proficiency_bar_chart']")
         page.should have_css("a[href='/users/account_activity_report']")
       end
+    end
+    within("#overall #school-details") do
+      within('#school-name') do
+        page.should have_content(@school1.name)
+      end
+      page.should have_css('#school-name', text: @school1.name)
+      page.should have_css('#school-acronym', text: @school1.acronym)
+      page.should have_css('#school-city', text: @school1.city)
+      if role == :system_administrator
+        within('#school-marking-periods') { page.should have_content(@school1.marking_periods) }
+        within('#school-use-family-name') { page.should have_content(@school1.has_flag?(School::USE_FAMILY_NAME)) }
+        within('#school-sort-by') { page.should have_content(@school1.has_flag?(School::USER_BY_FIRST_LAST)) }
+        within('#school-grade-in-subject') { page.should have_content(@school1.has_flag?(School::GRADE_IN_SUBJECT_NAME)) }
+        within('#username-from-email') { page.should have_content(@school1.has_flag?(School::USERNAME_FROM_EMAIL)) }
+      else
+        page.should_not have_css('#school-marking-periods')
+        page.should_not have_css('#school-use-family-name')
+        page.should_not have_css('#school-sort-by')
+        page.should_not have_css('#school-grade-in-subject')
+        page.should_not have_css('#username-from-email')
+      end
+      page.should have_css('#school-year-start', text: "#{@school1.school_year.start_mm}-#{@school1.school_year.start_yyyy}")
+      page.should have_css('#school-year-end', text: "#{@school1.school_year.end_mm}-#{@school1.school_year.end_yyyy}")
     end
 
   end # has_valid_schools_summary
@@ -248,33 +272,35 @@ describe "School Listing", js:true do
       # ensure only valid links are displayed for school 1 based upon role.
       if (role == :teacher || role == :school_administrator || role == :system_administrator || role == :researcher)
         within("tr#school-#{@school1.id}") do
+          # all of these users should not have an active new year rollover
+          page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
           if (role == :teacher)
             page.should_not have_css("a[href='/schools/#{@school1.id}'] i.fa-building-o")
             page.should_not have_css("a[href='/schools/#{@school1.id}/dashboard'] i.fa-dashboard")
             page.should_not have_css("a[data-url='/schools/#{@school1.id}/edit.js']")
-            page.should_not have_css("a[data-url='/schools/#{@school1.id}/edit.js'] i.fa-edit")
-            page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
-            page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover'] i.fa-forward")
+            page.should_not have_css("i.fa-edit")
             page.should_not have_css("a[id='rollover-#{@school1.id}']")
           elsif (role == :researcher)
             page.should have_css("a[href='/schools/#{@school1.id}'] i.fa-building-o")
             page.should have_css("a[href='/schools/#{@school1.id}/dashboard'] i.fa-dashboard")
             page.should_not have_css("a[data-url='/schools/#{@school1.id}/edit.js']")
-            page.should_not have_css("a[data-url='/schools/#{@school1.id}/edit.js'] i.fa-edit")
-            page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover']")
-            page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover'] i.fa-forward")
+            page.should_not have_css("i.fa-edit")
             page.should_not have_css("a[id='rollover-#{@school1.id}']")
-          elsif (role == :school_administrator || role == :system_administrator)
+          elsif (role == :school_administrator)
+            page.should have_css("a[href='/schools/#{@school1.id}'] i.fa-building-o")
+            page.should have_css("a[href='/schools/#{@school1.id}/dashboard'] i.fa-dashboard")
+            page.should_not have_css("a[data-url='/schools/#{@school1.id}/edit.js']")
+            page.should_not have_css("i.fa-edit")
+            page.should have_css("a.dim[id='rollover-#{@school1.id}'][href='javascript:void(0)'] i.fa-forward")
+          elsif (role == :system_administrator)
             page.should have_css("a[href='/schools/#{@school1.id}'] i.fa-building-o")
             page.should have_css("a[href='/schools/#{@school1.id}/dashboard'] i.fa-dashboard")
             page.should have_css("a[data-url='/schools/#{@school1.id}/edit.js'] i.fa-edit")
-            page.should_not have_css("a[href='/schools/#{@school1.id}/new_year_rollover'] i.fa-forward")
-            page.should_not have_css("a[id='rollover-#{@school1.id}'][href='/schools/#{@school1.id}/new_year_rollover'] i.fa-forward")
             page.should have_css("a.dim[id='rollover-#{@school1.id}'][href='javascript:void(0)'] i.fa-forward")
           end
         end
 
-        # validate only/all other schools are listed
+        # validate only/all other schools are listed and links are valid
         if (role == :teacher || role == :school_administrator)
           page.should have_css("tr#school-#{@school1.id}")
           page.all("tr td.school-acronym").count.should == 1
@@ -318,10 +344,59 @@ describe "School Listing", js:true do
           end
         end
       else
-        # no tests for these roles yet
+        # no tests for other roles yet
+      end
+    end
+  end # has_valid_school_navigations
+
+  def valid_edit_school
+    # validate if edit school dialog should display, and if so does it work properly
+    visit schools_path
+    find("a[data-url='/schools/#{@school1.id}/edit.js'] i.fa-edit").click
+    page.should have_content("Edit School")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      within("form#edit_school_#{@school1.id}") do
+        # page.select(@subject2_1.discipline.name, from: "subject-discipline-id")
+        page.fill_in 'school_name', :with => 'Changed School Name'
+        page.fill_in 'school_acronym', :with => 'CHANGED'
+        page.fill_in 'school_city', :with => 'Changed City'
+        page.fill_in 'school_marking_periods', :with => '6'
+        find_field("school[flag_pars][use_family_name]").value.should == 'on'
+        find("input[name='school[flag_pars][use_family_name]']").set(false)
+        find_field("school[flag_pars][user_by_first_last]").value.should == 'on'
+        find("input[name='school[flag_pars][user_by_first_last]']").set(false)
+        find_field("school[flag_pars][grade_in_subject_name]").value.should == 'on'
+        find("input[name='school[flag_pars][grade_in_subject_name]']").set(false)
+        find_field("school[flag_pars][username_from_email]").value.should == 'on'
+        find("input[name='school[flag_pars][username_from_email]']").set(false)
+        find("input#school_start_mm").set('10')
+        find("input#school_start_yyyy").set('2001')
+        find("input#school_end_mm").set('5')
+        find("input#school_end_yyyy").set('2002')
+        page.click_button('Save')
       end
     end
 
-  end # has_valid_school_navigations
+    page.should_not have_css("#modal_popup form#edit_school_#{@school2.id}")
+    assert_equal("/schools", current_path)
+    find("a[data-url='/schools/#{@school1.id}/edit.js'] i.fa-edit").click
+    page.should have_content("Edit School")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      page.should have_css('input#school_name')
+      find_field("school_name").value.should_not == @school2.name
+      find_field("school_name").value.should == 'Changed School Name'
+      find_field("school_acronym").value.should == 'CHANGED'
+      find_field("school_city").value.should == 'Changed City'
+      find_field("school_marking_periods").value.should == '6'
+      find_field("school[flag_pars][use_family_name]").value.should == 'on'
+      find_field("school[flag_pars][user_by_first_last]").value.should == 'on'
+      find_field("school[flag_pars][grade_in_subject_name]").value.should == 'on'
+      find_field("school[flag_pars][username_from_email]").value.should == 'on'
+      find_field("school_start_mm").value.should == '10'
+      find_field("school_start_yyyy").value.should == '2001'
+      find_field("school_end_mm").value.should == '5'
+      find_field("school_end_yyyy").value.should == '2002'
+    end
+  end # end valid_edit_school
 
 end

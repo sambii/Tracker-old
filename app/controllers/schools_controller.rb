@@ -147,7 +147,7 @@ class SchoolsController < ApplicationController
         @school_year = get_school_year(@school, @model_school)
         ActiveRecord::Base.transaction do
           if @school.update_attributes(params[:school])
-            set_school_year_record(@school_year, params[:school_year])
+            set_school_year_record(@school_year, params[:school_year]) if params[:school_year]
             # don't copy of subjects and learning outcomes on update
             # this will be done on the subjects sections listing
             Rails.logger.debug("*** School was successfully updated.")
