@@ -51,6 +51,6 @@
                 %td= user.last_name
                 %td= user.first_name
                 %td= user.username
-                %td{id: "user_#{user.id}_password"}= set_temporary_password(user)
+                %td.text-center{id: "user_#{user.id}_password"}= set_temporary_password(user, false)
                 %td= user.sign_in_count
                 %td= user.last_sign_in_at

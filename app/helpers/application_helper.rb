@@ -103,10 +103,15 @@ module ApplicationHelper
   end
 
 
-  def set_temporary_password user
+  def set_temporary_password user, two_lines=true
     out_str = ''
     if user.temporary_password.present?
-      out_str += "<span class='temp-pwd height-30'>#{user.temporary_password}</span><br>"
+      out_str += "<span class='temp-pwd height-30'>#{user.temporary_password}</span>"
+      if two_lines
+        out_str += "<br>"
+      else
+        out_str += "&nbsp;"
+      end
     end
     out_str += "<span class='reset-pwd height-30'>#{link_to 'Reset Password', set_temporary_password_user_path(user), remote: true, class: 'btn btn-xs btn-primary pointer-cursor'}</span>"
     return out_str.html_safe
