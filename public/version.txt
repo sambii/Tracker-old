@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.052 Jan 11, 2017
+- Researcher home page, reset user password button even if already set password
 PARLO Tracker version v2.01.051 Dec 20, 2016
 - update version.txt to 51
 PARLO Tracker version v2.01.050 Dec 15, 2016
