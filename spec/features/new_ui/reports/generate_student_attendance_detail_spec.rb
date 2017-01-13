@@ -213,6 +213,9 @@ describe "Generate Student Attendance Detail Report", js:true do
       end
     end
 
+    sleep 20
+    save_and_open_page
+    
     # should return back to generate reports page with required fields errors
     page.should have_content('Generate Reports')
     page.should_not have_content('Internal Server Error')

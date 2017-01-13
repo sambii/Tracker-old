@@ -11,13 +11,14 @@ describe "School Admin Dashboard", js:true do
     @subj_math_3 = FactoryGirl.create :subject, name: 'Math 3', subject_manager: @teacher, school: @school
     @subj_math_4 = FactoryGirl.create :subject, name: 'Math 4', subject_manager: @teacher, school: @school
     @subj_math_5 = FactoryGirl.create :subject, name: 'Math 5', subject_manager: @teacher, school: @school
-    @subj_math_6 = FactoryGirl.create :subject, name: 'Math 6', subject_manager: @teacher, school: @school
-    @subj_math_7 = FactoryGirl.create :subject, name: 'Math 7', subject_manager: @teacher, school: @school
-    @subj_math_8 = FactoryGirl.create :subject, name: 'Math 8', subject_manager: @teacher, school: @school
-    @subj_math_9 = FactoryGirl.create :subject, name: 'Math 9', subject_manager: @teacher, school: @school
-    @subj_math_10 = FactoryGirl.create :subject, name: 'Math 10', subject_manager: @teacher, school: @school
-    @subj_math_11 = FactoryGirl.create :subject, name: 'Math 11', subject_manager: @teacher, school: @school
-    @subj_math_12 = FactoryGirl.create :subject, name: 'Math 12', subject_manager: @teacher, school: @school
+    # consider determining order of subjects in dashboard, and then ensuring that subject 1 is there for testing appropriately
+    # @subj_math_6 = FactoryGirl.create :subject, name: 'Math 6', subject_manager: @teacher, school: @school
+    # @subj_math_7 = FactoryGirl.create :subject, name: 'Math 7', subject_manager: @teacher, school: @school
+    # @subj_math_8 = FactoryGirl.create :subject, name: 'Math 8', subject_manager: @teacher, school: @school
+    # @subj_math_9 = FactoryGirl.create :subject, name: 'Math 9', subject_manager: @teacher, school: @school
+    # @subj_math_10 = FactoryGirl.create :subject, name: 'Math 10', subject_manager: @teacher, school: @school
+    # @subj_math_11 = FactoryGirl.create :subject, name: 'Math 11', subject_manager: @teacher, school: @school
+    # @subj_math_12 = FactoryGirl.create :subject, name: 'Math 12', subject_manager: @teacher, school: @school
     @school_administrator = FactoryGirl.create :school_administrator, school: @section.school
     load_test_section(@section, @teacher)
 
@@ -81,6 +82,10 @@ describe "School Admin Dashboard", js:true do
   def school_admin_dashboard_is_valid
     visit school_administrator_path(@school_administrator.id)
     assert_equal("/school_administrators/#{@school_administrator.id}", current_path)
+
+
+sleep 20
+save_and_open_page
 
     # Note overall lo counts should == prof bar counts for each color
     

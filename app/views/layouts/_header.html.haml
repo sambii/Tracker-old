@@ -9,7 +9,7 @@
     .navbar-nav-custom-content
       %span.app-name="Tracker | "
   %li#head-current-school
-    .navbar-nav-custom-content.hidden-xs
+    .navbar-nav-custom-content
       - if @current_school.id.nil?
         %a{href: schools_path}='Select a School'
       - else
@@ -25,6 +25,7 @@
         %span.text-muted{title: 'Current School'}= "#{@current_school.name}"
         - if @current_school.school_year.present?
           %span.text-muted{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
+  = render 'layouts/announcements'
 / END Left Header Navigation
 / Right Header Navigation
 %ul.nav.navbar-nav-custom.pull-right

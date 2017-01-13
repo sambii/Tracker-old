@@ -1,0 +1,1156 @@
+diff --git a/app/assets/stylesheets/proui_overwrite_app.css.less (original) b/app/assets/stylesheets/proui_overwrite_app.css.less (original)
+new file mode 100644
+index 0000000..24662cb
+--- /dev/null
++++ b/app/assets/stylesheets/proui_overwrite_app.css.less (original)	
+@@ -0,0 +1,935 @@
++/*
++ * UI styles that are common throughout app.
++ */
++
++@import "tracker-variables.less";
++
++/* login page */
++
++.public {
++  background: #fff url("../assets/login_bg.png") no-repeat center center;
++  .login-form {
++    width: 450px;
++    position: absolute;
++    left: 50%;
++    top: 50%;
++    transform: translateX(-50%) translateY(-50%);
++  }
++}
++
++
++/*
++ * Misc UI styles
++ */
++
++.float-none {
++  float: none;
++}
++/* note bootstrap pull-left and pull-right */
++
++/* link colors */
++
++/* start to darken links */
++// .panel, .block {
++//   .text-primary,
++//   .text-primary:hover,
++//   a,
++//   a:hover,
++//   a:focus {
++//     color: #0063aa; //#1c96dd;
++//   }
++// }
++
++.text-normal,
++.text-normal:hover,
++a.text-normal,
++a.text-normal:hover,
++a.text-normal:focus {
++    color: #000;
++}
++
++.larger {
++  font-size: larger !important;
++}
++
++.panel, .block {
++  .line-through {
++    text-decoration: line-through !important;
++    i {
++      text-decoration: line-through !important;
++    }
++  }
++  .gray-out, .grey-out {
++    background-color: #eee !important;
++    i {
++      background-color: #eee !important;
++    }
++  }
++  .inactive {
++    text-decoration: line-through !important;
++    background-color: #eee !important;
++    i {
++      text-decoration: line-through !important;
++      background-color: #eee !important;
++    }
++  }
++
++  tr.deactivated {
++    text-decoration: line-through !important;
++    background-color: #eee !important;
++    td .show-if-active {
++      display: none;
++    }
++    td .show-if-deactivated {
++      display: block;
++    }
++    i {
++      text-decoration: line-through !important;
++    }
++  }
++
++  tr td.deactivated {
++    text-decoration: line-through !important;
++    background-color: #eee !important;
++    i {
++      text-decoration: line-through !important;
++    }
++  }
++
++  tr.active {
++    text-decoration: none;
++    td .show-if-active {
++      display: block;
++    }
++    td .show-if-deactivated {
++      display: none;
++    }
++  }
++  .check-list {
++    > input[type='checkbox'] {
++      margin-left: 5px;
++      margin-right: 5px;
++    }
++    > span {
++      margin-left: 5px;
++      margin-right: 5px;
++    }
++  }
++  .check-list-header {
++    background-color: #eee;
++  }
++}
++
++.show-label-value {
++  font-size: 120%;
++  .control-label, .label {
++    font-weight: bold;
++    text-align: right;
++  }
++  .value {
++    text-align: left;
++  }
++}
++
++.btn.deactivated {
++  opacity: .4;
++}
++
++a.dim {
++  opacity: .3;
++}
++
++/* deactivated links look normal inside blocks and panels */
++.panel .deactivated,
++.block .deactivated {
++    background-color: inherit !important;
++    color: inherit !important;
++    text-decoration: none !important;
++    &:hover {
++      background-color: inherit !important;
++      color: inherit !important;
++      text-decoration: none !important;
++  }
++}
++
++.text-button {
++  background-color: #2398db;
++  color: #fff;
++  font-weight: bold;
++  margin: 10px auto;
++}
++
++.hidden_report {
++  display: none;
++}
++
++
++/*
++=============================
++Error Displays
++=============================
++*/
++
++
++.field-error {
++  background-color: #fc6 !important;
++}
++tr.field_with_errors {
++  background-color: #f99;
++}
++.field_with_errors {
++  input {
++    border-color: #f99;
++  }
++}
++
++.ui-error {
++  color: red;
++  border-color: red;
++}
++
++#announcements {
++  color: red;
++  background-color: #fcc !important;
++  .announcement {
++      max-width: 200px;
++      overflow: hidden;
++      display: inline-block;
++  }
++}
++
++.ui-success {
++  color: green;
++  border-color: green;
++}
++
++.ui-required {
++  color: red;
++  font-weight: bolder;
++}
++
++#error-row {
++  color: red;
++  margin-left: 10px;
++}
++
++.red {
++  color: red;
++}
++
++input[type="checkbox"].checkbox_padr {
++  margin-right: 10px;
++  margin-left: 2px;
++}
++
++input[type="checkbox"].checkbox_padl {
++  margin-right: 2px;
++  margin-left: 10px;
++}
++
++input.input-mm {
++  width: 40px;
++}
++
++input.input-yyyy {
++  width: 80px;
++}
++
++input.input-section-grid {
++  width: 40px;
++}
++
++.match-field-0 {
++  background-color: rgba(255, 223, 0, 0.7);
++}
++.match-field-1 {
++  background-color: white;
++}
++.similar-field-0-2 {
++  background-color: rgba(255, 191, 0, 0.7);
++}
++.similar-field-1-2 {
++  background-color: rgba(255, 223, 0, 0.7);
++}
++.similar-field-2-2 {
++  background-color: white;
++}
++.similar-field-0-3 {
++  background-color: rgba(255, 175, 0, 0.7);
++}
++.similar-field-1-3 {
++  background-color: rgba(255, 191, 0, 0.7);
++}
++.similar-field-2-3 {
++  background-color: rgba(255, 223, 0, 0.7);
++}
++.similar-field-3-3 {
++  background-color: white;
++}
++.similar-field-0-4 {
++  background-color: rgba(255, 159, 0, 0.7);
++}
++.similar-field-1-4 {
++  background-color: rgba(255, 175, 0, 0.7);
++}
++.similar-field-2-4 {
++  background-color: rgba(255, 191, 0, 0.7);
++}
++.similar-field-3-4 {
++  background-color: rgba(255, 223, 0, 0.7);
++}
++.similar-field-4-4 {
++  background-color: white;
++}
++.similarity-rating {
++  color: orange;
++  font-size: 200%;
++}
++
++/* bar chart styles */
++.flat-bar-chart {
++  .bar {
++    display: inline-block;
++    text-indent: -9999em;
++    white-space: nowrap;
++    // overflow: hidden; // increases height of row
++    // margin-left: 0; // doesnt tighten bars
++    // margin-right: 0; // doesnt tighten bars
++    border: 0;
++    &:before {
++      content: '.'; // force output of bar (needs content to display)
++    }
++  }
++  // duplicated see proui_overwrite.css.less
++  // .high-rating-bar {
++  //   background-color: @tracker_rating_blue;
++  // }
++  // .prof-rating-bar {
++  //   background-color: @tracker_rating_green;
++  // }
++  // .nyp-rating-bar {
++  //   background-color: @tracker_rating_red;
++  // }
++
++}
++
++#ask-filename input {
++  padding-top: 7px;
++  line-height: 18px;
++  width: 400px;
++}
++
++/* Styles for dashboard page */
++.ul-breath {
++  margin-top: 17px;
++}
++
++.ul-breath li {
++  margin-bottom: 8px;
++}
++
++.rounded-top-left {
++  border-top-left-radius: 7px;
++}
++
++#learning td.subject-link {
++  width: 150px;
++}
++
++/*
++=============================
++Block Styles
++=============================
++*/
++
++/* Alternative blocks */
++.block.block-alt-style {
++  border: 0;
++  border-radius: 7px;
++  .short_label {
++    margin-top: -20px;
++    margin-right: -20px;
++    margin-left: -20px !important;
++    padding: 5px;
++    background-color: #e0e0e0;
++    input {
++      margin-right: 10px;
++    }
++  }
++  ul {
++    list-style-type: none;
++    margin-left: -20px !important;
++    margin-right: -20px;
++    padding-left: 5px;
++    padding-right: 20px;
++    li {
++      input {
++        margin-top: 5px;
++        margin-right: 5px;
++        padding-top: 0;
++      }
++      label {
++        margin-top: 7px;
++        margin-right: 5px;
++      }
++      &:nth-child(odd) {
++        background-color: #f6f6f6;
++      }
++      &:nth-child(even) {
++        background-color: #fff;
++      }
++    }
++  }
++}
++
++.block.block-alt-style .block-title {
++  background-color: #214c6f;
++  border: 0;
++  border-top-left-radius: 7px;
++  border-top-right-radius: 7px;
++}
++
++.block.block-alt-style .block-title > h2 {
++  font-weight: bold;
++  font-size: 14px;
++  color: #ffffff;
++  padding: 5px;
++}
++
++.block.block-alt-style .block-title > h2 > i {
++  color: #28a9e2;
++  font-size: 18px;
++  margin-right: 5px;
++}
++
++.block.block-alt-style .block-title > h3 {
++  color: #ffffff;
++}
++
++.block.block-alt-style .block-title > h3 > i {
++  color: #28a9e2;
++}
++
++.titled-table {
++  .table-title {
++    color: #fff;
++    th {
++      padding-top: 5px;
++      padding-bottom: 5px;
++      background-color: #214c6f;
++      text-align: center;
++      line-height: 32px;
++      border-radius: 0;
++      -moz-border-radius: 0;
++      -webkit-border-radius: 0;
++      &.title-blue {
++        background-color: @tracker_rating_blue;
++      }
++      &.title-green {
++        background-color: @tracker_rating_green;
++      }
++      &.title-red {
++        background-color: @tracker_rating_red;
++      }
++      &.title-gray {
++        background-color: @tracker_rating_missing;
++      }
++      &:first-child {
++        border-top-left-radius: 7px;
++        -moz-border-top-left-radius: 7px;
++        -webkit-border-top-left-radius: 7px;
++      }
++      &:last-child {
++        border-top-right-radius: 7px;
++        -moz-border-top-right-radius: 7px;
++        -webkit-border-top-right-radius: 7px;
++      }
++      i {
++        color: #28a9e2;
++        font-size: 18px;
++        margin-right: 5px;
++      }
++    }
++  }
++}
++
++.titled-table {
++  tr.highlight {
++    background-color: @color_highlight_lighter_30;
++  }
++  tr.selected {
++    background-color: @color_highlight_lighter_80;
++  }
++}
++
++.sub-titled-table {
++  .table-title {
++    color: #fff;
++    th {
++      padding-top: 5px;
++      padding-bottom: 5px;
++      background-color: #214c6f;
++      text-align: center;
++      line-height: 18px !important;
++      font-size: 14px !important;
++      border-radius: 0;
++      -moz-border-radius: 0;
++      -webkit-border-radius: 0;
++      &:first-child {
++        border-top-left-radius: 7px;
++        -moz-border-top-left-radius: 7px;
++        -webkit-border-top-left-radius: 7px;
++      }
++      &:last-child {
++        border-top-right-radius: 7px;
++        -moz-border-top-right-radius: 7px;
++        -webkit-border-top-right-radius: 7px;
++      }
++      i {
++        color: #28a9e2;
++        font-size: 14px !important;
++        margin-right: 5px;
++      }
++    }
++  }
++  .table-sub-title {
++    color: #fff;
++    th {
++      padding-top: 3px;
++      padding-bottom: 3px;
++      background-color: #214c6f;
++      text-align: center;
++      line-height: 16px !important;
++      font-size: 12px !important;
++      border-radius: 0;
++      -moz-border-radius: 0;
++      -webkit-border-radius: 0;
++      &:first-child {
++        border-top-left-radius: 7px;
++        -moz-border-top-left-radius: 7px;
++        -webkit-border-top-left-radius: 7px;
++      }
++      &:last-child {
++        border-top-right-radius: 7px;
++        -moz-border-top-right-radius: 7px;
++        -webkit-border-top-right-radius: 7px;
++      }
++      i {
++        color: #28a9e2;
++        font-size: 14px !important;
++        margin-right: 5px;
++      }
++    }
++  }
++}
++
++
++.alternate-highlight > * {
++  &:nth-child(odd) {
++    background-color: #f6f6f6;
++  }
++  &:nth-child(even) {
++    background-color: #fff;
++  }
++}
++
++table.manual-highlight {
++  tr {
++    background-color: #fff;
++    &.on {
++      background-color: #f6f6f6;
++    }
++  }
++}
++
++table.manual-break {
++  tr.break {
++    border-top: 2px solid black;
++  }
++}
++
++.pull-right.btn {
++  margin-top: 7px;
++  margin-right: 10px;
++}
++
++/* Circle Icons */
++.circle-icon {
++  display: inline-block;
++  width: 80px;
++  height: 80px;
++  line-height: 80px;
++  color: #ffffff;
++  background-color: #999999;
++  border-radius: 50%;
++  font-size: 36px;
++  margin-bottom: 5px
++}
++
++.circle-icon:hover {
++  color: #ffffff;
++}
++
++.circle-icon.circle-icon-small {
++  width: 60px;
++  height: 60px;
++  line-height: 60px;
++  font-size: 28px;
++  margin: 10px 0 15px;
++}
++
++.background-danger {
++  background-color: #e84c3d;
++}
++
++.background-success {
++  background-color: #2eb25e;
++}
++
++.word-break-all {
++  word-break: break-all;
++}
++
++.spinner {
++  position: absolute;
++  top: 0;
++  left: 0;
++  right: 0;
++  width: 100%;
++  height: 100%;
++  margin: 0 auto;
++  z-index: @zindex-over-dialog;
++  background-color: #000;
++  opacity: .25;
++  filter: alpha(opacity=25);
++  > .fa {
++    position: relative;
++    left: 50%;
++    top: 50%;
++    opacity: 1;
++    filter: alpha(opacity=100);
++    color: #fff;
++  }
++}
++
++/* Custom Accordion */
++.accordion-custom.panel-group {
++  margin-bottom: 0;
++}
++
++.accordion-custom.panel-group .panel + .panel {
++  margin-top: 0;
++}
++
++.accordion-custom.panel-group .panel {
++  border: 0;
++  border-radius: 0;
++}
++
++.accordion-custom.panel-group .panel-heading {
++  background-color: #f2f2f2;
++}
++
++.accordion-custom .panel-default > .panel-heading + .panel-collapse > .panel-body {
++  border-top: 2px solid #244f72 !important;
++  border-bottom: 2px solid #244f72 !important;
++}
++
++.accordion-custom .accordion-toggle.collapsed i {
++  -webkit-transform: rotate(-90deg);
++  transform: rotate(-90deg);
++}
++
++.panel .panel-heading-sign {
++  float: right;
++  height: 30px;
++  min-width: 30px;
++  line-height: 27px;
++  font-size: 16px;
++  font-weight: bold;
++  text-align: center;
++  border-radius: 15px;
++  margin-top: -5px;
++  color: #95b7cc;
++  border: 2px solid #95b7cc;
++}
++
++.panel {
++  a {
++    color: #1C96DD !important;
++  }
++  a.deactivated {
++    color: inherit !important;
++  }
++}
++
++/* expand/collapse body under header */
++
++.expand-collapse-group .group-header.show-body .toggle-group-body > i {
++    -webkit-transform: rotate(90deg);
++    transform: rotate(90deg);
++}
++
++
++.expand-collapse-group .group-header {
++    display: none;
++    &.show-group {
++        display: block;
++    }
++    &.show-group.show-body + .group-body {
++        display: block;
++    }
++    .toggle-group-body {
++      padding-right: 10px;
++    }
++}
++
++.expand-collapse-group .group-body {
++    display: none;
++}
++
++
++/* expand/collapse tbody under table */
++
++.expand-collapse-tbody .tbody-header.show-tbody-body .toggle-tbody > i {
++    -webkit-transform: rotate(270deg);
++    transform: rotate(270deg);
++}
++
++
++table.titled-table tbody tr.header-row {
++    background-color: @expand-collapse-header-color;
++    border-top: 2px solid @tracker_cell_bg_color;
++    border-bottom: 1px solid @tracker_cell_bg_color !important;
++    border-collapse: separate;
++}
++table.titled-table tbody tr.total-row {
++    background-color: @tracker_lt_gray_bg_color !important;
++}
++table.titled-table tbody td.total-cell {
++    border-top: 2px solid @tracker_cell_bg_color !important;
++}
++
++.expand-collapse-tbody .tbody-header {
++    display: none;
++    background-color: @expand-collapse-header-color;
++    border-top: 2px solid @tracker_cell_bg_color;
++    border-bottom: 1px solid @tracker_cell_bg_color !important;
++    border-collapse: separate;
++    &.show-tbody {
++        display: table-row-group;
++    }
++    &.show-tbody.show-tbody-body + .tbody-body {
++        display: table-row-group;
++    }
++    .toggle-tbody-body {
++      padding-right: 10px;
++    }
++}
++
++.expand-collapse-tbody .tbody-body {
++    display: none;
++}
++
++.section-message{
++  font-weight: bolder;
++  font-size: 1.5em;
++}
++
++
++// /* Tables custom elements */
++// .table-link {
++//   display: inline-block;
++//   width: 100%;
++//   padding-left: 5px;
++//   padding-right: 5px;
++// }
++
++// .table-link:hover {
++//   background-color: #92b6cc;
++//   color: #ffffff;
++//   text-decoration: none;
++// }
++
++// .table-link,
++// .table-link i {
++//   height: 30px;
++//   line-height: 30px;
++// }
++
++// .table-link i {
++//   float: right;
++//   &.left {
++//     float: left;
++//   }
++// }
++
++.progress-container {
++  overflow: hidden;
++  white-space: nowrap;
++  height: 20px;
++  line-height: 16px;
++  border: 1px solid #214C6F; //#39f;
++}
++
++.table-progress {
++  height: 20px;
++  text-align: right;
++  padding-right: 3px;
++  background-color: #92b6cc; //#466a80;
++  color: #ffffff;
++  font-weight: bold;
++  float: left;
++}
++.table-success {
++  height: 20px;
++  text-align: right;
++  padding-right: 3px;
++  background-color: #0aa; //#2eb25e; //#92b6cc;
++  color: #ffffff;
++  font-weight: bold;
++  float: left;
++}
++.table-problems {
++  height: 20px;
++  text-align: right;
++  padding-right: 3px;
++  border-right: 4px solid #e84c3d; //#214C6F;
++  color: #214C6F;
++  font-weight: bold;
++  float: left;
++}
++.after-progress {
++  height: 20px;
++  float: right;
++  text-align: right;
++  padding-right: 3px;
++  color: #214C6F; //@color_highlight;
++  font-weight: bold;
++}
++
++.table-clickable-rows tbody {
++  tr {
++    &:hover {
++      background-color: @link_hover_bg_color;
++      color: @link_hover_color;
++    }
++    td {
++      padding: 0 !important;
++      a {
++        display: block;
++        padding: 5px !important;
++        text-decoration: none;
++      }
++    }
++  }
++}
++
++/* start to work on alternate rows for listing */
++tbody.alt-rows tr {
++  &:nth-child(odd) {
++    // background-color: #f00 !important;
++  }
++  &:nth-child(even) {
++    // background-color: #000 !important;
++  }
++}
++
++.clicable-icon {
++  color: @color_highlight;
++  cursor: pointer;
++}
++
++.height-30 {
++  line-height: 30px;
++  height: 30px;
++  margin-top: 0px;
++  margin-bottom: 0px;
++}
++
++// get rid of -15 left margin on rows
++#page-content .row {
++  margin-left: 0;
++}
++
++// style normal select boxes to look similar to select2 styles for consist look
++select.select2-styles {
++  height: 30px !important;
++  line-height: 30px !important;
++  background-color: #fff;
++}
++
++.assign-to-form {
++  padding: 15px !important;
++  background-color: #214c6f !important;
++  border: 0;
++  border-top-left-radius: 7px;
++  border-top-right-radius: 7px;
++  border-bottom-left-radius: 7px;
++  border-bottom-right-radius: 7px;
++  .block {
++    margin-bottom: 0;
++  }
++  table {
++    background-color: #fff;
++  }
++}
++
++/* MEDIA QUERIES */
++
++/* devices, Tablets (<767px) */
++
++.row.indent-row {
++  margin-right: 0px;
++}
++
++// are these needed?
++.indent-block, .indent-row {
++  margin-left: 5px;
++  margin-right: 5px;
++}
++
++.header-block {
++  padding-left: 5px;
++  padding-right: 5px;
++}
++
++/* devices, Tablets (>767px) */
++@media screen and (min-width: 768px) {
++
++  // are these needed?
++  .indent-block, .indent-row {
++    margin-left: 15px;
++    margin-right: 15px;
++  }
++
++  .header-block {
++    padding-left: 15px;
++    padding-right: 15px;
++  }
++
++
++  .page-subtitle {
++    padding: 0 0 10px;
++    margin: 0;
++    border-top: none;
++    float: right;
++  }
++}
++
++@media print {
++  .page-break-before {
++    page-break-before: always;
++    float: none !important;
++    display: block !important;
++  }
++  .page-break-after {
++    page-break-after: always;
++    float: none !important;
++    display: block !important;
++  }
++  .print-page-full-width {
++    width: 99% !important;
++  }
++
++}
+diff --git a/app/views/layouts/_announcements.html.haml b/app/views/layouts/_announcements.html.haml
+new file mode 100644
+index 0000000..de3c329
+--- /dev/null
++++ b/app/views/layouts/_announcements.html.haml
+@@ -0,0 +1,13 @@
++- announcements = Announcement.unrestricted.current.not_hidden(cookies.signed[:hidden_announcement_ids])
++- if can?( :edit, Announcement ) && Announcement.unrestricted.current.all.length > 0
++  %li.annnouncement-field
++    %a{href: announcements_path}
++      %i.fa.fa-comment.fa-lg.ui-error
++- if announcements.length > 0
++  %li#announcements.annnouncement-field
++    %span.larger='ALERT: '
++  - announcements.each do |announcement|
++    %li.annnouncement-field{id: "announcement_#{announcement.id}"}
++      %span= announcement.content
++    %li.annnouncement-field
++      %a.btn.btn-danger{href: "#{hide_announcement_path(announcement)}", data: {remote: true}}='Hide'
+\ No newline at end of file
+diff --git a/app/views/layouts/_announcements.html.haml (original) b/app/views/layouts/_announcements.html.haml (original)
+new file mode 100644
+index 0000000..61133e5
+--- /dev/null
++++ b/app/views/layouts/_announcements.html.haml (original)	
+@@ -0,0 +1,12 @@
++- announcements = Announcement.unrestricted.current.not_hidden(cookies.signed[:hidden_announcement_ids])
++- if can?( :edit, Announcement ) && Announcement.unrestricted.current.all.length > 0
++  %span#announcement-admin
++    %a{href: announcements_path}
++      %i.fa.fa-comment.fa-lg.ui-error
++- if announcements.length > 0
++  %span#announcements
++    %span.larger='ALERT: '
++    - announcements.each do |announcement|
++      %span.announcement{id: "announcement_#{announcement.id}"}
++        = announcement.content
++        %a.btn.btn-danger{href: "#{hide_announcement_path(announcement)}", data: {remote: true}}='Hide'
+\ No newline at end of file
+diff --git a/app/views/layouts/_header.html.haml (original) b/app/views/layouts/_header.html.haml (original)
+new file mode 100644
+index 0000000..64403e4
+--- /dev/null
++++ b/app/views/layouts/_header.html.haml (original)	
+@@ -0,0 +1,60 @@
++/ Header Navigation
++%ul.nav.navbar-nav-custom
++  / Main Sidebar Toggle Button
++  %li#head-sidebar-toggle
++    %a{href: "javascript:void(0)"}
++      %i.fa.fa-bars.fa-fw
++  / END Main Sidebar Toggle Button
++  %li#head-app-name
++    .navbar-nav-custom-content
++      %span.app-name="Tracker | "
++  %li#head-current-school
++    .navbar-nav-custom-content.hidden-xs
++      - if @current_school.id.nil?
++        %a{href: schools_path}='Select a School'
++      - else
++        - if can? :switch, School
++          %a{href: schools_path, title: 'Switch School'}
++            %i.fa.fa-lg.fa-list-ul.fa-fw
++        - if can? :summary, School
++          %a{href: school_path(@current_school.id), title: 'School Summary'}
++            %i.fa.fa-lg.fa-building-o.fa-fw
++        - if can? :dashboard, School
++          %a{href: dashboard_school_path(@current_school.id), title: 'School Dashboard'}
++            %i.fa.fa-lg.fa-dashboard.fa-fw
++        %span.text-muted{title: 'Current School'}= "#{@current_school.name}"
++        - if @current_school.school_year.present?
++          %span.text-muted{title: 'Current School Year'}= "(#{@current_school.school_year.name})"
++  %li#announcements
++    .navbar-nav-custom-content
++      = render 'layouts/announcements'
++/ END Left Header Navigation
++/ Right Header Navigation
++%ul.nav.navbar-nav-custom.pull-right
++  / dashboard dropdown for all users but students and parents
++  - if !current_user.student? && !current_user.parent?
++    %li#head-dashboard-selector
++      .navbar-nav-custom-content
++        - if (!@section.nil? && !@section.id.nil? && current_page?(controller: 'sections', action: 'show', id: @section.id)) ? 'selected' : false
++          %a{href: "#{class_dashboard_section_path(@section.id)}"}
++            %i.fa.fa-dashboard
++
++        %strong.hidden-xs Dashboard:
++        - if !@current_school.id.blank?
++          %select#subject.select-select2{onchange: 'location=this.options[this.selectedIndex].value;', style: "width: 200px;"}
++            %option{value: ''}=''
++            %option{value: "#{dashboard_school_path(@current_school.id)}"}= "School Summary"
++            - @toolkit_subjects.each do |s|
++              - is_sel = (current_page?(controller: 'subjects', action: 'show', id: s.id)) ? 'selected' : false
++              %option{value: "#{subject_path(s.id)}", selected: is_sel}= "#{s.name}"
++            - @toolkit_current_sections.each do |s|
++              - is_sel = (current_page?(controller: 'sections', action: 'class_dashboard', id: s.id)) ? 'selected' : false
++              %option{value: "#{class_dashboard_section_path(s.id)}", selected: is_sel}= "#{s.subject.name} - #{s.line_number}"
++  / User Dropdown
++  %li#head-user-dropdown.dropdown
++    %a.dropdown-toggle{"data-toggle" => "dropdown", href: "javascript:void(0)"}
++      = @current_user.first_name.blank? ? @current_user.username : @current_user.first_name
++      %i.fa.fa-caret-down
++    %ul.dropdown-menu.dropdown-custom.dropdown-menu-right
++      = render 'layouts/header_dropdown'
++/ END Header Navigation
+\ No newline at end of file
+diff --git a/app/views/layouts/application.html.haml (original) b/app/views/layouts/application.html.haml (original)
+new file mode 100644
+index 0000000..8f3fac6
+--- /dev/null
++++ b/app/views/layouts/application.html.haml (original)	
+@@ -0,0 +1,52 @@
++!!!
++/[if IE 8]>  <html class="no-js lt-ie9 pre_ie10"> <![endif]-->
++/[if lt IE 10] <html class="no-js pre_ie10">
++/ [if gt IE 9]><!
++%html.no-js.standard
++  / <![endif]
++  %head
++    %meta{content: "width=device-width, initial-scale=1.0", name: "viewport"}/
++    %title= content_for?(:title) ? yield(:title) : "Tracker UI"
++    %meta{content: content_for?(:page_name) ? yield(:page_name) : "Tracker UI", name: "page_name"}/
++    %meta{content: "noindex, nofollow", name: "robots"}/
++    %meta{content: "width=device-width,initial-scale=1,maximum-scale=1.0", name: "viewport"}/
++    %link{rel: "shortcut icon", href:"/favicon.ico"}
++    = javascript_tag "var AUTH_TOKEN      = '#{form_authenticity_token}';"
++    = javascript_tag "var CURRENT_USER_ID = '#{current_user.id if current_user}';"
++    = stylesheet_link_tag "application", media: "all"
++    = javascript_include_tag "application"
++    = yield(:head) # is this needed? - see application_helper.rb  javascript(*files)
++    = csrf_meta_tag
++  %body
++    #page-container.header-fixed-top.sidebar-no-animations{class: (@show_toolkit == 'true' ? 'sidebar-visible-lg' : '')}
++      / Main (left) Sidebar
++      #sidebar
++        .sidebar-scroll
++          / RENDER Sidebar Content
++          .sidebar-content= render 'layouts/sidebar'
++      #main-container
++        .spinner
++          .fa.fa-spinner.fa-spin.fa-4x
++        / RENDER Header
++        %header.navbar.navbar-default.navbar-fixed-top= render 'layouts/header'
++        / Page content
++        #page-content{class: (content_for?(:page_class) ? yield(:page_class) : "")}
++          / RENDER sub-header (header of content)
++          / .content-header
++          /   .header-section= render 'layouts/sub-header'
++          / DISPLAY Bread Crumbs and error and warning flash messages
++          #breadcrumb-flash
++            .last
++              %a{href: session[:last_original_url]}= 'Last Page'
++            = yield :layout_breadcrumbs
++            #breadcrumb-flash-msgs
++              = render 'layouts/messages'
++          / DISPLAY Content
++          = yield
++        / No Footer
++        / %footer.clearfix
++    / Scroll to top link, initialized in js/app.js - scrollToTop()
++    %a#to-top{href: "#"}
++      %i.fa.fa-angle-double-up
++    = render 'layouts/modal_popup'
++
+diff --git a/spec/features/new_ui/dashboards/school_admin_dashboard_spec.rb b/spec/features/new_ui/dashboards/school_admin_dashboard_spec.rb
+index 0c48485..5ed740f 100644
+--- a/spec/features/new_ui/dashboards/school_admin_dashboard_spec.rb
++++ b/spec/features/new_ui/dashboards/school_admin_dashboard_spec.rb
+@@ -11,13 +11,14 @@ describe "School Admin Dashboard", js:true do
+     @subj_math_3 = FactoryGirl.create :subject, name: 'Math 3', subject_manager: @teacher, school: @school
+     @subj_math_4 = FactoryGirl.create :subject, name: 'Math 4', subject_manager: @teacher, school: @school
+     @subj_math_5 = FactoryGirl.create :subject, name: 'Math 5', subject_manager: @teacher, school: @school
+-    @subj_math_6 = FactoryGirl.create :subject, name: 'Math 6', subject_manager: @teacher, school: @school
+-    @subj_math_7 = FactoryGirl.create :subject, name: 'Math 7', subject_manager: @teacher, school: @school
+-    @subj_math_8 = FactoryGirl.create :subject, name: 'Math 8', subject_manager: @teacher, school: @school
+-    @subj_math_9 = FactoryGirl.create :subject, name: 'Math 9', subject_manager: @teacher, school: @school
+-    @subj_math_10 = FactoryGirl.create :subject, name: 'Math 10', subject_manager: @teacher, school: @school
+-    @subj_math_11 = FactoryGirl.create :subject, name: 'Math 11', subject_manager: @teacher, school: @school
+-    @subj_math_12 = FactoryGirl.create :subject, name: 'Math 12', subject_manager: @teacher, school: @school
++    # consider determining order of subjects in dashboard, and then ensuring that subject 1 is there for testing appropriately
++    # @subj_math_6 = FactoryGirl.create :subject, name: 'Math 6', subject_manager: @teacher, school: @school
++    # @subj_math_7 = FactoryGirl.create :subject, name: 'Math 7', subject_manager: @teacher, school: @school
++    # @subj_math_8 = FactoryGirl.create :subject, name: 'Math 8', subject_manager: @teacher, school: @school
++    # @subj_math_9 = FactoryGirl.create :subject, name: 'Math 9', subject_manager: @teacher, school: @school
++    # @subj_math_10 = FactoryGirl.create :subject, name: 'Math 10', subject_manager: @teacher, school: @school
++    # @subj_math_11 = FactoryGirl.create :subject, name: 'Math 11', subject_manager: @teacher, school: @school
++    # @subj_math_12 = FactoryGirl.create :subject, name: 'Math 12', subject_manager: @teacher, school: @school
+     @school_administrator = FactoryGirl.create :school_administrator, school: @section.school
+     load_test_section(@section, @teacher)
+ 
+@@ -82,6 +83,10 @@ describe "School Admin Dashboard", js:true do
+     visit school_administrator_path(@school_administrator.id)
+     assert_equal("/school_administrators/#{@school_administrator.id}", current_path)
+ 
++
++sleep 20
++save_and_open_page
++
+     # Note overall lo counts should == prof bar counts for each color
+     
+     within("#overall") do
+diff --git a/spec/features/new_ui/reports/generate_student_attendance_detail_spec.rb b/spec/features/new_ui/reports/generate_student_attendance_detail_spec.rb
+index 8be717d..6ef1e6a 100644
+--- a/spec/features/new_ui/reports/generate_student_attendance_detail_spec.rb
++++ b/spec/features/new_ui/reports/generate_student_attendance_detail_spec.rb
+@@ -213,6 +213,9 @@ describe "Generate Student Attendance Detail Report", js:true do
+       end
+     end
+ 
++    sleep 20
++    save_and_open_page
++    
+     # should return back to generate reports page with required fields errors
+     page.should have_content('Generate Reports')
+     page.should_not have_content('Internal Server Error')

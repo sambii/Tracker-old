@@ -48,6 +48,10 @@ a.text-normal:focus {
     color: #000;
 }
 
+.larger {
+  font-size: larger !important;
+}
+
 .panel, .block {
   .line-through {
     text-decoration: line-through !important;
@@ -182,6 +186,34 @@ tr.field_with_errors {
 .ui-error {
   color: red;
   border-color: red;
+}
+
+li#announcements {
+  color: red;
+  // background-color: #fcc !important;
+  border: 2px solid red;
+  width: 400px;
+  height: 46px;
+  overflow: hidden;
+  ul {
+    list-style: none;
+    li {
+      .announcement-alert {
+        line-height: 16px !important;
+        width: 60px;
+        margin: 0px;
+        padding: 0px;
+        overflow: hidden;
+      }
+      .announcement-text {
+        line-height: 23px !important;
+        width: 320px;
+        margin: 0px;
+        padding: 0px;
+        overflow: hidden;
+      }
+    }
+  }
 }
 
 .ui-success {

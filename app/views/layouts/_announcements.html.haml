@@ -1,0 +1,19 @@
+- announcements = Announcement.unrestricted.current.not_hidden(cookies.signed[:hidden_announcement_ids])
+- Rails.logger.debug("hidden announcement cookies: #{cookies.signed[:hidden_announcement_ids]}")
+- if can?( :edit, Announcement ) && Announcement.unrestricted.current.all.length > 0
+  %li#announcements-admin
+    .navbar-nav-custom-content
+      %a{href: announcements_path}
+        %i.fa.fa-comment.fa-lg.ui-error
+- if announcements.length > 0
+  %li#announcements
+    %ul.navbar-nav-custom-content
+      - announcements.each do |announcement|
+        %li.clearfix{id: "announcement_#{announcement.id}"}
+          .pull-left.announcement-alert
+            .larger='ALERT: '
+            .hide-alert
+              %a.btn.btn-sm.btn-primary{href: "#{hide_announcement_path(announcement)}", data: {remote: true}}='Hide'
+          .pull-left.announcement-text
+            = announcement.content
+            
