@@ -1,6 +1,6 @@
-- announcements = Announcement.unrestricted.current.not_hidden(cookies.signed[:hidden_announcement_ids])
+- announcements = Announcement.unrestricted.not_hidden(cookies.signed[:hidden_announcement_ids])
 - Rails.logger.debug("hidden announcement cookies: #{cookies.signed[:hidden_announcement_ids]}")
-- if can?( :edit, Announcement ) && Announcement.unrestricted.current.all.length > 0
+- if can?( :edit, Announcement ) && Announcement.unrestricted.all.length > 0
   %li#announcements-admin
     .navbar-nav-custom-content
       %a{href: announcements_path}

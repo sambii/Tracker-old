@@ -1,15 +1,39 @@
-= form_for @announcement do |f|
 
-  = f.label :start_at
-  %br
-  = f.text_field :start_at, class: "datepicker"
-  %br
-  = f.label :end_at
-  %br
-  = f.text_field :end_at, class: "datepicker"
-  %br
-  = f.label :content
-  %br
-  = f.text_area :content
-  %br
-  = f.submit
+- content_for(:title, 'Maintain System Alerts')
+- content_for(:page_name, 'Maintain System Alerts')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='System Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Maintain System Alerts'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2='System Alert Message'
+      .block-content-full
+        =form_for(@announcement, remote: true) do |f|
+          - @errors = @announcement.errors
+          .page-form
+            - if @errors[:base] && @errors[:base] != []
+              %fieldset.input-group
+                %div.ui-error.text-center=@errors[:base]
+            %fieldset.input-group
+              %label.col-sm-3.control-label{for: 'announcement-content'}='Message:'
+              = f.text_area(:content, cols: 40, rows: 2)
+              %span.ui-error.col-sm-3="#{@errors[:content] if @errors[:content].present?}"
+            %fieldset.text-center
+              %a.btn.btn-default{type: "button", href: announcements_path()} Cancel
+              - if can? :update, Announcement
+                = f.submit(I18n.translate('action_titles.save'), class: 'btn btn-sm btn-primary')
+  .col-sm-1
+

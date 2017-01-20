@@ -1,16 +1,50 @@
-%h3 Listing Announcements
-= link_to "Add Announcement", new_announcement_path
-%table.report
-  %thead
-    %tr
-      %th Start Date
-      %th End Date
-      %th Content
-      %th
-  %tbody
-    - @announcements.each do |announcement|
-      %tr
-        %td= announcement.start_at
-        %td= announcement.end_at
-        %td= announcement.content
-        %td= link_to "edit", edit_announcement_path(announcement)
+
+- content_for(:title, 'Announcement Maintenance')
+- content_for(:page_name, 'Announcement Maintenance')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :announcement_maint
+  = help_gen_breadcrumbs
+
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='System Maintenance'
+  %h2.h1.page-title
+    %strong='System Alerts Listing'
+  .row
+    %a#print-button.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+      %i.fa.fa-lg.fa-print
+    - if can?(:create, Announcement)
+      %a#add-announcement.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_announcement_path(format: :js)}, title: 'Create Announcement'}
+        %i.fa.fa-lg.fa-plus-square
+
+%br
+.row
+  .col-sm-12
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2='Alerts'
+        - if can? :create, Announcement
+          %a#show-at-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_announcement_path(format: :js)}}
+            %i.fa.fa-lg.fa-plus
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th='Message'
+              %th{colspan: 2}='Actions'
+          %tbody
+            - @announcements.each do |an|
+              %tr{id: "attendance_type_#{an.id}"}
+                %td#announcement-message=an.content
+                %td
+                  - if can? :update, an
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_announcement_path(an.id, format: :js)}, title: 'Edit'}
+                      %i.fa.fa-lg.fa-edit
+                %td
+                  - if can? :update, an
+                    %a#restore-item{href: "/announcements/#{an.id}.js", data: {method: :delete, remote: true, confirm: 'Are you sure?'}, title: 'Delete'}
+                      %i.fa.fa-lg.fa-times-circle

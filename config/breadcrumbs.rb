@@ -266,3 +266,8 @@ crumb :researcher_dashboard do |researcher|
   # parent :root
 end
 
+crumb :announcement_maint do
+  link 'Alert Maint.', announcements_path
+  parent :root
+end
+
