@@ -28,7 +28,7 @@
       .block-title.text-center
         %h2='Alerts'
         - if can? :create, Announcement
-          %a#show-at-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_announcement_path(format: :js)}}
+          %a#show-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_announcement_path(format: :js)}}
             %i.fa.fa-lg.fa-plus
       .block-content-full.rounded-title-container
         %table.titled-table.table.table-bordered.table-condensed.remove-margin
@@ -36,9 +36,9 @@
             %tr
               %th='Message'
               %th{colspan: 2}='Actions'
-          %tbody
+          %tbody#announcements
             - @announcements.each do |an|
-              %tr{id: "attendance_type_#{an.id}"}
+              %tr{id: "announcement_#{an.id}"}
                 %td#announcement-message=an.content
                 %td
                   - if can? :update, an
@@ -46,5 +46,5 @@
                       %i.fa.fa-lg.fa-edit
                 %td
                   - if can? :update, an
-                    %a#restore-item{href: "/announcements/#{an.id}.js", data: {method: :delete, remote: true, confirm: 'Are you sure?'}, title: 'Delete'}
+                    %a#delete-item{href: "/announcements/#{an.id}.js", data: {method: :delete, remote: true, confirm: 'Are you sure?'}, title: 'Delete'}
                       %i.fa.fa-lg.fa-times-circle
