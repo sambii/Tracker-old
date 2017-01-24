@@ -126,6 +126,11 @@
       %a{href: ( can_see_reports ? new_generate_path(section_id: (@section.nil? || @section.id.nil? ? '' : @section.id) ) : 'javascript:void(0)'), class: (can_see_reports ? '' : 'disabled') }
         %i.fa.fa-files-o.sidebar-nav-icon>
         ='Generate Reports'
+    - if can? :sys_admin_links, User
+      %li#side-sys-users
+        %a{href: system_users_system_administrators_path}
+          %i.fa.fa-sitemap.sidebar-nav-icon
+          ='System Users'
     %li#side-staff
       - can_see_staff = has_selected_school && can?(:staff_listing, User)
       %a{href: ( can_see_staff ? staff_listing_users_path : 'javascript:void(0)'), class: (can_see_staff ? '' : 'disabled')}

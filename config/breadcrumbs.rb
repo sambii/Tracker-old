@@ -135,6 +135,11 @@ crumb :staff_listing do
   parent :root
 end
 
+crumb :system_users_listing do
+  link 'System Users Listing', system_users_system_administrators_path
+  parent :root
+end
+
 crumb :staff_section_listing do
   link 'Staff Sections Listing', sections_list_user_path
   parent :staff_listing

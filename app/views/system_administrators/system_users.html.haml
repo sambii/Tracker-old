@@ -1,0 +1,119 @@
+
+- content_for(:title, 'System Users Listing')
+- content_for(:page_name, 'System Users Listing')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :system_users_listing
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="System Maintenance"
+  %h2.h1.page-title
+    %strong="System Users Listing"
+
+.block-section.indent-block
+  .row.height-30
+    .pull-left
+      %a#collapse-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Collapse All'}
+        %i.fa.fa-lg.fa-caret-right
+      %a#expand-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Expand All'}
+        %i.fa.fa-lg.fa-caret-down
+      %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-filter
+      %a.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+        %i.fa.fa-lg.fa-print
+      %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-download
+      - if can? :create, SystemAdministrator
+        %a#add-staff.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_staff_new_user_path(format: :js)}, title: 'Add Staff'}
+          %i.fa.fa-lg.fa-plus-square
+
+.row
+  .col-sm-12
+    .block.block-alt-style.full
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+          %thead.table-title
+            %tr
+              %th= 'ID'
+              - if true # @school.has_flag?(School::USER_BY_FIRST_LAST)
+                %th= 'First Name'
+                - if true # @school.has_flag?(School::USE_FAMILY_NAME)
+                  %th= 'Family Name'
+                - else
+                  %th= 'Last Name'
+              - else
+                - if true # @school.has_flag?(School::USE_FAMILY_NAME)
+                  %th= 'Family Name'
+                - else
+                  %th= 'Last Name'
+                %th= 'First Name'
+              %th= 'Role(s)'
+              %th= 'Email'
+              %th{colspan: 5}= ''
+          - start_letter = ''
+          - if true # @school.has_flag?(School::USER_BY_FIRST_LAST)
+            - grouping = @system_users.group_by(&:first_name_initial)
+          - else
+            - grouping = @system_users.group_by(&:last_name_initial)
+          - grouping.each do |lead, staff|
+            %tbody.tbody-header.show-tbody{class: (true ? 'show-tbody-body' : '' )}
+              - start_letter = lead
+              %tr.height-30
+                %td{colspan: 15}
+                  .clearfix
+                    %a.toggle-tbody.pull-left{href: "javascript:void(0)"}
+                      %i.fa.fa-caret-down.fa-lg
+                    / %a.pull-left.lmargin5{href: "javascript:void(0)"}
+                    %strong.pull-left.lmargin5="#{start_letter}"
+            %tbody.tbody-body.alt-rows
+              - staff.each do |s|
+                - deact_class = s.active ? 'active' : 'deactivated'
+                - if s.teacher? && s.active?
+                  - assignments = Teacher.find(s.id).sections.current.count
+                - else
+                  - assignments = ''
+                %tr{class: deact_class, id: "user_#{s.id}"}
+                  %td.user-xid=s.xid
+                  - if true # @school.has_flag?(School::USER_BY_FIRST_LAST)
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-first-name=s.first_name
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-last-name=s.last_name
+                  - else
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-last-name=s.last_name
+                    %td
+                      %a{href: "#{user_path(s.id)}"}
+                        .user-first-name=s.first_name
+                  %td.user-roles=s.role_symbols.join(' ')
+                  %td.user-email=s.email
+                  %td.text-center
+                    %a{href: "/users/#{s.id}", title: 'Staff Dashboard'}
+                      %i.fa.fa-lg.fa-home
+                  %td.text-center
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: user_path(s.id, format: :js)}, title: 'View Staff User Information'}
+                      %i.fa.fa-lg.fa-ellipsis-h
+                  %td.text-center
+                    - if can?(:edit, s)
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_system_user_system_administrator_path(s.id, format: :js)}, title: 'Edit System User Information'}
+                        %i.fa.fa-lg.fa-edit
+                  %td.text-center
+                    - if can?(:security, s)
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: security_user_path(s.id, format: :js)}, title: 'Staff Security'}
+                        %i.fa.fa-lg.fa-unlock
+                  %td.text-center
+                    - if can?(:update, s)
+                      %div.show-if-active
+                        %a#remove-staff{href: "/users/#{s.id}.js?commit=active&#{{active: false}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Deactivate Staff Member'}
+                          %i.fa.fa-lg.fa-times-circle
+                      %div.show-if-deactivated
+                        %a#restore-staff{href: "/users/#{s.id}.js?commit=active&#{{active: true}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Reactivate Deactivated Staff Member'}
+                          %i.fa.fa-lg.fa-undo
+

@@ -24,6 +24,9 @@
       .block-content-full
         .page-form.alternate-highlight
           %fieldset.span-group
+            %label.col-sm-5.control-label='Roles:'
+            %span.col-sm-7=@user.role_symbols.join(' ')
+          %fieldset.span-group
             %label.col-sm-5.control-label='Staff ID:'
             %span.col-sm-7=@user.xid
           %fieldset.span-group
