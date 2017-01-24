@@ -49,6 +49,7 @@
 
   / Second Row
   #school_listing
-    =render('schools/listing')
+    - if can?(:switch, School)
+      =render('schools/listing')
 
 

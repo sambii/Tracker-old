@@ -2,7 +2,7 @@
 require 'spec_helper'
 
 
-describe "Teacher Tracker", js:true do
+describe "Attendance Entry", js:true do
   before (:each) do
     create_and_load_arabic_model_school
 

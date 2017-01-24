@@ -29,7 +29,12 @@ Tracker2::Application.routes.draw do
     end
   end
 
-  resources :system_administrators
+  resources :system_administrators do
+    collection do
+      get 'system_maintenance'
+    end
+  end
+
   resources :school_administrators
 
   match "schools/new_year_rollover" => "home#index", via: :get

@@ -15,4 +15,11 @@ class SystemAdministratorsController < ApplicationController
     end
   end
 
+  def system_maintenance
+    authorize! :sys_admin_links, User
+    respond_to do |format|
+      format.html
+    end
+  end
+
 end

@@ -206,9 +206,13 @@ crumb :school_admin_dashboard do |school_admin|
   end
 end
 
-crumb :system_admin_dashboard do |system_admin|
+crumb :system_admin_home_page do |system_admin|
   link "#{system_admin.full_name.truncate(15, omission: '...')}", system_administrator_path(system_admin)
-  # parent :root
+end
+
+crumb :system_maintenance do
+  link "System Maint."
+  parent :root
 end
 
 crumb :subjects_sections_listing do

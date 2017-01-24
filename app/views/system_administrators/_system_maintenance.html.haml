@@ -1,0 +1,8 @@
+
+- if can?(:sys_admin_links, User)
+  #sys-admin-links.div.show-label-value
+    .row
+      %span#system-alerts.col-sm-12.value
+        %a{href: announcements_path}
+          %i.fa.fa-comment
+          ='System Alerts'

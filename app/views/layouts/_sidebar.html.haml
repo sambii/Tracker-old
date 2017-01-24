@@ -68,6 +68,13 @@
             %a{href: "#{enrollment_url(e.id)}"}= "#{e.section.subject.name} - #{e.section.line_number}"
   - if current_user.staff?
     / toolkit options for all but students and parents
+    /
+    - # system maintenance for system_administrator:
+    - if can? :sys_admin_links, User
+      %li#side-sys-maint
+        %a{href: system_maintenance_system_administrators_path}
+          %i.fa.fa-wrench.sidebar-nav-icon
+          ='System Maint.'
     - if can?(:switch, School)
       %li#side-schools
         %a{href: schools_path}

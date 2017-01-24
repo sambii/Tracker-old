@@ -1,0 +1,25 @@
+
+- content_for(:title, 'System Maintenance')
+- content_for(:page_name, 'System Maintenance')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :system_maintenance, @system_administrator
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong='Maintenance'
+  %h2.h1.page-title
+    %strong="System Maintenance"
+
+.row
+  .col-sm-12.col-lg-12
+    #sys-maint.block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          ='System Maintenance'
+      .row
+        - if can? :sys_admin_links, User
+          =render('system_maintenance')

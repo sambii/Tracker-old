@@ -1,10 +1,10 @@
 
-- content_for(:title, 'System Administrator Dashboard')
-- content_for(:page_name, 'System Administrator Dashboard')
+- content_for(:title, 'System Administrator Home Page')
+- content_for(:page_name, 'System Administrator Home Page')
 - content_for(:page_class, 'misc')
 - content_for :layout_breadcrumbs do
   - breadcrumb :root # to ensure breadcrumbs always show
-  - breadcrumb :system_admin_dashboard, @system_administrator
+  - breadcrumb :system_admin_home_page, @system_administrator
   = help_gen_breadcrumbs
 / - content_for :header_contextual_dropdown do
 /   %li
@@ -21,7 +21,7 @@
 / Header
 .header-block
   %h1.h3.page-title
-    %strong='Dashboard'
+    %strong='Home Page'
   %h2.h1.page-title
     %strong="System Administrator: #{@system_administrator.full_name}"
   - si_time = (@system_administrator.current_sign_in_at.nil?) ? 'Never' : @system_administrator.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
@@ -34,7 +34,18 @@
   - else
     %h2.h1.page-title.text-center
       %strong="School Listing"
-=render('schools/listing')
+.row
+  .col-sm-3.col-lg-3
+    #overall.block.block-alt-style.full
+      .block-title.text-center
+        %h2
+          ='System Maint., ...'
+      .row
+        - if can? :sys_admin_links, User
+          =render('system_administrators/system_maintenance')
+  .col-sm-9.col-lg-9
+    - if can?(:switch, School)
+      =render('schools/listing')
 
 .header-block
   %h2.h1.page-title
