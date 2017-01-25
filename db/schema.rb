@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20160615141521) do
+ActiveRecord::Schema.define(:version => 20170125132001) do
 
   create_table "announcements", :force => true do |t|
     t.text     "content"
@@ -203,6 +203,7 @@ ActiveRecord::Schema.define(:version => 20160615141521) do
 
   add_index "evidences", ["active", "position"], :name => "evidences_multi"
   add_index "evidences", ["evidence_type_id"], :name => "index_evidences_on_evidence_type_id"
+  add_index "evidences", ["id"], :name => "index_evidences_on_id"
   add_index "evidences", ["section_id"], :name => "index_evidences_on_section_id"
 
   create_table "excuses", :force => true do |t|
@@ -215,6 +216,24 @@ ActiveRecord::Schema.define(:version => 20160615141521) do
   end
 
   add_index "excuses", ["school_id"], :name => "index_excuses_on_school_id"
+
+  create_table "materials", :force => true do |t|
+    t.integer  "user_id",                 :null => false
+    t.string   "material_type"
+    t.string   "title"
+    t.string   "description"
+    t.string   "keywords"
+    t.string   "url"
+    t.string   "attachment_file_name"
+    t.string   "attachment_content_type"
+    t.integer  "attachment_file_size"
+    t.datetime "attachment_updated_at"
+    t.datetime "created_at",              :null => false
+    t.datetime "updated_at",              :null => false
+  end
+
+  add_index "materials", ["id"], :name => "index_materials_on_id"
+  add_index "materials", ["user_id"], :name => "index_materials_on_user_id"
 
   create_table "posts", :force => true do |t|
     t.integer  "user_id"
@@ -349,7 +368,21 @@ ActiveRecord::Schema.define(:version => 20160615141521) do
     t.string   "web_server_name",     :default => "PARLO Tracker Web Server"
     t.datetime "created_at",                                                    :null => false
     t.datetime "updated_at",                                                    :null => false
+    t.string   "flags",               :default => ""
   end
+
+  create_table "student_eso_uploads", :force => true do |t|
+    t.integer  "user_id",                     :null => false
+    t.integer  "evidence_section_outcome_id", :null => false
+    t.integer  "material_id",                 :null => false
+    t.datetime "created_at",                  :null => false
+    t.datetime "updated_at",                  :null => false
+  end
+
+  add_index "student_eso_uploads", ["evidence_section_outcome_id", "material_id"], :name => "ix_student_eso_materials_eso_upload"
+  add_index "student_eso_uploads", ["id"], :name => "index_student_eso_uploads_on_id"
+  add_index "student_eso_uploads", ["material_id", "evidence_section_outcome_id"], :name => "ix_student_eso_materials_upload_eso"
+  add_index "student_eso_uploads", ["user_id"], :name => "index_student_eso_uploads_on_user_id"
 
   create_table "subject_outcomes", :force => true do |t|
     t.string   "description"
@@ -462,6 +495,7 @@ ActiveRecord::Schema.define(:version => 20160615141521) do
   end
 
   add_index "users", ["active"], :name => "index_users_on_active"
+  add_index "users", ["id"], :name => "index_users_on_id"
   add_index "users", ["last_name", "first_name"], :name => "index_users_on_last_name_and_first_name"
   add_index "users", ["reset_password_token"], :name => "index_users_on_reset_password_token", :unique => true
   add_index "users", ["school_id", "child_id"], :name => "index_users_on_school_id_and_child_id"

@@ -4,16 +4,15 @@
 class School < ActiveRecord::Base
 
   # Flags constant values:
+  # note: new schools get a default value from the model school (if it exists).
+  # note: the term Family Name is a more internationalized term, therefore this flag will be deprecated.
+  # in future, Family Name and Given Name will be used in place of Last Name and First Name.
   USE_FAMILY_NAME = 'use_family_name'
   USER_BY_FIRST_LAST = 'user_by_first_last'
   GRADE_IN_SUBJECT_NAME = 'grade_in_subject_name'
   USERNAME_FROM_EMAIL = 'username_from_email'
   VALID_FLAGS = [USE_FAMILY_NAME, USER_BY_FIRST_LAST, GRADE_IN_SUBJECT_NAME, USERNAME_FROM_EMAIL]
-  # VALID_FLAGS_NAMES = ['Surname', 'User Sort by','Grade in Subject Name','Username from email']
-  # VALID_FLAGS_VALUES = ['Use Family Name','First/Last','Yes','Yes']
-  # Access Control
-  # using_access_control
-  # attr_accessible :flag_par
+
   attr_accessible :name, :acronym, :city, :marking_periods, :school_year, :flag_pars
 
   # Relationships

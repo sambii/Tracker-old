@@ -24,7 +24,9 @@ class SystemAdministratorsController < ApplicationController
 
   def system_users
     authorize! :sys_admin_links, User
-    @system_users = User.where("users.system_administrator == 't' OR users.researcher == 't' OR users.system_administrator == 1 OR users.researcher == 1")
+    @model_school = School.find(1)
+    @system_users = User.where("users.system_administrator = ? OR users.researcher = ?", true, true)
+    Rails.logger.debug("*** users: #{@system_users.inspect}")
     respond_to do |format|
       format.html
     end

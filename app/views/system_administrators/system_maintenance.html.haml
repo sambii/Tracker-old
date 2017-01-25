@@ -17,9 +17,6 @@
 .row
   .col-sm-12.col-lg-12
     #sys-maint.block.block-alt-style.full
-      .block-title.text-center
-        %h2
-          ='System Maintenance'
       .row
         - if can? :sys_admin_links, User
           =render('system_maintenance')

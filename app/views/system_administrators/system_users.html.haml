@@ -39,23 +39,17 @@
           %thead.table-title
             %tr
               %th= 'ID'
-              - if true # @school.has_flag?(School::USER_BY_FIRST_LAST)
-                %th= 'First Name'
-                - if true # @school.has_flag?(School::USE_FAMILY_NAME)
-                  %th= 'Family Name'
-                - else
-                  %th= 'Last Name'
+              - if @model_school.has_flag?(School::USER_BY_FIRST_LAST)
+                %th= 'Given Name'
+                %th= 'Family Name'
               - else
-                - if true # @school.has_flag?(School::USE_FAMILY_NAME)
-                  %th= 'Family Name'
-                - else
-                  %th= 'Last Name'
-                %th= 'First Name'
+                %th= 'Family Name'
+                %th= 'Given Name'
               %th= 'Role(s)'
               %th= 'Email'
               %th{colspan: 5}= ''
           - start_letter = ''
-          - if true # @school.has_flag?(School::USER_BY_FIRST_LAST)
+          - if @model_school.has_flag?(School::USER_BY_FIRST_LAST)
             - grouping = @system_users.group_by(&:first_name_initial)
           - else
             - grouping = @system_users.group_by(&:last_name_initial)
@@ -78,7 +72,7 @@
                   - assignments = ''
                 %tr{class: deact_class, id: "user_#{s.id}"}
                   %td.user-xid=s.xid
-                  - if true # @school.has_flag?(School::USER_BY_FIRST_LAST)
+                  - if @model_school.has_flag?(School::USER_BY_FIRST_LAST)
                     %td
                       %a{href: "#{user_path(s.id)}"}
                         .user-first-name=s.first_name

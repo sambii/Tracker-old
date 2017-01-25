@@ -1,8 +1,21 @@
 
 - if can?(:sys_admin_links, User)
-  #sys-admin-links.div.show-label-value
-    .row
-      %span#system-alerts.col-sm-12.value
-        %a{href: announcements_path}
-          %i.fa.fa-comment
-          ='System Alerts'
+  #sys-admin-links.block-content-full.rounded-title-container
+    %table.titled-table.table.table-bordered.table-condensed.remove-margin
+      %thead.table-title
+        %tr
+          %th= 'System Maintenance'
+      %tbody.tbody-body.alternate-highlight
+        %tr#system-alerts
+          %td
+            %a{href: announcements_path}
+              %i.fa.fa-comment
+              ='System Alerts'
+        %tr#server-config
+          %td
+            %a{href: server_config_path(1)}
+              ='Server Configuration'
+        %tr#disciplines
+          %td
+            %a{href: disciplines_path}
+              ='Academic Disciplines'

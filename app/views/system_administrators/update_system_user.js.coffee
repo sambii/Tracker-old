@@ -5,7 +5,6 @@ if errors_count.toString() != '0'
   # display flash messages if any
   $('#breadcrumb-flash-msgs').html("<%= escape_javascript(render('layouts/messages')) %>")
   # redisplay form with errors
-  # $('#modal_content').html("<%= escape_javascript(render('users/edit') ) %>");
   $('#modal-body').html("<%= escape_javascript(render('system_administrators/edit_system_user') ) %>");
 else
   # display flash messages if any

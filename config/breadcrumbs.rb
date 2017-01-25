@@ -280,3 +280,12 @@ crumb :announcement_maint do
   parent :root
 end
 
+crumb :edit_server_configuration do
+  link 'Server Config.', edit_server_config_path
+  parent :root
+end
+
+crumb :server_configuration do
+  link 'Server Config.', server_config_path
+  parent :root
+end

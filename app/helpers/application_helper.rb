@@ -157,4 +157,13 @@ module ApplicationHelper
     result = (base_string.present? ? "#{base_string}, #{appending_string}" : "#{appending_string}")
   end
 
+  # to do: replace all redirect to roots to link to this url (goes directly to the user's home page)
+  def current_user_home_page
+    if @current_roles
+      "/#{@current_roles}/#{current_user.id}"
+    else
+      "/#{current_user.role_symbols.first.to_s.pluralize}/#{current_user.id}"
+    end
+  end
+
 end

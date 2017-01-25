@@ -43,8 +43,9 @@
               = render 'layouts/messages'
           / DISPLAY Content
           = yield
-        / No Footer
-        / %footer.clearfix
+        %footer#footer.clearfix
+          #lower-flash-messages.larger-font
+            = render 'layouts/messages'
     / Scroll to top link, initialized in js/app.js - scrollToTop()
     %a#to-top{href: "#"}
       %i.fa.fa-angle-double-up

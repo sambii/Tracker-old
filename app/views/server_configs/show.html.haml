@@ -1,0 +1,55 @@
+
+- content_for(:title, 'Server Configuration')
+- content_for(:page_name, 'Server Configuration')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :server_configuration
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='System Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Server Configuration'
+    .col-sm-1
+
+/ First Row
+.row.indent-row
+  .col-sm-1
+  .col-sm-10
+    #overall.block.block-alt-style.full
+      .block-title.text-center
+        %h3.h2
+          ='Server Configuration'
+        %a#show-to-edit.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{href: edit_server_config_path}
+          %i.fa.fa-lg.fa-pencil
+      .row
+        #server-config.div.show-label-value
+          .row
+            %span.col-sm-6.control-label='Support Email:'
+            %span#support-email.col-sm-6.value=@server_config.support_email
+          .row
+            %span.col-sm-6.control-label='Support Team Name:'
+            %span#support-team.col-sm-6.value=@server_config.support_team
+          .row
+            %span.col-sm-6.control-label='School Support Team Name:'
+            %span#school-support-team.col-sm-6.value=@server_config.school_support_team
+          .row
+            %span.col-sm-6.control-label='Server URL:'
+            %span#server-url.col-sm-6.value=@server_config.server_url
+          .row
+            %span.col-sm-6.control-label='Server Name:'
+            %span#server-name.col-sm-6.value=@server_config.server_name
+          .row
+            %span.col-sm-6.control-label='Web Server Name:'
+            %span#web-server-name.col-sm-6.value=@server_config.web_server_name
+          / .row
+          /   %span.col-sm-6.control-label='Curriculum Upload?:'
+          /   %span#school-use-family-name.col-sm-6.value=( @server_config.has_flag?(ServerConfig::CURRICULUM_UPLOAD) ? "Yes" : "No" )
+  .col-sm-1
+

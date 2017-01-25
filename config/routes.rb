@@ -223,6 +223,8 @@ Tracker2::Application.routes.draw do
   end
   resources :generates, except: [:show, :update, :destroy]
 
+  resources :server_configs, only: [:show, :edit, :update]
+
   match "ui/save_cell_size" => "ui#save_cell_size", via: :put, defaults: { format: :js } #new UI
   match "ui/save_toolkit" => "ui#save_toolkit", via: :put, defaults: { format: :js } #new UI
 

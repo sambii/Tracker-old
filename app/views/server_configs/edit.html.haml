@@ -1,0 +1,74 @@
+
+- content_for(:title, 'Edit Server Configuration')
+- content_for(:page_name, 'Edit Server Configuration')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :edit_server_configuration
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='System Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Edit Server Configuration'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2='Server Configuration'
+      .block-content-full
+        =form_for(@server_config) do |f|
+          - @errors = @server_config.errors
+
+          .page-form.alternate-highlight
+            - if @errors[:base] && @errors[:base] != []
+              %div.ui-error.text-center=@errors[:base]
+            - if can? :sys_admin_links, User
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Support Email:'
+                %input.col-sm-5{id: 'support_email', name: 'config[support_email]', value: @server_config.support_email}
+                %span.ui-required{title: 'Required'}='*'
+                %span.ui-error="#{@errors[:support_email] if @errors[:support_email].present?}"
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Support Team Name:'
+                %input.col-sm-5{id: 'support_team', name: 'config[support_team]', value: @server_config.support_team}
+                %span.ui-required{title: 'Required'}='*'
+                %span.ui-error="#{@errors[:support_team] if @errors[:support_team].present?}"
+              %fieldset.input-group
+                %label.col-sm-4.control-label='School Support Team Name:'
+                %input.col-sm-5{id: 'school_support_team', name: 'config[school_support_team]', value: @server_config.school_support_team}
+                %span.ui-required{title: 'Required'}='*'
+                %span.ui-error="#{@errors[:school_support_team] if @errors[:school_support_team].present?}"
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Server URL:'
+                %input.col-sm-5{id: 'server_url', name: 'config[server_url]', value: @server_config.server_url}
+                %span.ui-error="#{@errors[:server_url] if @errors[:server_url].present?}"
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Server Name:'
+                %input.col-sm-5{id: 'server_name', name: 'config[server_name]', value: @server_config.server_name}
+                %span.ui-required{title: 'Required'}='*'
+                %span.ui-error="#{@errors[:server_name] if @errors[:server_name].present?}"
+              %fieldset.input-group
+                %label.col-sm-4.control-label='Web Server Name:'
+                %input.col-sm-5{id: 'web_server_name', name: 'config[web_server_name]', value: @server_config.web_server_name}
+                %span.ui-required{title: 'Required'}='*'
+                %span.ui-error="#{@errors[:web_server_name] if @errors[:web_server_name].present?}"
+              / %fieldset.input-group
+              /   %label.col-sm-4.control-label='Curriculum Upload?:'
+              /   %input{type: 'hidden', name: "config[flag_pars][#{ServerConfig::CURRICULUM_UPLOAD}]", value: 'false'}
+              /   %input.pull-left{:name => "config[flag_pars][#{ServerConfig::CURRICULUM_UPLOAD}]", :type => "checkbox", checked: @server_config.has_flag?(ServerConfig::CURRICULUM_UPLOAD)}
+              /   %label.checkbox-right-label.pull-left="Yes"
+              /   %span.ui-error="#{@errors[ServerConfig::CURRICULUM_UPLOAD] if @errors[ServerConfig::CURRICULUM_UPLOAD].present?}"
+
+              %fieldset.text-center
+                %a.btn.btn-default{href: current_user_home_page}='Cancel'
+                %button.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'
+  .col-sm-1

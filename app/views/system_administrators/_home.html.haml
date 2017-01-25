@@ -25,33 +25,16 @@
   %h2.h1.page-title
     %strong="System Administrator: #{@system_administrator.full_name}"
   - si_time = (@system_administrator.current_sign_in_at.nil?) ? 'Never' : @system_administrator.current_sign_in_at.strftime('%d-%b-%Y %I:%M:%S %p')+' GMT'
-  %span="(Latest signin time at: #{si_time})"
+  %span.height-30="(Latest signin time at: #{si_time})"
 
 .header-block
   - if @current_school.id.nil?
     %h2.h1.page-title.text-center
       %strong.red="Please Choose a School"
-  - else
-    %h2.h1.page-title.text-center
-      %strong="School Listing"
 .row
   .col-sm-3.col-lg-3
     #overall.block.block-alt-style.full
-      .block-title.text-center
-        %h2
-          ='System Maint., ...'
-      .row
-        - if can? :sys_admin_links, User
-          =render('system_administrators/system_maintenance')
+      =render('system_administrators/system_maintenance')
   .col-sm-9.col-lg-9
     - if can?(:switch, School)
       =render('schools/listing')
-
-.header-block
-  %h2.h1.page-title
-    %strong="Options"
-.row
-  .col-md-12
-    %ul
-      %li= link_to "Manage Academic Disciplines", disciplines_path
-      %li= link_to "Create New Announcement", new_announcement_path
