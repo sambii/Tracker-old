@@ -135,7 +135,7 @@ class ApplicationController < ActionController::Base
     else
       # Rails.logger.error("ERROR -  Cannot set_current_role, user is not logged in **")
     end
-    @current_roles = @current_role.present? ? @current_role.pluralize : ''
+    @current_roles = @current_role.present? ? @current_role.to_s.pluralize : ''
     @current_role
   end
 

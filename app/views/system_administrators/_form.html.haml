@@ -5,27 +5,25 @@
   - if current_user.system_administrator?
     %fieldset.input-group
       %label.col-sm-4.control-label='Role:'
-      - # %input{type: 'hidden', name: 'user[role]', value: :system_administrator}
-      %input.pull-left{:name => "role", :type => "radio", checked: @user.system_administrator?, value: :system_administrator}
+      %input#sys-admin.pull-left{:name => "role", :type => "radio", checked: @user.system_administrator?, value: :system_administrator}
       %label.checkbox-right-label.pull-left="System Administrator"
       %span.ui-error="#{@errors[:system_administrator] if @errors[:system_administrator].present?}"
     %fieldset.input-group
       %label.col-sm-4.control-label='Role:'
-      - # %input{type: 'hidden', name: 'user[role]', value: :researcher}
-      %input.pull-left{:name => "role", :type => "radio", checked: @user.researcher?, value: :researcher}
+      %input#researcher.pull-left{:name => "role", :type => "radio", checked: @user.researcher?, value: :researcher}
       %label.checkbox-right-label.pull-left="Researcher"
       %span.ui-error="#{@errors[:researcher] if @errors[:researcher].present?}"
-  %fieldset.input-group
-    %label.col-sm-4.control-label='First Name:'
+  %fieldset#given-name-field.input-group
+    %label.col-sm-4.control-label='Given/First Name:'
     %input{id: 'staff_first_name', name: 'user[first_name]', value: @user.first_name}
     %span.ui-required{title: 'Required'}='*'
     %span.ui-error="#{@errors[:first_name] if @errors[:first_name].present?}"
-  %fieldset.input-group
-    %label.col-sm-4.control-label='Last Name:'
+  %fieldset#family-name-field.input-group
+    %label.col-sm-4.control-label='Family/Last Name:'
     %input{id: 'staff_last_name', name: 'user[last_name]', value: @user.last_name}
     %span.ui-required{title: 'Required'}='*'
     %span.ui-error="#{@errors[:last_name] if @errors[:last_name].present?}"
-  %fieldset.input-group
+  %fieldset#email-field.input-group
     %label.col-sm-4.control-label='Email:'
     %input{id: 'staff_email', name: 'user[email]', value: @user.email}
     - if true # @school.has_flag?(School::USERNAME_FROM_EMAIL)
@@ -50,5 +48,5 @@
 
   %fieldset.text-center
     %input{type: :hidden, name: 'user[school_id]', value: @user.school_id}
-    %button.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
-    %button.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'
+    %button#btn-dismiss.btn.btn-default{"data-dismiss" => "modal", type: "button"}='Cancel'
+    %button#btn-save.btn.btn-primary{name: 'commit', value: 'update_staff', type: "submit"}='Save'

@@ -27,24 +27,24 @@
         %i.fa.fa-lg.fa-print
       %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
         %i.fa.fa-lg.fa-download
-      - if can? :create, SystemAdministrator
-        %a#add-staff.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_staff_new_user_path(format: :js)}, title: 'Add Staff'}
+      - if can? :sys_admin_links, User
+        %a#add-system-user.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_system_user_new_system_administrator_path(format: :js)}, title: 'Add System User'}
           %i.fa.fa-lg.fa-plus-square
 
 .row
   .col-sm-12
     .block.block-alt-style.full
       .block-content-full.rounded-title-container
-        %table.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
+        %table#system-users.titled-table.table.table-bordered.table-condensed.remove-margin.expand-collapse-tbody
           %thead.table-title
             %tr
               %th= 'ID'
               - if @model_school.has_flag?(School::USER_BY_FIRST_LAST)
-                %th= 'Given Name'
-                %th= 'Family Name'
+                %th= 'Given/First Name'
+                %th= 'Family/Last Name'
               - else
-                %th= 'Family Name'
-                %th= 'Given Name'
+                %th= 'Family/Last Name'
+                %th= 'Given/First Name'
               %th= 'Role(s)'
               %th= 'Email'
               %th{colspan: 5}= ''
@@ -70,7 +70,7 @@
                   - assignments = Teacher.find(s.id).sections.current.count
                 - else
                   - assignments = ''
-                %tr{class: deact_class, id: "user_#{s.id}"}
+                %tr.user-list-item{class: deact_class, id: "user_#{s.id}"}
                   %td.user-xid=s.xid
                   - if @model_school.has_flag?(School::USER_BY_FIRST_LAST)
                     %td

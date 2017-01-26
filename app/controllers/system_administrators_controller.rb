@@ -32,13 +32,65 @@ class SystemAdministratorsController < ApplicationController
     end
   end
 
+  def new_system_user
+    authorize! :sys_admin_links, User
+    @user = User.new
+    respond_to do |format|
+      format.js
+    end
+  end
+
+  def create_system_user
+    authorize! :sys_admin_links, User
+    @model_school = School.find(1)
+    @user = User.new
+
+    if params['role'] == 'system_administrator'
+      set_role(@user, 'system_administrator', true) 
+      set_role(@user, 'researcher', false) 
+    elsif params['role'] == 'researcher'
+      set_role(@user, 'researcher', true)
+      set_role(@user, 'system_administrator', false)
+    else
+      @user.errors.add(:base, 'Role is required!')
+    end
+    @user.assign_attributes(params[:user])
+    @user.set_unique_username
+    @user.set_temporary_password
+    if params[:user][:first_name].blank?
+      @user.errors.add(:first_name, "Given/First Name is required")
+    end
+    if params[:user][:last_name].blank?
+      @user.errors.add(:last_name, "Family/Last Name is required")
+    end
+    if params[:user][:email].blank? && @model_school.has_flag?(School::USERNAME_FROM_EMAIL)
+      @user.errors.add(:email, "Email is required")
+    end
+
+    if @user.errors.count == 0
+      if @user.save
+         # deliver after successful save
+        UserMailer.welcome_system_user(@user, get_server_config).deliver
+      end
+    end
+
+    respond_to do |format|
+      format.js
+    end
+
+  end
+
   def edit_system_user
     authorize! :sys_admin_links, User
     @user = User.find(params[:id])
+    respond_to do |format|
+      format.js
+    end
   end
 
   def update_system_user
     authorize! :sys_admin_links, User
+    @model_school = School.find(1)
     @user = User.find(params[:id])
 
     if params['role'] == 'system_administrator'
@@ -50,7 +102,7 @@ class SystemAdministratorsController < ApplicationController
     end
     @user.assign_attributes(params[:user])
     respond_to do |format|
-      if params[:user][:email].blank? # @school.has_flag?(School::USERNAME_FROM_EMAIL) && params[:user][:email].blank?
+      if params[:user][:email].blank? && @model_school.has_flag?(School::USERNAME_FROM_EMAIL)
         @user.errors.add(:email, "email is required")
         Rails.logger.error("*** @user.errors: #{@user.errors.inspect}")
         format.js

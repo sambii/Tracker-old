@@ -29,14 +29,14 @@ Tracker2::Application.routes.draw do
     end
   end
 
-  resources :system_administrators do
+  resources :system_administrators, only: [:show] do
+    get 'new_system_user', on: :new, defaults: { format: :js } # new UI
     member do
-      get 'add_system_user'
-      put 'create_system_user'
-      get 'edit_system_user'
-      put 'update_system_user'
+      get 'edit_system_user', defaults: { format: :js }
+      put 'update_system_user', defaults: { format: :js }
     end
     collection do
+      post 'create_system_user', defaults: { format: :js }
       get 'system_maintenance'
       get 'system_users'
     end
