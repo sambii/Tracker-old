@@ -155,17 +155,16 @@ describe "System Users Listing", js:true do
       end
     end
 
-    assert_equal('/system_administrators/system_users', current_path)
-
-    within("#page-content h2") do
-      page.should have_content('System Users Listing')
-    end
+    # wait for dialog to close
+    page.should_not have_css('#modal_popup', visible: true)
 
     updated_system_users = page.all("#system-users tr.user-list-item")
     updated_system_users.length.should == 3
 
     # confirm email message was sent
     assert_equal(start_email_count + 1, ActionMailer::Base.deliveries.count)
+    msg = ActionMailer::Base.deliveries.last
+    expect(msg.parts.first.body.raw_source).to include('Your username is : testing')
 
 
     ##############################

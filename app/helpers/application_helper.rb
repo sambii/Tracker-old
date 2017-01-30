@@ -160,10 +160,8 @@ module ApplicationHelper
   # to do: replace all redirect to roots to link to this url (goes directly to the user's home page)
   def current_user_home_page
     if @current_roles
-      Rails.logger.debug("*** @current_roles: #{@current_roles.inspect}")
       "/#{@current_roles}/#{current_user.id}"
     else
-      Rails.logger.debug("*** @current_user.role_symbols.first.to_s: #{current_user.role_symbols.first.to_s.inspect}")
       "/#{current_user.role_symbols.first.to_s.pluralize}/#{current_user.id}"
     end
   end
