@@ -91,18 +91,27 @@ describe "Staff Listing", js:true do
         page.should_not have_css("i.fa-edit") if !can_create
         page.should have_css("i.fa-unlock") if can_create
         page.should_not have_css("i.fa-unlock") if !can_create
+      end
+
+      #########################
+      # Deactivate the regular teacher
+      within("tr#user_#{@teacher.id}") do
         # click the deactivate icon
         if can_create
           find('#remove-staff').click
           page.driver.browser.switch_to.alert.accept
         end
       end
-      # confirm the user is deactivated
+
+      #########################
+      # confirm the teacher is deactivated
       if can_create
         page.should have_css("tr#user_#{@teacher.id}.deactivated")
         page.should_not have_css("tr#user_#{@teacher.id}.active")
       end
 
+      #########################
+      # reactivate the originally deactivated teacher
       page.should have_css("tr#user_#{@teacher_deact.id}")
       page.should have_css("tr#user_#{@teacher_deact.id}.deactivated")
       page.should_not have_css("tr#user_#{@teacher_deact.id}.active")
@@ -112,7 +121,9 @@ describe "Staff Listing", js:true do
         page.should have_content("#{@teacher_deact.email}")
         page.should have_css("i.fa-undo") if can_create && @teacher_deact.active == false
         page.should_not have_css("i.fa-undo") if !can_create && @teacher_deact.active == false
-        # click the reactivate icon
+      end
+      # click the reactivate icon
+      within("tr#user_#{@teacher_deact.id}") do
         if can_create
           find('#restore-staff').click
           page.driver.browser.switch_to.alert.accept
@@ -123,7 +134,34 @@ describe "Staff Listing", js:true do
         page.should have_css("tr#user_#{@teacher_deact.id}.active")
         page.should_not have_css("tr#user_#{@teacher_deact.id}.deactivated")
       end
+
     end # within("#page-content") do
+
+
+    #########################
+    # ensure that only the school admin, teacher and counselor roles display to admins in edit form
+    # to do - full add, edit and deactivate tests (if not done elsewhere)
+    if can_create # (system admins and school admins)
+      within("#page-content") do
+        within("tr#user_#{@teacher.id}") do
+          page.should have_content("#{@teacher.last_name}")
+          page.should have_content("#{@teacher.first_name}")
+          page.should have_content("#{@teacher.email}")
+          page.should have_css("i.fa-edit")
+          find("a[data-url='/users/#{@teacher.id}/edit.js']").click
+        end
+      end
+      page.should have_content('Edit Staff')
+      assert_equal(page.all("fieldset.role-field").count.should, 3)
+      page.should have_css('fieldset#role-sch-admin')
+      page.should have_css('fieldset#role-teach')
+      page.should have_css('fieldset#role-couns')
+
+    else
+      page.should_not have_css("i.fa-edit")
+    end
+
+
   end # def has_valid_subjects_listing
 
 

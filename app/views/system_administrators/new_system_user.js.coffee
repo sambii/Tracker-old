@@ -1,4 +1,4 @@
 
 # replace the body of the modal dialog box with the haml we want rendered
 $('#modal-body').html("<%= escape_javascript(render('system_administrators/new_system_user') ) %>");
-$('#modal_popup .modal-dialog').addClass('med-wide-modal')
+$('#modal_popup .modal-dialog').addClass('modal-lg')

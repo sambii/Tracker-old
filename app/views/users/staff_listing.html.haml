@@ -48,17 +48,11 @@
             %tr
               %th= 'ID'
               - if @school.has_flag?(School::USER_BY_FIRST_LAST)
-                %th= 'First Name'
-                - if @school.has_flag?(School::USE_FAMILY_NAME)
-                  %th= 'Family Name'
-                - else
-                  %th= 'Last Name'
+                %th= 'Given/First Name'
+                %th= 'Family/Last Name'
               - else
-                - if @school.has_flag?(School::USE_FAMILY_NAME)
-                  %th= 'Family Name'
-                - else
-                  %th= 'Last Name'
-                %th= 'First Name'
+                %th= 'Family/Last Name'
+                %th= 'Given/First Name'
               %th= 'Role(s)'
               %th= 'Sections'
               %th= 'Email'
