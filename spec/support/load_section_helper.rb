@@ -1,8 +1,10 @@
 
 module LoadSectionHelper
-  def load_test_section(section, teacher)
+  def load_test_section(section, teacher, create_server_config=true)
 
-    @server_config = FactoryGirl.create :server_config
+    if create_server_config
+      @server_config = FactoryGirl.create :server_config
+    end
     Rails.logger.debug("***** load_test_section")
     @teaching_assignment = FactoryGirl.create :teaching_assignment, teacher: teacher, section: section
 

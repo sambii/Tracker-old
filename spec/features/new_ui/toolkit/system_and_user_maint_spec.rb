@@ -2,7 +2,7 @@
 require 'spec_helper'
 
 
-describe "System Maintenance", js:true do
+describe "System and User Maintenance", js:true do
   before (:each) do
 
     create_and_load_arabic_model_school
@@ -74,28 +74,31 @@ describe "System Maintenance", js:true do
   ##################################################
   # test methods
 
-  def has_valid_system_maintenance(role)
 
-    # has System Maint link in Toolkit
+  def has_valid_toolkit(role)
+
     if role == :system_administrator
 
-      # should have an active toolkit item for system maintenance
+      # should have an active toolkit item for system maintenance menu
       within("#side-sys-maint") do
         find("a[href='/system_administrators/system_maintenance']").click
       end
       assert_not_equal(@home_page, current_path)
       assert_equal('/system_administrators/system_maintenance', current_path)
-
       within("#page-content h2") do
         page.should have_content('System Maintenance')
       end
 
-      within("#page-content #sys-maint #sys-admin-links") do
-        within('#system-alerts') do
-          page.should have_css("a[href='/announcements']")
-          page.should have_content('System Alerts')
-        end
+      # should have a active toolkit item for System Users Listing
+      within("#side-sys-users") do
+        find("a[href='/system_administrators/system_users']").click
       end
+      assert_not_equal(@home_page, current_path)
+      assert_equal('/system_administrators/system_users', current_path)
+      within("#page-content h2") do
+        page.should have_content('System Users Listing')
+      end
+
 
     else
       # should not have a active toolkit item for System Maint.
@@ -104,6 +107,14 @@ describe "System Maintenance", js:true do
       # try to go directly to page
       visit system_maintenance_system_administrators_path
       assert_equal(@home_page, current_path)
+
+      # should not have a active toolkit item for System Users
+      page.should_not have_css("#side-sys-users")
+      page.should_not have_css("a[href='/system_administrators/system_users']")
+      # try to go directly to page
+      visit system_users_system_administrators_path
+      assert_equal(@home_page, current_path)
+
     end
 
 

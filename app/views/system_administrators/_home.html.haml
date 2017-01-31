@@ -33,7 +33,7 @@
       %strong.red="Please Choose a School"
 .row
   .col-sm-3.col-lg-3
-    #overall.block.block-alt-style.full
+    - if can?(:sys_admin_links, User)
       =render('system_administrators/system_maintenance')
   .col-sm-9.col-lg-9
     - if can?(:switch, School)

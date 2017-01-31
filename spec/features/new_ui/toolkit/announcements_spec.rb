@@ -106,7 +106,14 @@ describe "Announcements", js:true do
     # confirm first announcement is hidden on page refresh (by cookie)
     page.should_not have_css("#announcements #announcement_#{@announcement1.id}")
 
+    # to do - confirm that only the first announcement is displayed to the user
+    # note all alerts are hidden by css overflow-hidden, so the announcements are in the html
+
+    # confirm only system administrators have the ability to maintain announcements
     if role == :system_administrator
+
+      #############################################
+      # confirm adding a new announcement is displayed in the alerts box
       page.should_not have_css("#announcements")
       find("#announcements-admin a[href='/announcements']").click
       assert_equal(current_path, '/announcements')
@@ -124,10 +131,11 @@ describe "Announcements", js:true do
       announcements = page.all("#announcements tr")
       announcements.length.should == 3
 
-      # get id of new announcement from returned announcement elements
-      announcement_id = announcements[2][:id].split('_')[1]
+      #############################################
+      # confirm edit new announcement works properly
 
-      # edit new announcement
+      # get id of new announcement from returned announcement elements and go to edit popup
+      announcement_id = announcements[2][:id].split('_')[1]
       within("#announcements tr#announcement_#{announcement_id}") do
         find("a[data-target='#modal_popup']").click
       end
@@ -158,7 +166,35 @@ describe "Announcements", js:true do
         page.should_not have_content('This is a new Announcement!')
       end
 
+      #############################################
+      # confirm removing all announcements clears announcements maintenance icon in header
+
+      # confirm announcements maintenance icon is shown
+      page.should have_css("#announcements-admin a[href='/announcements']")
+
+      #remove changed announcement from list of announcements
+      assert_equal(current_path, '/announcements')
+      within("#announcements") do
+        within(announcements[1]) do
+          find('a#delete-item').click
+        end
+      end
+      # click OK in javascript confirmation popup
+      page.driver.browser.switch_to.alert.accept
+      within("#announcements") do
+        within(announcements[0]) do
+          find('a#delete-item').click
+        end
+      end
+      # click OK in javascript confirmation popup
+      page.driver.browser.switch_to.alert.accept
+
+      # confirm announcements maintenance icon is no longer shown
+      page.should_not have_css("#announcements-admin a[href='/announcements']")
+
     else
+
+      # confirm this user cannot maintain system alerts
       page.should_not have_css("#announcements-admin")
       page.should_not have_css("a[href='/announcements']")
     end

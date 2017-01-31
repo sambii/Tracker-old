@@ -32,31 +32,31 @@
             - if @errors[:base] && @errors[:base] != []
               %div.ui-error.text-center=@errors[:base]
             - if can? :sys_admin_links, User
-              %fieldset.input-group
+              %fieldset#support-email.input-group
                 %label.col-sm-4.control-label='Support Email:'
                 %input.col-sm-5{id: 'support_email', name: 'config[support_email]', value: @server_config.support_email}
                 %span.ui-required{title: 'Required'}='*'
                 %span.ui-error="#{@errors[:support_email] if @errors[:support_email].present?}"
-              %fieldset.input-group
+              %fieldset#support-team.input-group
                 %label.col-sm-4.control-label='Support Team Name:'
                 %input.col-sm-5{id: 'support_team', name: 'config[support_team]', value: @server_config.support_team}
                 %span.ui-required{title: 'Required'}='*'
                 %span.ui-error="#{@errors[:support_team] if @errors[:support_team].present?}"
-              %fieldset.input-group
+              %fieldset#school-support-team.input-group
                 %label.col-sm-4.control-label='School Support Team Name:'
                 %input.col-sm-5{id: 'school_support_team', name: 'config[school_support_team]', value: @server_config.school_support_team}
                 %span.ui-required{title: 'Required'}='*'
                 %span.ui-error="#{@errors[:school_support_team] if @errors[:school_support_team].present?}"
-              %fieldset.input-group
+              %fieldset#server-url.input-group
                 %label.col-sm-4.control-label='Server URL:'
                 %input.col-sm-5{id: 'server_url', name: 'config[server_url]', value: @server_config.server_url}
                 %span.ui-error="#{@errors[:server_url] if @errors[:server_url].present?}"
-              %fieldset.input-group
+              %fieldset#server-name.input-group
                 %label.col-sm-4.control-label='Server Name:'
                 %input.col-sm-5{id: 'server_name', name: 'config[server_name]', value: @server_config.server_name}
                 %span.ui-required{title: 'Required'}='*'
                 %span.ui-error="#{@errors[:server_name] if @errors[:server_name].present?}"
-              %fieldset.input-group
+              %fieldset#web-server-name.input-group
                 %label.col-sm-4.control-label='Web Server Name:'
                 %input.col-sm-5{id: 'web_server_name', name: 'config[web_server_name]', value: @server_config.web_server_name}
                 %span.ui-required{title: 'Required'}='*'

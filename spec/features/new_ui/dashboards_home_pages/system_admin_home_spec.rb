@@ -15,6 +15,8 @@ describe "System Administrator Home Page", js:true do
     @subject = FactoryGirl.create :subject, school: @school, subject_manager: @teacher
     @section = FactoryGirl.create :section, subject: @subject
     load_test_section(@section, @teacher)
+
+    @school2 = FactoryGirl.create :school_current_year, :arabic
   end
 
   describe "as teacher" do
@@ -74,37 +76,26 @@ describe "System Administrator Home Page", js:true do
     visit system_administrator_path(@system_administrator.id)
     assert_not_equal(current_path, "/system_administrators/#{@system_administrator.id}")
     assert_equal(current_path, @home_page)
-
-    # should not have a active toolkit item for System Maint.
-    page.should_not have_css("#side-sys-maint")
-    page.should_not have_css("a[href='/system_administrators/system_maintenance']")
-    # try to go directly to page
-    visit system_maintenance_system_administrators_path
-    assert_equal(@home_page, current_path)
-
   end
 
   def system_admin_home_is_valid
     # this is only seen by system administrator
-    visit system_administrator_path(@researcher.id)
+    visit system_administrator_path(@system_administrator.id)
     assert_equal(current_path, "/system_administrators/#{@system_administrator.id}")
 
-    # should have an active toolkit item for system maintenance
-    within("#side-sys-maint") do
-      find("a[href='/system_administrators/system_maintenance']").click
-    end
-    assert_not_equal(@home_page, current_path)
-    assert_equal('/system_administrators/system_maintenance', current_path)
-
-    within("#page-content h2") do
-      page.should have_content('System Maintenance')
+    within('#sys-admin-links') do
+      page.should have_css("#system-alerts a[href='/announcements']")
+      page.should have_css("#server-config a[href='/server_configs/1']")
+      page.should have_css("#disciplines a[href='/disciplines']")
     end
 
-    within("#page-content #sys-maint #sys-admin-links") do
-      within('#system-alerts') do
-        page.should have_css("a[href='/announcements']")
-        page.should have_content('System Alerts')
-      end
+    within('#school-listing') do
+      # should list all schools in the system
+      page.should have_css("tr#school-#{@model_school.id}")
+      page.should have_css("tr#school-#{@training_school.id}")
+      page.should have_css("tr#school-#{@school.id}")
+      page.should have_css("tr#school-#{@school2.id}")
+      page.all("tbody tr").count.should == 4
     end
 
   end

@@ -3,4 +3,10 @@
 #
 class ServerConfig < ActiveRecord::Base
 
+  validates :support_email, presence: true, on: :update # use default on create
+  validates :support_team, presence: true, on: :update # use default on create
+  validates :school_support_team, presence: true, on: :update # use default on create
+  validates :server_name, presence: true, on: :update # use default on create
+  validates :web_server_name, presence: true, on: :update # use default on create
+
 end

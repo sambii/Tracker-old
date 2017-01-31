@@ -57,7 +57,7 @@ class ServerConfigsController < ApplicationController
       if @server_config.update_attributes(params[:config])
         format.html { render action: :show }
       else
-        format.html { render action: :add_edit }
+        format.html { render action: :edit }
       end
     end
   end

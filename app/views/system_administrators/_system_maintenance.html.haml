@@ -1,5 +1,4 @@
-
-- if can?(:sys_admin_links, User)
+#overall.block.block-alt-style.full
   #sys-admin-links.block-content-full.rounded-title-container
     %table.titled-table.table.table-bordered.table-condensed.remove-margin
       %thead.table-title
@@ -15,6 +14,8 @@
           %td
             %a{href: server_config_path(1)}
               ='Server Configuration'
+            - if ServerConfig.all.count != 1
+              %span.ui-error='ERROR'
         %tr#disciplines
           %td
             %a{href: disciplines_path}
