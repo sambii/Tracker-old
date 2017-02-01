@@ -155,10 +155,6 @@ describe "Server Configuration Maintenance", js:true do
       page.should have_css('span#web-server-name', text: 'PARLO Tracker Web Server2')
     end
 
-
-    sleep 20
-    save_and_open_page
-
   end # can_maintain_server_config
 
 end

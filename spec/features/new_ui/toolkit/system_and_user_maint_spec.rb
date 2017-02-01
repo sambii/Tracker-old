@@ -23,7 +23,7 @@ describe "System and User Maintenance", js:true do
       sign_in(@teacher1)
       @home_page = "/teachers/#{@teacher1.id}"
     end
-    it { has_valid_system_maintenance(:teacher) }
+    it { has_valid_toolkit(:teacher) }
   end
 
   describe "as school administrator" do
@@ -32,7 +32,7 @@ describe "System and User Maintenance", js:true do
       sign_in(@school_administrator)
       @home_page = "/school_administrators/#{@school_administrator.id}"
     end
-    it { has_valid_system_maintenance(:school_administrator) }
+    it { has_valid_toolkit(:school_administrator) }
   end
 
   describe "as researcher" do
@@ -42,7 +42,7 @@ describe "System and User Maintenance", js:true do
       set_users_school(@school1)
       @home_page = "/researchers/#{@researcher.id}"
     end
-    it { has_valid_system_maintenance(:researcher) }
+    it { has_valid_toolkit(:researcher) }
   end
 
   describe "as system administrator" do
@@ -52,7 +52,7 @@ describe "System and User Maintenance", js:true do
       set_users_school(@school1)
       @home_page = "/system_administrators/#{@system_administrator.id}"
     end
-    it { has_valid_system_maintenance(:system_administrator) }
+    it { has_valid_toolkit(:system_administrator) }
   end
 
   describe "as student" do
@@ -60,7 +60,7 @@ describe "System and User Maintenance", js:true do
       sign_in(@student)
       @home_page = "/students/#{@student.id}"
     end
-    it { has_valid_system_maintenance(:student) }
+    it { has_valid_toolkit(:student) }
   end
 
   describe "as parent" do
@@ -68,7 +68,7 @@ describe "System and User Maintenance", js:true do
       sign_in(@student.parent)
       @home_page = "/parents/#{@student.parent.id}"
     end
-    it { has_valid_system_maintenance(:parent) }
+    it { has_valid_toolkit(:parent) }
   end
 
   ##################################################

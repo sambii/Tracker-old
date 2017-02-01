@@ -83,10 +83,6 @@ describe "School Admin Dashboard", js:true do
     visit school_administrator_path(@school_administrator.id)
     assert_equal("/school_administrators/#{@school_administrator.id}", current_path)
 
-
-sleep 20
-save_and_open_page
-
     # Note overall lo counts should == prof bar counts for each color
     
     within("#overall") do

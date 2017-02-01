@@ -212,9 +212,6 @@ describe "Generate Student Attendance Detail Report", js:true do
         find("button", text: 'Generate').click
       end
     end
-
-    sleep 20
-    save_and_open_page
     
     # should return back to generate reports page with required fields errors
     page.should have_content('Generate Reports')
