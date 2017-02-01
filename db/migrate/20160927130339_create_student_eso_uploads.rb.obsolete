@@ -1,0 +1,32 @@
+class CreateStudentEsoUploads < ActiveRecord::Migration
+  def self.up
+    create_table :materials do |t|
+      t.references :user, null: false
+      t.string :material_type
+      t.string :title
+      t.string :description
+      t.string :keywords
+      t.string :url
+      t.attachment :attachment
+      t.timestamps
+    end
+    add_index :materials, :id
+    add_index :materials, :user_id
+   
+    create_table :student_eso_uploads do |t|
+      t.references :user, null: false
+      t.references :evidence_section_outcome, null: false
+      t.references :material, null: false
+      t.timestamps
+    end
+    add_index :student_eso_uploads, :id
+    add_index :student_eso_uploads, :user_id
+    add_index :student_eso_uploads, [:evidence_section_outcome_id, :material_id], name: 'ix_student_eso_materials_eso_upload'
+    add_index :student_eso_uploads, [:material_id, :evidence_section_outcome_id], name: 'ix_student_eso_materials_upload_eso'
+  end
+
+  def self.down
+    drop_table :materials
+    drop_table :student_eso_uploads
+  end
+end
