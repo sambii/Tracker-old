@@ -3,4 +3,5 @@
 #
 class EvidenceType < ActiveRecord::Base
   attr_accessible :name
+  validates :name, presence: {message: I18n.translate('errors.cant_be_blank')}
 end

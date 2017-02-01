@@ -1,0 +1,51 @@
+
+- content_for(:title, 'Evidence Types Listing')
+- content_for(:page_name, 'Evidence Types Listing')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :evidence_types_listing
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="System Maintenance"
+  %h2.h1.page-title
+    %strong="Evidence Types Listing"
+
+.block-section.indent-block
+  .row.height-30
+    .pull-left
+      %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-filter
+      %a.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+        %i.fa.fa-lg.fa-print
+      %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-download
+
+.row
+  .col-sm-2
+  .col-sm-8
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2='Evidence Types Listing'
+        - if can? :create, EvidenceType
+          %a#show-at-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_evidence_type_path(format: :js)}}
+            %i.fa.fa-lg.fa-plus
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th= 'Name'
+              %th{colspan: 1}= 'Actions'
+          %tbody.tbody-body
+            - @evidence_types.each do |et|
+              %tr.evidence-item{id: "et_#{et.id}"}
+                %td.text-center.name=et.name
+                %td.text-center
+                  - if can? :edit, et
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_evidence_type_path(et.id, format: :js)}, title: 'Edit Evidence Type'}
+                      %i.fa.fa-lg.fa-edit
+  .col-sm-2
+

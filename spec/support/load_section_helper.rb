@@ -66,7 +66,7 @@ module LoadSectionHelper
       ev = FactoryGirl.create(:evidence, section: section)
       @evidences[ev.id] = ev
     end
-    # create a deactivated evidence for this section
+    # create a seventh deactivated evidence for this section
     @deact_evidence = FactoryGirl.create(:evidence, section: section, name: 'Deactivated', active: false)
     @evidences[@deact_evidence.id] = @deact_evidence
 

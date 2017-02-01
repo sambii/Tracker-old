@@ -289,3 +289,8 @@ crumb :server_configuration do
   link 'Server Config.', server_config_path
   parent :root
 end
+
+crumb :evidence_types_listing do
+  link 'Evidence Types', evidence_types_path
+  parent :root
+end

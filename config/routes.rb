@@ -6,7 +6,7 @@ Tracker2::Application.routes.draw do
   end
 
   resources :disciplines
-  resources :evidence_types, only: [:index]
+  resources :evidence_types, except: [:destroy]
   resources :researchers
   devise_for :users
 
