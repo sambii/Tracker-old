@@ -1,7 +1,40 @@
-%div.form
-  = form_for(@discipline) do |f| 
-    %div.fieldset
-      = f.label :name
-      = f.text_field :name
-    %div.submit
-      = f.submit
+
+- content_for(:title, 'Maintain Disciplines')
+- content_for(:page_name, 'Maintain Disciplines')
+- content_for(:page_class, 'misc')
+
+/ Header
+.header-block
+  .row
+    .col-sm-1
+    .col-sm-10
+      %h1.h3.page-title.text-center
+        %strong='System Maintenance'
+      %h2.h1.page-title.text-center
+        %strong='Maintain Disciplines'
+    .col-sm-1
+
+.row
+  .col-sm-1
+  .col-sm-10
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2='Disciplines Maintenance'
+      .block-content-full
+        =form_for(@discipline, remote: true) do |f|
+          - @errors = @discipline.errors
+          .page-form
+            - if @errors[:base] && @errors[:base] != []
+              %fieldset.input-group
+                %div.ui-error.text-center=@errors[:base]
+            %fieldset#discipline_name.input-group
+              %label.col-sm-3.control-label{for: 'discipline[name]'}='Name'
+              %input{name: 'discipline[name]', value: "#{@discipline.name}"}
+              %span.ui-required{title: 'Required'}='*'
+              %span#type_error.ui-error="#{@errors[:name] if @errors[:name].present?}"
+            %fieldset.text-center
+              %a.btn.btn-default{type: "button", href: disciplines_path()} Cancel
+              - if can? :update, Discipline
+                = f.submit(I18n.translate('action_titles.save'), class: 'btn btn-sm btn-primary')
+  .col-sm-1
+

@@ -142,6 +142,7 @@ module LoadSectionHelper
     @teacher2 = @subject1.subject_manager
     @section3_2 = FactoryGirl.create :section, subject: @subject3
     @section3_3 = FactoryGirl.create :section, subject: @subject3
+    @discipline3 = @subject3.discipline
 
   end
 

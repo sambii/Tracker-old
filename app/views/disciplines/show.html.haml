@@ -1,11 +1,69 @@
-%h3
-  = @discipline.name
-  %span.small= link_to "(edit)", edit_discipline_path(@discipline)
-%ul
-  - if @discipline.subjects.size > 0
-    - @discipline.subjects.each do |subject|
-      %li= link_to subject.name, subject
-  - else
-    (No subjects exist for this discipline.)
-%p= link_to "Add Subject", new_subject_path(discipline_id: @discipline.id)
-%p= link_to "Show all disciplines", disciplines_path
+
+- content_for(:title, 'Discipline')
+- content_for(:page_name, 'Discipline')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :discipline, @discipline
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong=''
+  %h2.h1.page-title
+    %strong='System Maintenance'
+
+/ First Row
+- if can? :show, @discipline
+  .row
+    .col-sm-1
+    .col-sm-10
+      #discipline.block.block-alt-style.full
+        .block-title.text-center
+          %h3.h2
+            ="Discipline: #{@discipline.name}"
+          %a#show-to-list.pull-left.col.btn.btn-sm.btn-primary.pointer-cursor{href: disciplines_path }
+            %i.fa.fa-lg.fa-list-ul
+          %a#show-to-edit.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{href: edit_discipline_path(@discipline) }
+            %i.fa.fa-lg.fa-pencil
+        .block-content-full.rounded-title-container
+          %table.titled-table.table.table-bordered.table-condensed.remove-margin
+            %thead.table-title
+              %tr
+                %th= 'School Acronym'
+                %th= 'School'
+                %th= '# Subjects'
+                %th= 'Subject Listing'
+            %tbody.tbody-body
+              - if @subjects.length > 0
+                - cur_school_acronym = ''
+                - cur_school_name = ''
+                - cur_school_id = 0
+                - cur_school_subjects = Array.new
+                - @subjects.each do |subj|
+                  - # check if break/change in subject, if so, then output saved subject information
+                  - if cur_school_acronym != subj.school.acronym && cur_school_acronym != ''
+                    %tr.subject-row{id: "school_#{cur_school_acronym}"}
+                      %td.text-center.school-acronym=link_to cur_school_acronym, school_path(cur_school_id) 
+                      %td.text-center.school-name=link_to cur_school_name, school_path(cur_school_id)
+                      %td.text-center.school-num-subjects=cur_school_subjects.count
+                      %td.text-center.school-subjects-list=cur_school_subjects.join(', ')
+                    - cur_school_subjects = Array.new
+                  - # save this subject information
+                  - cur_school_acronym = subj.school.acronym
+                  - cur_school_name = subj.school.name
+                  - cur_school_id = subj.school.id
+                  - cur_school_subjects << subj.name
+                - # end of loop through subjects, print out last saved subject 
+                %tr.subject-row{id: "school_#{cur_school_acronym}"}
+                  %td.text-center.school-acronym=link_to cur_school_acronym, school_path(cur_school_id)
+                  %td.text-center.school-name=link_to cur_school_name, school_path(cur_school_id)
+                  %td.text-center.school-num-subjects=cur_school_subjects.count
+                  %td.text-center.school-subjects-list=cur_school_subjects.join(', ')
+              - else
+                %tr.subject-row{id: "subject_xxx"}
+                  %td.text-left{colspan: 4}='No subjects exist for this discipline.'
+
+
+    .col-sm-1

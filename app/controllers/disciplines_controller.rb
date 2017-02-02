@@ -5,13 +5,15 @@ class DisciplinesController < ApplicationController
   load_and_authorize_resource except: :index
 
   def show
+    @subjects = Subject.where(discipline_id: params[:id]).includes(:school).order('schools.acronym, subjects.name')
     respond_to do |format|
       format.html
     end
   end
 
   def index
-    @disciplines = Discipline.order(:name).accessible_by(current_ability, :index)
+    @disciplines = Discipline.order(:name).all
+    authorize! :read, Discipline # ensure redirect to login page on timeout
     respond_to do |format|
       format.html
       format.json

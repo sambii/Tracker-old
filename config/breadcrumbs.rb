@@ -294,3 +294,8 @@ crumb :evidence_types_listing do
   link 'Evidence Types', evidence_types_path
   parent :root
 end
+
+crumb :discipline do |discipline|
+  link "#{discipline.name.truncate(15, omission: '...')}", discipline_path(discipline)
+  parent :root
+end

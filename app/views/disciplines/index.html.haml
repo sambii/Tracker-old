@@ -1,9 +1,60 @@
-%table.report
-  %tr
-    %th Discipline Name
-    %th # of Subjects
-  - @disciplines.each do |discipline|
-    %tr
-      %td= link_to discipline.name, discipline
-      %td= discipline.subjects.count
-%p= link_to "Create New Discipline", new_discipline_path
+
+- content_for(:title, 'Evidence Types Listing')
+- content_for(:page_name, 'Evidence Types Listing')
+- content_for(:page_class, 'misc')
+- content_for :layout_breadcrumbs do
+  - breadcrumb :root # to ensure breadcrumbs always show
+  - breadcrumb :evidence_types_listing
+  = help_gen_breadcrumbs
+
+/ Header
+.header-block
+  %h1.h3.page-title
+    %strong="System Maintenance"
+  %h2.h1.page-title
+    %strong="Disciplines Listing"
+
+.block-section.indent-block
+  .row.height-30
+    .pull-left
+      %a#filter-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-filter
+      %a.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Print'}
+        %i.fa.fa-lg.fa-print
+      %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
+        %i.fa.fa-lg.fa-download
+      - if can? :create, Discipline
+        %a#add-evidence-type.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_discipline_path(format: :js)}, title: 'Create Discipline'}
+          %i.fa.fa-lg.fa-plus-square
+
+.row
+  .col-sm-1
+  .col-sm-9
+    .block.block-alt-style.full
+      .block-title.text-center
+        %h2='Disciplines Listing'
+        - if can? :create, Discipline
+          %a#show-at-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_discipline_path(format: :js)}}
+            %i.fa.fa-lg.fa-plus
+      .block-content-full.rounded-title-container
+        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+          %thead.table-title
+            %tr
+              %th= 'Name'
+              %th= '# Subjects'
+              %th{colspan: 2}= 'Actions'
+          %tbody.tbody-body
+            - @disciplines.each do |d|
+              %tr.discipline-item{id: "d_#{d.id}"}
+                %td.text-center.name=link_to d.name, d
+                %td.text-center.num_subjects=d.subjects.count.to_s
+                %td.text-center
+                  - if can? :show, d
+                    %a{href: discipline_path(d.id), title: 'View Discipline'}
+                      %i.fa.fa-lg.fa-ellipsis-h
+                %td.text-center
+                  - if can? :show, d
+                    %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_discipline_path(d.id, format: :js)}, title: 'Edit Discipline'}
+                      %i.fa.fa-lg.fa-edit
+  .col-sm-1
+
