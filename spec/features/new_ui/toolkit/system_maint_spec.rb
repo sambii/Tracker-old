@@ -23,7 +23,7 @@ describe "System and User Maintenance", js:true do
       sign_in(@teacher1)
       @home_page = "/teachers/#{@teacher1.id}"
     end
-    it { has_valid_toolkit(:teacher) }
+    it { cannot_see_system_maint }
   end
 
   describe "as school administrator" do
@@ -32,7 +32,7 @@ describe "System and User Maintenance", js:true do
       sign_in(@school_administrator)
       @home_page = "/school_administrators/#{@school_administrator.id}"
     end
-    it { has_valid_toolkit(:school_administrator) }
+    it { cannot_see_system_maint }
   end
 
   describe "as researcher" do
@@ -42,7 +42,7 @@ describe "System and User Maintenance", js:true do
       set_users_school(@school1)
       @home_page = "/researchers/#{@researcher.id}"
     end
-    it { has_valid_toolkit(:researcher) }
+    it { cannot_see_system_maint }
   end
 
   describe "as system administrator" do
@@ -52,7 +52,7 @@ describe "System and User Maintenance", js:true do
       set_users_school(@school1)
       @home_page = "/system_administrators/#{@system_administrator.id}"
     end
-    it { has_valid_toolkit(:system_administrator) }
+    it { can_see_system_maint }
   end
 
   describe "as student" do
@@ -60,7 +60,7 @@ describe "System and User Maintenance", js:true do
       sign_in(@student)
       @home_page = "/students/#{@student.id}"
     end
-    it { has_valid_toolkit(:student) }
+    it { cannot_see_system_maint }
   end
 
   describe "as parent" do
@@ -68,56 +68,32 @@ describe "System and User Maintenance", js:true do
       sign_in(@student.parent)
       @home_page = "/parents/#{@student.parent.id}"
     end
-    it { has_valid_toolkit(:parent) }
+    it { cannot_see_system_maint }
   end
 
   ##################################################
   # test methods
 
 
-  def has_valid_toolkit(role)
+  def cannot_see_system_maint
+    # should not have a active toolkit item for System Maint.
+    page.should_not have_css("#side-sys-maint")
+    page.should_not have_css("a[href='/system_administrators/system_maintenance']")
+    # try to go directly to page
+    visit system_maintenance_system_administrators_path
+    assert_equal(@home_page, current_path)
+  end # cannot_see_system_maint
 
-    if role == :system_administrator
-
-      # should have an active toolkit item for system maintenance menu
-      within("#side-sys-maint") do
-        find("a[href='/system_administrators/system_maintenance']").click
-      end
-      assert_not_equal(@home_page, current_path)
-      assert_equal('/system_administrators/system_maintenance', current_path)
-      within("#page-content h2") do
-        page.should have_content('System Maintenance')
-      end
-
-      # should have a active toolkit item for System Users Listing
-      within("#side-sys-users") do
-        find("a[href='/system_administrators/system_users']").click
-      end
-      assert_not_equal(@home_page, current_path)
-      assert_equal('/system_administrators/system_users', current_path)
-      within("#page-content h2") do
-        page.should have_content('System Users Listing')
-      end
-
-
-    else
-      # should not have a active toolkit item for System Maint.
-      page.should_not have_css("#side-sys-maint")
-      page.should_not have_css("a[href='/system_administrators/system_maintenance']")
-      # try to go directly to page
-      visit system_maintenance_system_administrators_path
-      assert_equal(@home_page, current_path)
-
-      # should not have a active toolkit item for System Users
-      page.should_not have_css("#side-sys-users")
-      page.should_not have_css("a[href='/system_administrators/system_users']")
-      # try to go directly to page
-      visit system_users_system_administrators_path
-      assert_equal(@home_page, current_path)
-
+  def can_see_system_maint
+    # should have an active toolkit item for system maintenance menu
+    within("#side-sys-maint") do
+      find("a[href='/system_administrators/system_maintenance']").click
     end
-
-
-  end # has_valid_system_maintenance
+    assert_not_equal(@home_page, current_path)
+    assert_equal('/system_administrators/system_maintenance', current_path)
+    within("#page-content h2") do
+      page.should have_content('System Maintenance')
+    end
+  end # can_see_system_maint
 
 end
