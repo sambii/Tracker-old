@@ -15,7 +15,7 @@ describe "Evidence Type Maintenance", js:true do
     @discipline = @subject.discipline
     load_test_section(@section, @teacher)
 
-    @evidence_type_ids = @evidences.values.map{ |e| e.evidence_type_id }
+    @evidence_type_ids = @evidences.values.map{ |e| e.evidence_type_id.to_s }
 
   end
 
@@ -100,8 +100,11 @@ describe "Evidence Type Maintenance", js:true do
 
   def can_maintain_evid_type
     # this is only seen by a system administrator, so landing page should be the sys admin home page
-
     # should be on school show page (after selecting school)
+
+
+    ###########################
+    # Evidence Types Listing page tests
 
     # go to system maintenance page directly
     visit system_maintenance_system_administrators_path
@@ -112,10 +115,8 @@ describe "Evidence Type Maintenance", js:true do
     page.find('#sys-admin-links #evidence-types a').click
     assert_equal('/evidence_types', current_path)
 
-    save_and_open_page
-
     # page should list the current evidence types
-    assert_equal(7, page.all('tr.evidence-item').count )
+    assert_equal(7, page.all('tr.evidence-type-item').count )
     within('table') do
       @evidence_type_ids.each do |et|
         Rails.logger.debug("+++ evidence type id: #{et.inspect}")
@@ -124,11 +125,72 @@ describe "Evidence Type Maintenance", js:true do
     end
 
 
+    ###########################
+    # Add Evidence Type tests
+
     # Add a new evidence type with no description should return error
+    page.find('a#show-at-to-add').click
+    page.should have_css('#modal-body h2', text: 'Maintain Evidence Types')
+    page.find("#modal-body form#new_evidence_type input[value='Save']").click
+    page.should have_css('#modal-body h2', text: 'Maintain Evidence Types')
+    page.should have_css("#modal-body form#new_evidence_type fieldset#evidence_type_name span.ui-error")
 
     # edit returned error form to add new evidence type
+    fill_in("evidence_type[name]", with: 'Homework')
+    page.find("#modal-body form#new_evidence_type input[value='Save']").click
 
-    # new evidence type should be listed
+    # Confirm new evidence type is in displayed listing
+    assert_equal('/evidence_types', current_path)
+    within('#page-content table tbody') do
+      page.should have_content('Homework')
+    end
+
+    # confirm add new evidence type top row button works (and cancel add works)
+    page.find('a#add-evidence-type').click
+    page.should have_css('#modal-body h2', text: 'Maintain Evidence Types')
+    page.find("#modal-body form#new_evidence_type a[href='/evidence_types']").click
+    assert_equal('/evidence_types', current_path)
+
+
+    ##############################
+    # edit the newly created evidence type (not one created by testing factory)
+
+    # get the newly added evidence type id by finding the one not in the orinal list
+    updated_evidence_types = page.all("tr.evidence-type-item")
+    updated_evidence_types.length.should == 8
+    new_et_id = ''
+    updated_evidence_types.each do |et|
+      et_id = et[:id].split('_')[1]
+      if !@evidence_type_ids.include?(et_id)
+        # this id is not found in original list of ids - this is the id for the new one
+        new_et_id = et_id
+        break
+      end
+    end
+    assert_not_equal('', new_et_id)
+    
+    # click the edit button for the newly created evidence type
+    within("tr#et_#{new_et_id}") do
+      find("a[data-url='/evidence_types/#{new_et_id}/edit.js']").click
+    end
+    page.should have_css('#modal-body h2', text: 'Maintain Evidence Types')
+
+    # blank out evidence name to ensure blanks are not allowed
+    fill_in("evidence_type[name]", with: '')
+    page.find("#modal-body form#edit_evidence_type_#{new_et_id} input[value='Save']").click
+    page.should have_css('#modal-body h2', text: 'Maintain Evidence Types')
+    page.should have_css("#modal-body form#edit_evidence_type_#{new_et_id} fieldset#evidence_type_name span.ui-error")
+
+    # put in a different name for the evidence type
+    fill_in("evidence_type[name]", with: 'Journal')
+    page.find("#modal-body form#edit_evidence_type_#{new_et_id} input[value='Save']").click
+
+    # Confirm updated evidence type is in displayed listing
+    assert_equal('/evidence_types', current_path)
+    within('#page-content table tbody') do
+      page.should_not have_content('Homework')
+      page.should have_content('Journal')
+    end
 
 
     # to do - add deactivate option for evidence types (requires database change and many tests)

@@ -27,13 +27,13 @@
             - if @errors[:base] && @errors[:base] != []
               %fieldset.input-group
                 %div.ui-error.text-center=@errors[:base]
-            %fieldset.input-group
+            %fieldset#evidence_type_name.input-group
               %label.col-sm-3.control-label{for: 'evidence_type[name]'}='Name'
-              %input{id: 'evidence_type_name', name: 'evidence_type[name]', value: "#{@evidence_type.name}"}
+              %input{name: 'evidence_type[name]', value: "#{@evidence_type.name}"}
               %span.ui-required{title: 'Required'}='*'
               %span#type_error.ui-error="#{@errors[:name] if @errors[:name].present?}"
             %fieldset.text-center
-              %a.btn.btn-default{type: "button", href: announcements_path()} Cancel
+              %a.btn.btn-default{type: "button", href: evidence_types_path()} Cancel
               - if can? :update, EvidenceType
                 = f.submit(I18n.translate('action_titles.save'), class: 'btn btn-sm btn-primary')
   .col-sm-1

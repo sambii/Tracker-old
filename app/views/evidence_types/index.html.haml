@@ -23,6 +23,9 @@
         %i.fa.fa-lg.fa-print
       %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
         %i.fa.fa-lg.fa-download
+      - if can? :create, EvidenceType
+        %a#add-evidence-type.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_evidence_type_path(format: :js)}, title: 'Create Evidence Type'}
+          %i.fa.fa-lg.fa-plus-square
 
 .row
   .col-sm-2
@@ -41,7 +44,7 @@
               %th{colspan: 1}= 'Actions'
           %tbody.tbody-body
             - @evidence_types.each do |et|
-              %tr.evidence-item{id: "et_#{et.id}"}
+              %tr.evidence-type-item{id: "et_#{et.id}"}
                 %td.text-center.name=et.name
                 %td.text-center
                   - if can? :edit, et

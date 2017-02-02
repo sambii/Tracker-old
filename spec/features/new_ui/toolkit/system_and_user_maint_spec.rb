@@ -1,4 +1,4 @@
-# system_maint_spec.rb
+# system_and_user_maint_spec.rb
 require 'spec_helper'
 
 
