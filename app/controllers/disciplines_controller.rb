@@ -4,6 +4,7 @@
 class DisciplinesController < ApplicationController
 
   def show
+    @discipline = Discipline.find(params[:id])
     @subjects = Subject.where(discipline_id: params[:id]).includes(:school).order('schools.acronym, subjects.name')
     respond_to do |format|
       format.html
