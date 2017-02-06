@@ -206,6 +206,7 @@ module LoadSectionHelper
   # Create learning outcomes for the Model School Subjects
   # prerequisite: model_school_subjects
   def model_school_subjects(model_school)
+    @disciplines ||= Array.new
     Rails.logger.debug("***** model_school_subjects")
     # note the subject outcome creates below match the spec/fixtures/files/bulk_uploads_los_initial.csv file
     @model_subject_manager = FactoryGirl.create :teacher, school: model_school
@@ -213,13 +214,21 @@ module LoadSectionHelper
     # @subj_advisory_1 = FactoryGirl.create :subject, name: 'Advisory 1', subject_manager: @model_subject_manager, school: model_school
     # @subj_advisory_2 = FactoryGirl.create :subject, name: 'Advisory 2', subject_manager: @model_subject_manager, school: model_school
     @subj_art_1 = FactoryGirl.create :subject, name: 'Art 1', subject_manager: @model_subject_manager, school: model_school
+    @disciplines << @subj_art_1.discipline
     @subj_art_2 = FactoryGirl.create :subject, name: 'Art 2', subject_manager: @model_subject_manager, school: model_school
+    @disciplines << @subj_art_2.discipline
     # @subj_art_3 = FactoryGirl.create :subject, name: 'Art 3', subject_manager: @model_subject_manager, school: model_school
+    # @disciplines << @subj_art_3.discipline
     @subj_capstone_1s1 = FactoryGirl.create :subject, name: 'Capstone 1s1', subject_manager: @model_subject_manager, school: model_school
+    @disciplines << @subj_capstone_1s1.discipline
     # @subj_capstone_1s2 = FactoryGirl.create :subject, name: 'Capstone 1s2', subject_manager: @model_subject_manager, school: model_school
+    # @disciplines << @subj_capstone_1s2.discipline
     @subj_capstone_3s1 = FactoryGirl.create :subject, name: 'Capstone 3s1', subject_manager: @model_subject_manager, school: model_school
+    @disciplines << @subj_capstone_3s1.discipline
     @subj_math_1 = FactoryGirl.create :subject, name: 'Math 1', subject_manager: @model_subject_manager, school: model_school
+    @disciplines << @subj_math_1.discipline
     @subj_math_2 = FactoryGirl.create :subject, name: 'Math 2', subject_manager: @model_subject_manager, school: model_school
+    @disciplines << @subj_math_2.discipline
 
   end
 

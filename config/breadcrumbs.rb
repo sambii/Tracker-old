@@ -299,3 +299,8 @@ crumb :discipline do |discipline|
   link "#{discipline.name.truncate(15, omission: '...')}", discipline_path(discipline)
   parent :root
 end
+
+crumb :disciplines_listing do
+  link "Disciplines", disciplines_path
+  parent :root
+end

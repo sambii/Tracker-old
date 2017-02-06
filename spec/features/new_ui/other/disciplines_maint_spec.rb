@@ -11,11 +11,12 @@ describe "Disciplines Maintenance", js:true do
     @school = FactoryGirl.create :school_current_year, :arabic
     @teacher = FactoryGirl.create :teacher, school: @school
     @subject = FactoryGirl.create :subject, school: @school, subject_manager: @teacher
+    @disciplines << @subject.discipline
     @section = FactoryGirl.create :section, subject: @subject
     @discipline = @subject.discipline
     load_test_section(@section, @teacher)
 
-    @discipline_ids = [@discipline.id.to_s]
+    @discipline_ids = @disciplines.map{ |d| d.id}
 
   end
 
@@ -85,8 +86,8 @@ describe "Disciplines Maintenance", js:true do
     assert_equal(@home_page, current_path)
 
     # evidence types listing should not have links to new or edit
-    visit evidence_types_path
-    assert_equal('/disciplines', current_path)
+    visit disciplines_path
+    assert_equal(@home_page, current_path)
     page.should_not have_css("a[href='/disciplines/#{@discipline_ids[0]}/edit']")
     page.should_not have_css("a[href='/disciplines/new']")
 
@@ -114,20 +115,18 @@ describe "Disciplines Maintenance", js:true do
     page.find('#sys-admin-links #disciplines a').click
     assert_equal('/disciplines', current_path)
 
-    # page should list the current evidence types
-    assert_equal(1, page.all('tr.discipline-item').count )
-    within('table') do
-      @discipline_ids.each do |d|
-        page.should have_css("tr#disc_#{d}")
-      end
-    end
+    # page should list the current disciplines
+    initial_count = page.all('tr.discipline-item').count
+
+    assert_equal( 7, initial_count )
+    assert_equal( initial_count, @discipline_ids.length )
 
 
     ###########################
     # Add Discipline tests
 
     # Add a discipline type with no description should return error
-    page.find('a#show-at-to-add').click
+    page.find('a#show-disc-to-add').click
     page.should have_css('#modal-body h2', text: 'Maintain Disciplines')
     page.find("#modal-body form#new_discipline input[value='Save']").click
     page.should have_css('#modal-body h2', text: 'Maintain Disciplines')
@@ -143,11 +142,11 @@ describe "Disciplines Maintenance", js:true do
       page.should have_content('Mathematics')
     end
 
-    # confirm add new evidence type top row button works (and cancel add works)
+    # Confirm add a discipline type top row button works (and cancel add works)
     page.find('a#add-discipline').click
     page.should have_css('#modal-body h2', text: 'Maintain Disciplines')
     page.find("#modal-body form#new_discipline a[href='/disciplines']").click
-    assert_equal('/edisciplines', current_path)
+    assert_equal('/disciplines', current_path)
 
 
     ##############################
@@ -155,11 +154,13 @@ describe "Disciplines Maintenance", js:true do
 
     # get the newly added discipline id by finding the one not in the original list
     updated_disciplines = page.all("tr.discipline-item")
-    updated_disciplines.length.should == 2
-    new_et_id = ''
+    updated_disciplines.length.should == initial_count + 1
+
+    new_d_id = ''
     updated_disciplines.each do |d|
-      d_id = d[:id].split('_')[1]
-      if !@discipline_ids.include?(et_id)
+      d_id_s = d[:id].split('_')[1]
+      d_id = Integer(d_id_s) rescue 0
+      if !@discipline_ids.include?(d_id)
         # this id is not found in original list of ids - this is the id for the new one
         new_d_id = d_id
         break
@@ -168,7 +169,7 @@ describe "Disciplines Maintenance", js:true do
     assert_not_equal('', new_d_id)
     
     # click the edit button for the newly created discipline
-    within("tr#et_#{new_d_id}") do
+    within("tr#d_#{new_d_id}") do
       find("a[data-url='/disciplines/#{new_d_id}/edit.js']").click
     end
     page.should have_css('#modal-body h2', text: 'Maintain Disciplines')
@@ -177,7 +178,7 @@ describe "Disciplines Maintenance", js:true do
     fill_in("discipline[name]", with: '')
     page.find("#modal-body form#edit_discipline_#{new_d_id} input[value='Save']").click
     page.should have_css('#modal-body h2', text: 'Maintain Disciplines')
-    page.should have_css("#modal-body form#edit_discipline_#{new_et_id} fieldset#discipline_name span.ui-error")
+    page.should have_css("#modal-body form#edit_discipline_#{new_d_id} fieldset#discipline_name span.ui-error")
 
     # put in a different name for the evidence type
     fill_in("discipline[name]", with: 'Science')

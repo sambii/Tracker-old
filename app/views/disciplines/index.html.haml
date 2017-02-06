@@ -1,10 +1,10 @@
 
-- content_for(:title, 'Evidence Types Listing')
-- content_for(:page_name, 'Evidence Types Listing')
+- content_for(:title, 'Disciplines Listing')
+- content_for(:page_name, 'Disciplines Listing')
 - content_for(:page_class, 'misc')
 - content_for :layout_breadcrumbs do
   - breadcrumb :root # to ensure breadcrumbs always show
-  - breadcrumb :evidence_types_listing
+  - breadcrumb :disciplines_listing
   = help_gen_breadcrumbs
 
 / Header
@@ -24,7 +24,7 @@
       %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
         %i.fa.fa-lg.fa-download
       - if can? :create, Discipline
-        %a#add-evidence-type.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_discipline_path(format: :js)}, title: 'Create Discipline'}
+        %a#add-discipline.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_discipline_path(format: :js)}, title: 'Create Discipline'}
           %i.fa.fa-lg.fa-plus-square
 
 .row
@@ -34,7 +34,7 @@
       .block-title.text-center
         %h2='Disciplines Listing'
         - if can? :create, Discipline
-          %a#show-at-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_discipline_path(format: :js)}}
+          %a#show-disc-to-add.pull-right.col.btn.btn-sm.btn-primary.pointer-cursor{data: {target: "#modal_popup", toggle: 'modal', url: new_discipline_path(format: :js)}}
             %i.fa.fa-lg.fa-plus
       .block-content-full.rounded-title-container
         %table.titled-table.table.table-bordered.table-condensed.remove-margin
