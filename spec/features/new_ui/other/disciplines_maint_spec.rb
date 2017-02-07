@@ -18,6 +18,10 @@ describe "Disciplines Maintenance", js:true do
 
     @discipline_ids = @disciplines.map{ |d| d.id}
 
+    @subject2 = FactoryGirl.create :subject, school: @school, discipline: @discipline, name: 'Astrophysics 1'
+    @subject3 = FactoryGirl.create :subject, school: @school, discipline: @discipline, name: 'Astrophysics 2'
+    @subject4 = FactoryGirl.create :subject, school: @school, discipline: @discipline, name: 'Astrophysics 3'
+
   end
 
 
@@ -123,7 +127,26 @@ describe "Disciplines Maintenance", js:true do
 
 
     ###########################
+    # Show Discipline test
+
+    page.find("#d_#{@discipline.id} a[href='/disciplines/#{@discipline.id}']").click
+    assert_equal("/disciplines/#{@discipline.id}", current_path)
+    within("#discipline") do
+      page.should have_css("a#show-to-list[href='/disciplines']")
+      page.should have_css("a#show-to-edit[href='/disciplines/#{@discipline.id}/edit']")
+      within("#school_#{@school.acronym}") do
+        page.should have_content(@subject.name)
+        page.should have_content(@subject2.name)
+        page.should have_content(@subject3.name)
+        page.should have_content(@subject4.name)
+      end
+    end
+
+    ###########################
     # Add Discipline tests
+
+    visit disciplines_path
+    assert_equal('/disciplines', current_path)
 
     # Add a discipline type with no description should return error
     page.find('a#show-disc-to-add').click

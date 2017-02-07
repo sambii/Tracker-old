@@ -5,6 +5,7 @@ class DisciplinesController < ApplicationController
 
   def show
     @discipline = Discipline.find(params[:id])
+    authorize! :read, @discipline # ensure redirect to login page on timeout
     @subjects = Subject.where(discipline_id: params[:id]).includes(:school).order('schools.acronym, subjects.name')
     respond_to do |format|
       format.html
