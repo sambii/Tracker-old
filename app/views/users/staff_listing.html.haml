@@ -101,7 +101,7 @@
                   %td
                     %a{href: "/users/#{s.id}", title: 'Staff Dashboard'}
                       %i.fa.fa-lg.fa-dashboard
-                  - if s.role_symbols.include?(:teacher)
+                  - if s.role_symbols.include?(:teacher) && can?(:sections_list, s)
                     %td
                       %a{href: "/users/#{s.id}/sections_list", title: 'Staff Sections List'}
                         %i.fa.fa-lg.fa-check

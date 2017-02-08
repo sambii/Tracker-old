@@ -21,7 +21,7 @@ describe "Staff Listing", js:true do
     before do
       sign_in(@teacher)
     end
-    it { has_no_staff_listing }
+    it { has_valid_staff_listing(false) }
   end
 
   describe "as school administrator" do
@@ -30,6 +30,14 @@ describe "Staff Listing", js:true do
       sign_in(@school_administrator)
     end
     it { has_valid_staff_listing(true) }
+  end
+
+  describe "as counselor" do
+    before do
+      @counselor = FactoryGirl.create :counselor, school: @school
+      sign_in(@counselor)
+    end
+    it { has_valid_staff_listing(false) }
   end
 
   describe "as researcher" do
@@ -84,8 +92,11 @@ describe "Staff Listing", js:true do
         page.should have_content("#{@teacher.last_name}")
         page.should have_content("#{@teacher.first_name}")
         page.should have_content("#{@teacher.email}")
+        # teachers and counselors can see any teacher's dashboard
         page.should have_css("i.fa-dashboard")
+        # should not let teachers and counselor see the sections list, nor the tracker pages !!!
         page.should have_css("i.fa-check")
+        # fix show page locking up for teacher/counselor
         page.should have_css("i.fa-ellipsis-h")
         page.should have_css("i.fa-edit") if can_create
         page.should_not have_css("i.fa-edit") if !can_create
@@ -93,6 +104,7 @@ describe "Staff Listing", js:true do
         page.should_not have_css("i.fa-unlock") if !can_create
       end
 
+      # teachers and counselors cannot do this
       #########################
       # Deactivate the regular teacher
       within("tr#user_#{@teacher.id}") do
@@ -103,6 +115,7 @@ describe "Staff Listing", js:true do
         end
       end
 
+      # teachers and counselors cannot do this
       #########################
       # confirm the teacher is deactivated
       if can_create
@@ -110,6 +123,7 @@ describe "Staff Listing", js:true do
         page.should_not have_css("tr#user_#{@teacher.id}.active")
       end
 
+      # teachers and counselors cannot do this
       #########################
       # reactivate the originally deactivated teacher
       page.should have_css("tr#user_#{@teacher_deact.id}")

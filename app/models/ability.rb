@@ -113,6 +113,11 @@ class Ability
             User,
             { id: user.id }
 
+        # User
+        can [:staff_listing, :dashboard],
+          User,
+          { school_id: user.school_id }
+
         # Attendance
         can [:student_attendance_detail_report, :attendance_report], Attendance
         can [:read], 
@@ -210,6 +215,11 @@ class Ability
         can [:read, :change_password, :edit, :update, :profile],
             User,
             { id: user.id }
+
+        # User
+        can [:staff_listing, :dashboard],
+          User,
+          { school_id: user.school_id }
 
         # removed - see simple replacements below - may possibly be relevant if accessible_by is used
         # can [:create, :update, :dashboard, :security, :set_temporary_password], ["system_administrator = 1 or researcher = 1 or school_administrator = 1 or counselor = 1 or teacher = 1"], User do |u|
