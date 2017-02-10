@@ -21,7 +21,7 @@ describe "Staff Listing", js:true do
     before do
       sign_in(@teacher)
     end
-    it { has_valid_staff_listing(false) }
+    it { has_valid_staff_listing(false, false) }
   end
 
   describe "as school administrator" do
@@ -29,7 +29,7 @@ describe "Staff Listing", js:true do
       @school_administrator = FactoryGirl.create :school_administrator, school: @school
       sign_in(@school_administrator)
     end
-    it { has_valid_staff_listing(true) }
+    it { has_valid_staff_listing(true, true) }
   end
 
   describe "as counselor" do
@@ -37,7 +37,7 @@ describe "Staff Listing", js:true do
       @counselor = FactoryGirl.create :counselor, school: @school
       sign_in(@counselor)
     end
-    it { has_valid_staff_listing(false) }
+    it { has_valid_staff_listing(false, true) }
   end
 
   describe "as researcher" do
@@ -46,7 +46,7 @@ describe "Staff Listing", js:true do
       sign_in(@researcher)
       set_users_school(@school)
     end
-    it { has_valid_staff_listing(false) }
+    it { has_valid_staff_listing(false, true) }
   end
 
   describe "as system administrator" do
@@ -55,7 +55,7 @@ describe "Staff Listing", js:true do
       sign_in(@system_administrator)
       set_users_school(@school)
     end
-    it { has_valid_staff_listing(true) }
+    it { has_valid_staff_listing(true, true) }
   end
 
   describe "as student" do
@@ -80,7 +80,7 @@ describe "Staff Listing", js:true do
     assert_not_equal("/users/staff_listing", current_path)
   end
 
-  def has_valid_staff_listing(can_create)
+  def has_valid_staff_listing(can_create, can_see_sections)
     visit staff_listing_users_path
     assert_equal("/users/staff_listing", current_path)
     within("#page-content") do
@@ -88,14 +88,27 @@ describe "Staff Listing", js:true do
       page.should have_css("tr#user_#{@teacher.id}")
       page.should_not have_css("tr#user_#{@teacher.id}.deactivated")
       page.should have_css("tr#user_#{@teacher.id}.active")
+
+      save_and_open_page
+
       within("tr#user_#{@teacher.id}") do
         page.should have_content("#{@teacher.last_name}")
         page.should have_content("#{@teacher.first_name}")
         page.should have_content("#{@teacher.email}")
-        # teachers and counselors can see any teacher's dashboard
-        page.should have_css("i.fa-dashboard")
+        # all who can see listing can see any teacher's dashboard
+        page.should have_css("a[href='/users/#{@teacher.id}'] i.fa-dashboard")
+        page.find("a[href='/users/#{@teacher.id}']").click
+      end
+    end
+    assert_equal("/users/#{@teacher.id}", current_path)
+    page.should have_content("Teacher: #{@teacher.full_name}")
+
+    visit staff_listing_users_path
+    assert_equal("/users/staff_listing", current_path)
+    within("#page-content") do
+      within("tr#user_#{@teacher.id}") do
         # should not let teachers and counselor see the sections list, nor the tracker pages !!!
-        page.should have_css("i.fa-check")
+        page.should have_css("i.fa-check") if can_see_sections
         # fix show page locking up for teacher/counselor
         page.should have_css("i.fa-ellipsis-h")
         page.should have_css("i.fa-edit") if can_create
