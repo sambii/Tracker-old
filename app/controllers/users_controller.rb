@@ -9,17 +9,19 @@ class UsersController < ApplicationController
   load_and_authorize_resource except: [:create, :update]
 
   def show
-    # # todo - Why are we doing this everytime user goes to home page?
     # remove_school_context
     set_school if enforce_context?
-    @user.role_symbols.each do |role|
-      if @user.try(role)
-        # create role named instance variable (e.g. @teacher) for each role the user has
-        eval('@' + role.to_s + " = #{role.to_s.camelize}.find(#{@user.id})")
+
+    # # todo - Why are we doing this everytime user goes to home page?
+    # only set instance variables if html show
+    if request.format.html?
+      @user.role_symbols.each do |role|
+        if @user.try(role)
+          # create role named instance variable (e.g. @teacher) for each role the user has
+          eval('@' + role.to_s + " = #{role.to_s.camelize}.find(#{@user.id})")
+        end
       end
-      Rails.logger.debug("Role: #{role.to_s.pluralize + '/dashboard'}")
     end
-    Rails.logger.debug("First Role: #{@user.role_symbols.first.to_s.pluralize}")
 
     respond_to do |format|
       # go to dashboard corresponding to first role found for the user

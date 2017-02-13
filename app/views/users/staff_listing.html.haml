@@ -101,16 +101,14 @@
                   %td
                     %a{href: "/users/#{s.id}", title: 'Staff Dashboard'}
                       %i.fa.fa-lg.fa-dashboard
-                  - if s.role_symbols.include?(:teacher) && can?(:sections_list, s)
-                    %td
+                  %td
+                    - if s.role_symbols.include?(:teacher) && can?(:sections_list, s)
                       %a{href: "/users/#{s.id}/sections_list", title: 'Staff Sections List'}
                         %i.fa.fa-lg.fa-check
-                  - else
-                    %td
-                      %i.fa.fa-lg.fa-fw
                   %td.text-center
-                    %a{data: {target: "#modal_popup", toggle: 'modal', url: user_path(s.id, format: :js)}, title: 'View Staff User Information'}
-                      %i.fa.fa-lg.fa-ellipsis-h
+                    - if s.role_symbols.include?(:teacher) && can?(:show, s)
+                      %a{data: {target: "#modal_popup", toggle: 'modal', url: user_path(s.id, format: :js)}, title: 'View Staff User Information'}
+                        %i.fa.fa-lg.fa-ellipsis-h
                   %td.text-center
                     - if can?(:edit, s)
                       %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_user_path(s.id, format: :js)}, title: 'Edit Staff User Information'}

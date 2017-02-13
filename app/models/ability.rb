@@ -212,7 +212,7 @@ class Ability
             { id: user.id }
 
         # User
-        can [:read, :change_password, :edit, :update, :profile],
+        can [:read, :change_password, :edit, :update, :profile, :sections_list],
             User,
             { id: user.id }
 
