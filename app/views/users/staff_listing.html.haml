@@ -14,7 +14,7 @@
   %h2.h1.page-title
     %strong="All Staff for #{@school.name}"
 
-.block-section.indent-block
+#button-block.block-section.indent-block
   .row.height-30
     .pull-left
       %a#collapse-all-tbodies.btn.btn-sm.btn-primary{href: "javascript:void(0)", title: 'Collapse All'}
@@ -27,7 +27,7 @@
         %i.fa.fa-lg.fa-print
       %a.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
         %i.fa.fa-lg.fa-download
-      - if can? :create, Teacher
+      - if can? :new_staff, User
         %a#add-staff.btn.btn-sm.btn-primary{data: {target: "#modal_popup", toggle: 'modal', url: new_staff_new_user_path(format: :js)}, title: 'Add Staff'}
           %i.fa.fa-lg.fa-plus-square
       - if can? :bulk_upload_staff, User
@@ -117,8 +117,8 @@
                     - if can?(:security, s)
                       %a{data: {target: "#modal_popup", toggle: 'modal', url: security_user_path(s.id, format: :js)}, title: 'Staff Security'}
                         %i.fa.fa-lg.fa-unlock
-                  %td.text-center
-                    - if can?(:update, s)
+                  %td.active-user.text-center
+                    - if can?(:update, s) && s.id != current_user.id
                       %div.show-if-active
                         %a#remove-staff{href: "/users/#{s.id}.js?commit=active&#{{active: false}.to_query('user')}", data: {method: :put, remote: true, user_id: "#{s.id}", confirm: 'Are you sure?'}, title: 'Deactivate Staff Member'}
                           %i.fa.fa-lg.fa-times-circle

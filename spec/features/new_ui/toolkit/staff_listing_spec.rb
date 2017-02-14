@@ -21,7 +21,7 @@ describe "Staff Listing", js:true do
     before do
       sign_in(@teacher)
     end
-    it { has_valid_staff_listing(false, false) }
+    it { has_valid_staff_listing(:teacher) }
   end
 
   describe "as school administrator" do
@@ -29,16 +29,17 @@ describe "Staff Listing", js:true do
       @school_administrator = FactoryGirl.create :school_administrator, school: @school
       sign_in(@school_administrator)
     end
-    it { has_valid_staff_listing(true, true) }
+    it { has_valid_staff_listing(:school_administrator) }
   end
 
-  describe "as counselor" do
-    before do
-      @counselor = FactoryGirl.create :counselor, school: @school
-      sign_in(@counselor)
-    end
-    it { has_valid_staff_listing(false, true) }
-  end
+  # to do - do this once toolkit and home page for counselor exists
+  # describe "as counselor" do
+  #   before do
+  #     @counselor = FactoryGirl.create :counselor, school: @school
+  #     sign_in(@counselor)
+  #   end
+  #   it { has_valid_staff_listing(:counselor) }
+  # end
 
   describe "as researcher" do
     before do
@@ -46,7 +47,7 @@ describe "Staff Listing", js:true do
       sign_in(@researcher)
       set_users_school(@school)
     end
-    it { has_valid_staff_listing(false, true) }
+    it { has_valid_staff_listing(:researcher) }
   end
 
   describe "as system administrator" do
@@ -55,7 +56,7 @@ describe "Staff Listing", js:true do
       sign_in(@system_administrator)
       set_users_school(@school)
     end
-    it { has_valid_staff_listing(true, true) }
+    it { has_valid_staff_listing(:system_administrator) }
   end
 
   describe "as student" do
@@ -80,7 +81,7 @@ describe "Staff Listing", js:true do
     assert_not_equal("/users/staff_listing", current_path)
   end
 
-  def has_valid_staff_listing(can_create, can_see_sections)
+  def has_valid_staff_listing(role)
     visit staff_listing_users_path
     assert_equal("/users/staff_listing", current_path)
     within("#page-content") do
@@ -95,7 +96,9 @@ describe "Staff Listing", js:true do
       end
     end
 
-    # all can see listing can see any teacher's dashboard
+    ########################
+    # Dashboard visiblity and availability testing
+    # all who can see staff listing (teachers, admins, counselor, researcher) can see any teacher's dashboard
     within("#page-content") do
       within("tr#user_#{@teacher.id}") do
         page.should have_css("a[href='/users/#{@teacher.id}'] i.fa-dashboard")
@@ -107,8 +110,10 @@ describe "Staff Listing", js:true do
     page.should have_content("Teacher: #{@teacher.full_name}")
 
 
+    ########################
+    # Section Listing visiblity and availability testing
     # teachers can see section listing or tracker pages that are their own
-    # all others who can see staff listing see them anyway
+    # all others who can see staff listing (admins, counselor, researcher) can see them
     visit staff_listing_users_path
     assert_equal("/users/staff_listing", current_path)
     within("#page-content") do
@@ -122,33 +127,22 @@ describe "Staff Listing", js:true do
     within("#section_#{@section.id}") do
       page.should have_css("a[href='/sections/#{@section.id}']")
     end
-
     # teachers cannot see section listing or tracker pages that are not their own
-    # all others who can see staff listing see them anyway
-    visit staff_listing_users_path
-    assert_equal("/users/staff_listing", current_path)
-    within("#page-content") do
-      within("tr#user_#{@teacher_deact.id}") do
-        if can_see_sections
-          page.should have_css("a[href='/users/#{@teacher_deact.id}/sections_listing'] i.fa-check")
-          page.find("a[href='/users/#{@teacher_deact.id}/sections_list']").click
-        else # teacher cannot see other teachers section listing
+    if [:teacher].include?(role)
+      visit staff_listing_users_path
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content") do
+        within("tr#user_#{@teacher_deact.id}") do
           page.should_not have_css("a[href='/users/#{@teacher_deact.id}/sections_list'] i.fa-check")
         end
       end
     end
-    if can_see_sections
-      # note will get redirected to primary role for user, in this case is teacher
-      assert_equal("/teachers/#{@teacher.id}/staff_listing", current_path)
-      page.should have_content("All Sections for staff member: #{@teacher.full_name}")
-      within("#section_#{@section.id}") do
-        page.should have_css("a[href='/sections/#{@section.id}']")
-      end
-    end
 
 
-    # teachers can see the user information for themselves
-    # all others who can see staff listing can see all staff user information
+    ########################
+    # View Staff Information visiblity and availability testing
+    # teachers can see their own user information
+    # all others who can see staff listing (admins, counselor, researcher) can see any user's information
     visit staff_listing_users_path
     assert_equal("/users/staff_listing", current_path)
     within("#page-content") do
@@ -165,67 +159,135 @@ describe "Staff Listing", js:true do
       page.should have_css("button", text: 'Cancel')
       find("button", text: 'Cancel').click
     end
-
-
-    # teachers cannot see other user's information (except what is on the listing)
-    # all others who can see staff listing can see all user's information
-    # visit staff_listing_users_path
-    assert_equal("/users/staff_listing", current_path)
-    within("#page-content") do
-      within("tr#user_#{@teacher_deact.id}") do
-        if can_see_sections
-          page.should have_css("i.fa-ellipsis-h")
-          page.should have_css("a[data-url='/users/#{@teacher_deact.id}.js'] i.fa-ellipsis-h")
-          page.find("a[data-url='/users/#{@teacher_deact.id}.js']").click
-        else # teacher cannot see other teachers section listing
+    # teachers cannot see other user's information
+    if [:teacher].include?(role)
+      # visit staff_listing_users_path
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content") do
+        within("tr#user_#{@teacher_deact.id}") do
           page.should_not have_css("i.fa-ellipsis-h")
           page.should_not have_css("a[data-url='/users/#{@teacher_deact.id}.js'] i.fa-ellipsis-h")
         end
       end
     end
-    if can_see_sections
+
+
+    ########################
+    # Edit Staff Information visiblity and availability testing
+    # teachers can edit their own user information for themselves
+    # admins can edit all staff user information
+    # visit staff_listing_users_path
+    if [:teacher, :school_administrator, :system_administrator].include?(role)
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content") do
+        within("tr#user_#{@teacher.id}") do
+          page.should have_css("i.fa-edit")
+          page.should have_css("a[data-url='/users/#{@teacher.id}/edit.js'] i.fa-edit")
+          page.find("a[data-url='/users/#{@teacher.id}/edit.js']").click
+        end
+      end
       within("#modal_popup") do
-        page.should have_content('View Staff')
-      page.should have_content(@teacher_deact.first_name)
-      page.should have_content(@teacher_deact.last_name)
-        page.should have_css("button", text: 'Cancel')
-        find("button", text: 'Cancel').click
+        page.should have_css("h2", text: 'Edit Staff')
+        within("form#edit_user_#{@teacher.id}") do
+
+          # ensure that only the admins can choose roles in edit form
+          if [:school_administrator, :system_administrator].include?(role)
+            assert_equal(page.all("fieldset.role-field").count.should, 3)
+            page.should have_css('fieldset#role-sch-admin')
+            page.should have_css('fieldset#role-teach')
+            page.should have_css('fieldset#role-couns')
+            # add counselor role to @teacher
+            check('user[counselor]')
+          else # teacher editing
+            assert_equal(page.all("fieldset.role-field").count.should, 0)
+            page.should_not have_css('fieldset#role-sch-admin')
+            page.should_not have_css('fieldset#role-teach')
+            page.should_not have_css('fieldset#role-couns')
+          end
+
+          page.should have_css('#staff_first_name', value: @teacher.first_name)
+          page.should have_css('#staff_last_name', value: @teacher.last_name)
+          page.fill_in 'staff_first_name', :with => 'Changed First Name'
+          page.fill_in 'staff_last_name', :with => 'Changed Last Name'
+          page.should have_css("button", text: 'Save')
+          find("button", text: 'Save').click
+        end
+      end
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content table #user_#{@teacher.id}") do
+        page.should have_css('.user-first-name', 'Changed First Name')
+        page.should have_css('.user-last-name', 'Changed Last Name')
+        within('.user-roles') do
+          page.should have_content('teacher')
+          if [:school_administrator, :system_administrator].include?(role)
+            page.should have_content('counselor')
+          else
+            page.should_not have_content('counselor')
+          end
+        end
+      end    
+    end
+    # teachers and counselors cannot edit other user's information
+    # researchers cannot edit any user's information
+    if [:teacher, :counselor, :researcher].include?(role)
+      # visit staff_listing_users_path
+      # assert_equal("/users/staff_listing", current_path)
+      within("#page-content tr#user_#{@teacher_deact.id}") do
+        page.should_not have_css("i.fa-edit")
+        page.should_not have_css("a[data-url='/users/#{@teacher_deact.id}.js'] i.fa-edit")
       end
     end
 
 
-    # all who can see staff listing see page view
-    visit staff_listing_users_path
-    assert_equal("/users/staff_listing", current_path)
-    within("#page-content") do
-      within("tr#user_#{@teacher.id}") do
-        page.should have_css("i.fa-edit") if can_create
-        page.should_not have_css("i.fa-edit") if !can_create
-        page.should have_css("i.fa-unlock") if can_create
-        page.should_not have_css("i.fa-unlock") if !can_create
+    ########################
+    # Staff Security Information visiblity and availability testing
+    # Only admins can view and reset security information for staff
+    # visit staff_listing_users_path
+    if [:school_administrator, :system_administrator].include?(role)
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content tr#user_#{@teacher.id}") do
+        page.should have_css("i.fa-unlock")
+        page.should have_css("a[data-url='/users/#{@teacher.id}/security.js'] i.fa-unlock")
+        page.find("a[data-url='/users/#{@teacher.id}/security.js']").click
       end
-
-      # teachers and counselors cannot do this
-      #########################
-      # Deactivate the regular teacher
-      within("tr#user_#{@teacher.id}") do
-        # click the deactivate icon
-        if can_create
-          find('#remove-staff').click
-          page.driver.browser.switch_to.alert.accept
+      within("#modal_popup") do
+        page.should have_css("h2", text: 'Staff Security and Access')
+        within("#modal-body table") do
+          page.should have_content(@teacher.username)
+        end
+        page.find(".modal-footer button", text: 'Close').click
+      end
+      assert_equal("/users/staff_listing", current_path)
+    else
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content") do
+        within("tr#user_#{@teacher.id}") do
+          page.should_not have_css("i.fa-unlock")
+          page.should_not have_css("a[data-url='/users/#{@teacher.id}/security.js']")
         end
       end
+    end
 
-      # teachers and counselors cannot do this
-      #########################
-      # confirm the teacher is deactivated
-      if can_create
-        page.should have_css("tr#user_#{@teacher.id}.deactivated")
-        page.should_not have_css("tr#user_#{@teacher.id}.active")
+
+    #########################
+    # only admins can deactivate or reactivate staff members
+    if [:teacher, :counselor, :researcher].include?(role)
+      visit staff_listing_users_path
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content tr#user_#{@teacher.id}") do
+        page.should_not have_css("#remove-staff")
       end
-
-      # teachers and counselors cannot do this
-      #########################
+    elsif [:school_administrator, :system_administrator].include?(role)
+      visit staff_listing_users_path
+      assert_equal("/users/staff_listing", current_path)
+      within("#page-content tr#user_#{@teacher.id}") do
+        # click the deactivate icon
+        find('#remove-staff').click
+        page.driver.browser.switch_to.alert.accept
+      end
+      # confirm the teacher is deactivated
+      page.should have_css("tr#user_#{@teacher.id}.deactivated")
+      page.should_not have_css("tr#user_#{@teacher.id}.active")
       # reactivate the originally deactivated teacher
       page.should have_css("tr#user_#{@teacher_deact.id}")
       page.should have_css("tr#user_#{@teacher_deact.id}.deactivated")
@@ -234,46 +296,42 @@ describe "Staff Listing", js:true do
         page.should have_content("#{@teacher_deact.last_name}")
         page.should have_content("#{@teacher_deact.first_name}")
         page.should have_content("#{@teacher_deact.email}")
-        page.should have_css("i.fa-undo") if can_create && @teacher_deact.active == false
-        page.should_not have_css("i.fa-undo") if !can_create && @teacher_deact.active == false
       end
       # click the reactivate icon
       within("tr#user_#{@teacher_deact.id}") do
-        if can_create
-          find('#restore-staff').click
-          page.driver.browser.switch_to.alert.accept
-        end
+        find('#restore-staff').click
+        page.driver.browser.switch_to.alert.accept
       end
       # confirm the user is deactivated
-      if can_create
-        page.should have_css("tr#user_#{@teacher_deact.id}.active")
-        page.should_not have_css("tr#user_#{@teacher_deact.id}.deactivated")
-      end
-
+      page.should have_css("tr#user_#{@teacher_deact.id}.active")
+      page.should_not have_css("tr#user_#{@teacher_deact.id}.deactivated")
+    else
+      # no other roles should be tested here
+      assert_equal(true, false)
     end # within("#page-content") do
 
 
-    #########################
-    # ensure that only the school admin, teacher and counselor roles display to admins in edit form
-    # to do - full add, edit and deactivate tests (if not done elsewhere)
-    if can_create # (system admins and school admins)
-      within("#page-content") do
-        within("tr#user_#{@teacher.id}") do
-          page.should have_content("#{@teacher.last_name}")
-          page.should have_content("#{@teacher.first_name}")
-          page.should have_content("#{@teacher.email}")
-          page.should have_css("i.fa-edit")
-          find("a[data-url='/users/#{@teacher.id}/edit.js']").click
-        end
+    ########################
+    # Add New Staff visiblity and availability testing
+    # Only admins can create new staff
+    # visit staff_listing_users_path
+    assert_equal("/users/staff_listing", current_path)
+    if [:school_administrator, :system_administrator].include?(role)
+      within("#page-content #button-block") do
+        page.should have_css("i.fa-plus-square")
+        page.should have_css("a[data-url='/users/new/new_staff'] i.fa-plus-square")
+        page.find("a[data-url='/users/new/new_staff']").click
       end
-      page.should have_content('Edit Staff')
-      assert_equal(page.all("fieldset.role-field").count.should, 3)
-      page.should have_css('fieldset#role-sch-admin')
-      page.should have_css('fieldset#role-teach')
-      page.should have_css('fieldset#role-couns')
-
+      within("#modal_popup") do
+        page.should have_css("h2", text: 'Create Staff Member')
+        page.find("form.new_user button", text: 'Cancel').click
+      end
+      assert_equal("/users/staff_listing", current_path)
     else
-      page.should_not have_css("i.fa-edit")
+      within("#page-content #button-block") do
+        page.should_not have_css("i.fa-plus-square")
+        page.should_not have_css("a[data-url='/users/new/new_staff'] i.fa-plus-square")
+      end
     end
 
 
