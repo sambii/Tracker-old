@@ -60,6 +60,9 @@ $ ->
       $('#ask-details').hide()
       if $(that).find('#'+val).data('ask-details') == 1
         $('#ask-details').show()
+      $('.ask-user-type-groupings').hide()
+      if $(that).find('#'+val).data('ask-user-type-groupings') == 1
+        $('.ask-user-type-groupings').show()
 
 
     # show subject-section (if enabled) and populate with sections for subject

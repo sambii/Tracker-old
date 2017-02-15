@@ -24,14 +24,12 @@
     %table.table
       %thead
         %tr
-          %th='Subject'
-          %th='Sections'
-          %th='Learning Outcomes'
+          %th='School'
+          %th='User Types'
       %tbody
         %tr
-          %td='All'
-          %td='All'
-          %td='All'
+          %td="#{@school.acronym} - #{@school.name}"
+          %td=@user_types.join(', ')
 .row
   .col-md-12
     .block.block-alt-style.full
@@ -39,18 +37,28 @@
         %table.titled-table.table.table-bordered.table-condensed.remove-margin
           %thead.table-title
             %tr
-              %th Last Name
-              %th First Name
               %th Username
+              %th Roles
+              - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                %th Given / First Name
+                %th Family / Last Name
+              - else
+                %th Family / Last Name
+                %th Given / First Name
               %th Temporary Password
               %th Sign In Count
               %th Last Sign In At
           %tbody
             - @users.each do |user|
-              %tr{id: "user_#{user.id}"}
-                %td= user.last_name
-                %td= user.first_name
+              %tr{id: "user_#{user.id}", class: (user.active ? '' : 'deactivated')}
                 %td= user.username
+                %td= user.role_symbols.join(' ')
+                - if @school.has_flag?(School::USER_BY_FIRST_LAST)
+                  %td= user.first_name
+                  %td= user.last_name
+                - else
+                  %td= user.last_name
+                  %td= user.first_name
                 %td.text-center{id: "user_#{user.id}_password"}= set_temporary_password(user, false)
                 %td= user.sign_in_count
                 %td= user.last_sign_in_at

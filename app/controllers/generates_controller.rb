@@ -115,7 +115,7 @@ class GeneratesController < ApplicationController
         # code to generate single student bar chart
         # format.html {redirect_to xxxxxx_path(@generate.student_id)} if @generate.name == 'proficiency_bars' && @generate.student_id != ''
         format.html {redirect_to create_report_card_path(grade_level: @generate.grade_level)} if @generate.name == 'report_cards'
-        format.html {redirect_to account_activity_report_users_path()} if @generate.name == 'account_activity'
+        format.html {redirect_to account_activity_report_users_path(user_type_staff: @generate.user_type_staff, user_type_students: @generate.user_type_students, user_type_parents: @generate.user_type_parents, )} if @generate.name == 'account_activity'
         format.html {redirect_to section_attendance_xls_attendances_path()} if @generate.name == 'section_attendance_xls'
         format.html {redirect_to controller: :attendances, action: :attendance_report, subject_id: params_gen[:subject_id], subject_section_id: params_gen[:subject_section_id], start_date: @range_start, end_date: @range_end, attendance_type_id: params_gen[:attendance_type_id]} if @generate.name == 'attendance_report'
         format.html {redirect_to controller: :attendances, action: :student_attendance_detail_report, student_id: params_gen[:student_id], start_date: @range_start, end_date: @range_end, attendance_type_id: params_gen[:attendance_type_id], details: params_gen[:details]} if @generate.name == 'student_attendance_detail_report'
