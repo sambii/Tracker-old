@@ -114,6 +114,8 @@ describe "Generate Account Activity Report", js:true do
     page.should have_css("#side-reports a", text: 'Generate Reports')
     find("#side-reports a", text: 'Generate Reports').click
     page.should have_content('Generate Reports')
+
+    # generate a report with no user types
     within("#page-content") do
       within('form#new_generate') do
         page.should have_selector("select#generate-type")
@@ -131,30 +133,173 @@ describe "Generate Account Activity Report", js:true do
         # no user types clicked, should be able to click the generate button till one is clicked.
       end
     end
-
-
     assert_equal(account_activity_report_users_path(), current_path)
     page.should_not have_content('Internal Server Error')
-
     within("#page-content") do
-      within('.report-header') do
-        page.should have_content("Tracker Activity for School #{@school1.name}")
+      within('h2') do
+        page.should have_content("Account Activity")
       end
-      within('.report-body') do
-        within("table tbody.tbody-header[data-tch-id='#{@teacher1.id}']") do
-          page.should have_css("td.evid_count", text: '27')
-          page.should have_css("td.evid_rated_count", text: '25')
-          page.should have_css("td.los_count", text: '9')
-          page.should have_css("td.los_rated_count", text: '7')
-        end
-        within("table tbody.tbody-body[data-tch-id='#{@teacher1.id}']") do
-          page.should have_css("td.evid_count", text: '27')
-          page.should have_css("td.evid_rated_count", text: '25')
-          page.should have_css("td.los_count", text: '9')
-          page.should have_css("td.los_rated_count", text: '7')
-        end
+      within('table#report-params') do
+        page.should have_content(@school.acronym)
+        page.should have_content(@school.name)
+        page.should_not have_content('Staff')
+        page.should_not have_content('Students')
+        page.should_not have_content('Parents')
+      end
+      page.all('table tr.user-row').count.should == 0
+    end
+
+    # generate a report with staff only
+    page.should have_css("#side-reports a", text: 'Generate Reports')
+    find("#side-reports a", text: 'Generate Reports').click
+    page.should have_content('Generate Reports')
+    within("#page-content") do
+      within('form#new_generate') do
+        page.should have_selector("select#generate-type")
+        select('Account Activity Report', from: "generate-type")
+        find("select#generate-type").value.should == "account_activity"
+        check('generate[user_type_staff]')
+        find("button", text: 'Generate').click
+        # staff user types clicked.
       end
     end
+    assert_equal(account_activity_report_users_path(), current_path)
+    within("#page-content") do
+      within('h2') do
+        page.should have_content("Account Activity")
+      end
+      within('table#report-params') do
+        page.should have_content(@school.acronym)
+        page.should have_content(@school.name)
+        page.should have_content('Staff')
+        page.should_not have_content('Students')
+        page.should_not have_content('Parents')
+      end
+      within('table#user-listing') do
+        page.all('tr.user-row').count.should == 2
+        page.should have_css("tr#user_#{@school_administrator.id}")
+        page.should have_css("tr#user_#{@teacher.id}")
+      end
+    end
+
+    # generate a report with students only
+    page.should have_css("#side-reports a", text: 'Generate Reports')
+    find("#side-reports a", text: 'Generate Reports').click
+    page.should have_content('Generate Reports')
+    within("#page-content") do
+      within('form#new_generate') do
+        page.should have_selector("select#generate-type")
+        select('Account Activity Report', from: "generate-type")
+        find("select#generate-type").value.should == "account_activity"
+        check('generate[user_type_students]')
+        find("button", text: 'Generate').click
+        # staff user types clicked.
+      end
+    end
+    assert_equal(account_activity_report_users_path(), current_path)
+    within("#page-content") do
+      within('h2') do
+        page.should have_content("Account Activity")
+      end
+      within('table#report-params') do
+        page.should have_content(@school.acronym)
+        page.should have_content(@school.name)
+        page.should_not have_content('Staff')
+        page.should have_content('Students')
+        page.should_not have_content('Parents')
+      end
+      within('table#user-listing') do
+        page.all('tr.user-row').count.should == 10
+        page.should have_css("tr#user_#{@student.id}")
+        page.should have_css("tr#user_#{@student2.id}")
+        page.should have_css("tr#user_#{@student3.id}")
+        page.should have_css("tr#user_#{@student4.id}")
+        page.should have_css("tr#user_#{@student5.id}")
+        page.should have_css("tr#user_#{@student6.id}")
+        page.should have_css("tr#user_#{@student_unenrolled.id}")
+        page.should have_css("tr#user_#{@student_transferred.id}")
+        page.should have_css("tr#user_#{@student_out.id}")
+        page.should have_css("tr#user_#{@student_new.id}")
+        page.all('tr.user-row.deactivated').count.should == 2
+      end
+    end
+
+
+    # generate a report with parents only
+    page.should have_css("#side-reports a", text: 'Generate Reports')
+    find("#side-reports a", text: 'Generate Reports').click
+    page.should have_content('Generate Reports')
+    within("#page-content") do
+      within('form#new_generate') do
+        page.should have_selector("select#generate-type")
+        select('Account Activity Report', from: "generate-type")
+        find("select#generate-type").value.should == "account_activity"
+        check('generate[user_type_parents]')
+        find("button", text: 'Generate').click
+        # staff user types clicked.
+      end
+    end
+    assert_equal(account_activity_report_users_path(), current_path)
+    within("#page-content") do
+      within('h2') do
+        page.should have_content("Account Activity")
+      end
+      within('table#report-params') do
+        page.should have_content(@school.acronym)
+        page.should have_content(@school.name)
+        page.should_not have_content('Staff')
+        page.should_not have_content('Students')
+        page.should have_content('Parents')
+      end
+      within('table#user-listing') do
+        page.all('tr.user-row').count.should == 10
+        page.should have_css("tr#user_#{@student.parent.id}")
+        page.should have_css("tr#user_#{@student2.parent.id}")
+        page.should have_css("tr#user_#{@student3.parent.id}")
+        page.should have_css("tr#user_#{@student4.parent.id}")
+        page.should have_css("tr#user_#{@student5.parent.id}")
+        page.should have_css("tr#user_#{@student6.parent.id}")
+        page.should have_css("tr#user_#{@student_unenrolled.parent.id}")
+        page.should have_css("tr#user_#{@student_transferred.parent.id}")
+        page.should have_css("tr#user_#{@student_out.parent.id}")
+        page.should have_css("tr#user_#{@student_new.parent.id}")
+      end
+    end
+
+
+    # generate a report with all users
+    page.should have_css("#side-reports a", text: 'Generate Reports')
+    find("#side-reports a", text: 'Generate Reports').click
+    page.should have_content('Generate Reports')
+    within("#page-content") do
+      within('form#new_generate') do
+        page.should have_selector("select#generate-type")
+        select('Account Activity Report', from: "generate-type")
+        find("select#generate-type").value.should == "account_activity"
+        check('generate[user_type_staff]')
+        check('generate[user_type_students]')
+        check('generate[user_type_parents]')
+        find("button", text: 'Generate').click
+        # staff user types clicked.
+      end
+    end
+    assert_equal(account_activity_report_users_path(), current_path)
+    within("#page-content") do
+      within('h2') do
+        page.should have_content("Account Activity")
+      end
+      within('table#report-params') do
+        page.should have_content(@school.acronym)
+        page.should have_content(@school.name)
+        page.should have_content('Staff')
+        page.should have_content('Students')
+        page.should have_content('Parents')
+      end
+      within('table#user-listing') do
+        page.all('tr.user-row').count.should == 22
+      end
+    end
+
   end # def has_valid_tracker_usage_report
 
 

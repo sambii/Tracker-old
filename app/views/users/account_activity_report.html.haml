@@ -21,7 +21,7 @@
     %a#download-button.btn.btn-sm.btn-primary.deactivated.arrow-cursor{href: "javascript:void(0)"}
       %i.fa.fa-lg.fa-download
   .row
-    %table.table
+    %table#report-params.table
       %thead
         %tr
           %th='School'
@@ -34,7 +34,7 @@
   .col-md-12
     .block.block-alt-style.full
       .block-content-full.rounded-title-container
-        %table.titled-table.table.table-bordered.table-condensed.remove-margin
+        %table#user-listing.titled-table.table.table-bordered.table-condensed.remove-margin
           %thead.table-title
             %tr
               %th Username
@@ -50,7 +50,7 @@
               %th Last Sign In At
           %tbody
             - @users.each do |user|
-              %tr{id: "user_#{user.id}", class: (user.active ? '' : 'deactivated')}
+              %tr.user-row{id: "user_#{user.id}", class: (user.active ? '' : 'deactivated')}
                 %td= user.username
                 %td= user.role_symbols.join(' ')
                 - if @school.has_flag?(School::USER_BY_FIRST_LAST)
