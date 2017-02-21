@@ -15,6 +15,9 @@ describe "Generate Account Activity Report", js:true do
 
     load_test_section(@section, @teacher)
 
+    @school_administrator = FactoryGirl.create :school_administrator, school: @school
+    @researcher = FactoryGirl.create :researcher
+    @system_administrator = FactoryGirl.create :system_administrator
 
   end
 
@@ -28,7 +31,6 @@ describe "Generate Account Activity Report", js:true do
 
   describe "as school administrator" do
     before do
-      @school_administrator = FactoryGirl.create :school_administrator, school: @school
       sign_in(@school_administrator)
       @home_page = "/school_administrators/#{@school_administrator.id}"
     end
@@ -37,17 +39,15 @@ describe "Generate Account Activity Report", js:true do
 
   describe "as researcher" do
     before do
-      @researcher = FactoryGirl.create :researcher
       sign_in(@researcher)
       set_users_school(@school)
       @home_page = "/researchers/#{@researcher.id}"
     end
-    it { has_valid_account_activity_report(:researcher) }
+    it { has_no_account_activity_report }
   end
 
   describe "as system administrator" do
     before do
-      @system_administrator = FactoryGirl.create :system_administrator
       sign_in(@system_administrator)
       set_users_school(@school)
       @home_page = "/system_administrators/#{@system_administrator.id}"
@@ -80,11 +80,11 @@ describe "Generate Account Activity Report", js:true do
     page.should_not have_css("a", text: 'Generate Reports')
     # should fail when going to generate reports page directly
     visit new_generate_path
-    assert_equal(@err_page, current_path)
+    assert_equal(@home_page, current_path)
     page.should_not have_content('Internal Server Error')
     # should fail when running tracker usage report directly
-    visit tracker_usage_teachers_path
-    assert_equal(@err_page, current_path)
+    visit account_activity_report_users_path
+    assert_equal(@home_page, current_path)
     within('head title') do
       page.should_not have_content('Internal Server Error')
     end
@@ -103,8 +103,8 @@ describe "Generate Account Activity Report", js:true do
       end
     end
     # should fail when running tracker usage report directly
-    visit tracker_usage_teachers_path
-    assert_equal(@err_page, current_path)
+    visit account_activity_report_users_path
+    assert_equal(@home_page, current_path)
     within('head title') do
       page.should_not have_content('Internal Server Error')
     end
