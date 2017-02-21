@@ -26,7 +26,7 @@ describe "Generate Account Activity Report", js:true do
       sign_in(@teacher)
       @home_page = "/teachers/#{@teacher.id}"
     end
-    it { has_no_account_activity_report }
+    it { has_valid_account_activity_report(:teacher) }
   end
 
   describe "as school administrator" do
@@ -150,35 +150,37 @@ describe "Generate Account Activity Report", js:true do
     end
 
     # generate a report with staff only
-    page.should have_css("#side-reports a", text: 'Generate Reports')
-    find("#side-reports a", text: 'Generate Reports').click
-    page.should have_content('Generate Reports')
-    within("#page-content") do
-      within('form#new_generate') do
-        page.should have_selector("select#generate-type")
-        select('Account Activity Report', from: "generate-type")
-        find("select#generate-type").value.should == "account_activity"
-        check('generate[user_type_staff]')
-        find("button", text: 'Generate').click
-        # staff user types clicked.
+    if [:system_administrator, :school_administrator].include?(role)
+      page.should have_css("#side-reports a", text: 'Generate Reports')
+      find("#side-reports a", text: 'Generate Reports').click
+      page.should have_content('Generate Reports')
+      within("#page-content") do
+        within('form#new_generate') do
+          page.should have_selector("select#generate-type")
+          select('Account Activity Report', from: "generate-type")
+          find("select#generate-type").value.should == "account_activity"
+          check('generate[user_type_staff]')
+          find("button", text: 'Generate').click
+          # staff user types clicked.
+        end
       end
-    end
-    assert_equal(account_activity_report_users_path(), current_path)
-    within("#page-content") do
-      within('h2') do
-        page.should have_content("Account Activity")
-      end
-      within('table#report-params') do
-        page.should have_content(@school.acronym)
-        page.should have_content(@school.name)
-        page.should have_content('Staff')
-        page.should_not have_content('Students')
-        page.should_not have_content('Parents')
-      end
-      within('table#user-listing') do
-        page.all('tr.user-row').count.should == 2
-        page.should have_css("tr#user_#{@school_administrator.id}")
-        page.should have_css("tr#user_#{@teacher.id}")
+      assert_equal(account_activity_report_users_path(), current_path)
+      within("#page-content") do
+        within('h2') do
+          page.should have_content("Account Activity")
+        end
+        within('table#report-params') do
+          page.should have_content(@school.acronym)
+          page.should have_content(@school.name)
+          page.should have_content('Staff')
+          page.should_not have_content('Students')
+          page.should_not have_content('Parents')
+        end
+        within('table#user-listing') do
+          page.all('tr.user-row').count.should == 2
+          page.should have_css("tr#user_#{@school_administrator.id}")
+          page.should have_css("tr#user_#{@teacher.id}")
+        end
       end
     end
 
@@ -276,7 +278,9 @@ describe "Generate Account Activity Report", js:true do
         page.should have_selector("select#generate-type")
         select('Account Activity Report', from: "generate-type")
         find("select#generate-type").value.should == "account_activity"
-        check('generate[user_type_staff]')
+        if [:system_administrator, :school_administrator].include?(role)
+          check('generate[user_type_staff]')
+        end
         check('generate[user_type_students]')
         check('generate[user_type_parents]')
         find("button", text: 'Generate').click
@@ -291,12 +295,21 @@ describe "Generate Account Activity Report", js:true do
       within('table#report-params') do
         page.should have_content(@school.acronym)
         page.should have_content(@school.name)
-        page.should have_content('Staff')
+        if [:system_administrator, :school_administrator].include?(role)
+          page.should have_content('Staff')
+        else
+          page.should_not have_content('Staff')
+        end
+
         page.should have_content('Students')
         page.should have_content('Parents')
       end
       within('table#user-listing') do
-        page.all('tr.user-row').count.should == 22
+        if [:system_administrator, :school_administrator].include?(role)
+          page.all('tr.user-row').count.should == 22
+        else
+          page.all('tr.user-row').count.should == 20
+        end
       end
     end
 

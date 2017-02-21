@@ -120,7 +120,7 @@ class Ability
 
         # Attendance
         can [:student_attendance_detail_report, :attendance_report], Attendance
-        can [:read], 
+        can [:read],
           Attendance,
           { school_id: user.school_id, section_id: user.teacher.teaching_assignments.pluck(:section_id) }
         can :read,
@@ -217,7 +217,7 @@ class Ability
             { id: user.id }
 
         # User
-        can [:staff_listing, :dashboard],
+        can [:account_activity_report, :staff_listing, :dashboard],
           User,
           { school_id: user.school_id }
 
@@ -234,7 +234,7 @@ class Ability
 
         # Attendance
         can [:student_attendance_detail_report, :attendance_report], Attendance
-        can [:manage], 
+        can [:manage],
           Attendance,
           { school_id: user.school_id, section_id: user.teacher.teaching_assignments.pluck(:section_id) }
         can :read,
@@ -331,7 +331,7 @@ class Ability
         can [:set_parent_temporary_password],
           Parent,
           { school_id: user.school_id }
-        # note teacher has following abilities for parents, so does school admin need these?: :create, :read, :update, :dashboard, :security, :index, :new, 
+        # note teacher has following abilities for parents, so does school admin need these?: :create, :read, :update, :dashboard, :security, :index, :new,
 
         # Subject
         can [:read, :view_subject_outcomes, :proficiency_bars, :progress_meters],
@@ -351,7 +351,7 @@ class Ability
         can [:new], TeachingAssignment
 
         # User
-        can [:create, :read, :update, :set_temporary_password, :account_activity_report, :staff_listing, :dashboard, :security, :new_staff, :create_staff, :profile, :sections_list, :bulk_upload_staff, :bulk_update_staff],
+        can [:create, :read, :update, :set_temporary_password, :staff_account_activity_report, :account_activity_report, :staff_listing, :dashboard, :security, :new_staff, :create_staff, :profile, :sections_list, :bulk_upload_staff, :bulk_update_staff],
           User,
           { school_id: user.school_id }
         can [:read, :change_password, :edit, :update, :profile],

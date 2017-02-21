@@ -124,22 +124,23 @@
         .pull-left.value-fields.col-sm-8.col-lg-4
           %input{type: 'hidden', name: "generate[details]", value: 'N'}
           %input#details-box.checkbox-input.pull-left{name: "generate[details]", type: "checkbox", value: "Y", checked: (@generate.details == 'Y')}
-      %fieldset.input-group.show-label-value.display-none.ask-user-type-groupings
+      - if can? :account_activity_report, User
         %input{type: 'hidden', name: "generate[user_type_staff]", value: 'N'}
-        - if can_see_staff = has_selected_school && can?(:staff_listing, User)
-          %label.col-sm-4.col-lg-4.control-label='Show Staff:'
+        - if can? :staff_account_activity_report, User
+          %fieldset.input-group.show-label-value.display-none.ask-user-type-groupings
+            %label.col-sm-4.col-lg-4.control-label='Show Staff:'
+            .pull-left.value-fields.col-sm-8.col-lg-4
+              %input#user-type-staff-box.checkbox-input.pull-left{name: "generate[user_type_staff]", type: "checkbox", value: "Y", checked: (@generate.user_type_staff == 'Y')}
+        %fieldset.input-group.show-label-value.display-none.ask-user-type-groupings
+          %input{type: 'hidden', name: "generate[user_type_students]", value: 'N'}
+          %label.col-sm-4.col-lg-4.control-label='Show Students:'
           .pull-left.value-fields.col-sm-8.col-lg-4
-            %input#user-type-staff-box.checkbox-input.pull-left{name: "generate[user_type_staff]", type: "checkbox", value: "Y", checked: (@generate.user_type_staff == 'Y')}
-      %fieldset.input-group.show-label-value.display-none.ask-user-type-groupings
-        %input{type: 'hidden', name: "generate[user_type_students]", value: 'N'}
-        %label.col-sm-4.col-lg-4.control-label='Show Students:'
-        .pull-left.value-fields.col-sm-8.col-lg-4
-          %input#user-type-students-box.checkbox-input.pull-left{name: "generate[user_type_students]", type: "checkbox", value: "Y", checked: (@generate.user_type_students == 'Y')}
-      %fieldset.input-group.show-label-value.display-none.ask-user-type-groupings
-        %input{type: 'hidden', name: "generate[user_type_parents]", value: 'N'}
-        %label.col-sm-4.col-lg-4.control-label='Show Parents:'
-        .pull-left.value-fields.col-sm-8.col-lg-4
-          %input#user-type-parents-box.checkbox-input.pull-left{name: "generate[user_type_parents]", type: "checkbox", value: "Y", checked: (@generate.user_type_parents == 'Y')}
+            %input#user-type-students-box.checkbox-input.pull-left{name: "generate[user_type_students]", type: "checkbox", value: "Y", checked: (@generate.user_type_students == 'Y')}
+        %fieldset.input-group.show-label-value.display-none.ask-user-type-groupings
+          %input{type: 'hidden', name: "generate[user_type_parents]", value: 'N'}
+          %label.col-sm-4.col-lg-4.control-label='Show Parents:'
+          .pull-left.value-fields.col-sm-8.col-lg-4
+            %input#user-type-parents-box.checkbox-input.pull-left{name: "generate[user_type_parents]", type: "checkbox", value: "Y", checked: (@generate.user_type_parents == 'Y')}
       %fieldset
         %button.pull-left.btn.btn-primary{name: 'commit', type: "submit"}='Generate'
 
