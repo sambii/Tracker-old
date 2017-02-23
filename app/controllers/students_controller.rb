@@ -115,11 +115,11 @@ class StudentsController < ApplicationController
     @parent.school_id = @school.id
     parent_status = @parent.valid?
 
-    @student.assign_attributes(params[:user])
-
     respond_to do |format|
 
       if @student.errors.count == 0 && @student.save
+        Rails.logger.debug("*** save @student.errors: #{@student.errors.inspect}")
+        Rails.logger.debug("*** save @student.errors.count: #{@student.errors.count}")
         begin
           UserMailer.welcome_user(@student, @school, get_server_config).deliver
         rescue => e
@@ -130,9 +130,16 @@ class StudentsController < ApplicationController
         if @parent.blank?
           @parent = Parent.new
         end
+        Rails.logger.debug("*** @parent.assign_attributes(#{params[:parent].inspect})")
         @parent.assign_attributes(params[:parent])
+        Rails.logger.debug("*** assign_attributes @parent.errors: #{@parent.errors.inspect}")
+        Rails.logger.debug("*** assign_attributes @parent.errors.count: #{@parent.errors.count}")
         @parent.school_id = @school.id
         parent_status = @parent.save
+        Rails.logger.debug("*** save @parent.errors: #{@parent.errors.inspect}")
+        Rails.logger.debug("*** save @parent.errors.count: #{@parent.errors.count}")
+        Rails.logger.debug("*** save parent_status.errors: #{parent_status.errors.inspect}")
+        Rails.logger.debug("*** save parent_status.errors.count: #{parent_status.errors.count}")
         begin
           UserMailer.welcome_user(@parent, @school, get_server_config).deliver
         rescue => e
@@ -142,13 +149,18 @@ class StudentsController < ApplicationController
         if !parent_status
           flash[:alert] = @parent.errors.full_messages
         end
+        Rails.logger.debug("*** final errors: #{@student.errors.inspect}")
+        Rails.logger.debug("*** final errors count: #{@student.errors.count}")
         format.js
       else
+        Rails.logger.debug("*** successful Student Save ???")
         if !parent_status
           flash[:alert] = @student.errors.full_messages << @parent.errors.full_messages
         else
           flash[:alert] = @student.errors.full_messages
         end
+        Rails.logger.debug("*** final errors: #{@student.errors.inspect}")
+        Rails.logger.debug("*** final errors count: #{@student.errors.count}")
         format.js # { render js: "alert('Student not successfully created!')"}
       end
     end

@@ -227,6 +227,7 @@ class User < ActiveRecord::Base
   end
 
   def is_unique_username
+    Rails.logger.debug("*** is_unique_username #{self.username}")
     if self.username.blank?
       return false
     elsif User.where(username: self.username).count > 0
