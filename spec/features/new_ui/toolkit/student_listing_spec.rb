@@ -4,11 +4,6 @@ require 'spec_helper'
 
 describe "Student Listing", js:true do
   before (:each) do
-    # @section = FactoryGirl.create :section
-    # @school = @section.school
-    # @teacher = FactoryGirl.create :teacher, school: @school
-    # @teacher_deact = FactoryGirl.create :teacher, school: @school, active: false
-    # load_test_section(@section, @teacher)
 
     create_and_load_arabic_model_school
 
@@ -17,13 +12,6 @@ describe "Student Listing", js:true do
     @subject1 = FactoryGirl.create :subject, school: @school1, subject_manager: @teacher1
     @section1_1 = FactoryGirl.create :section, subject: @subject1
     @discipline = @subject1.discipline
-
-    # two subjects in @school1
-    # @section1_1 = FactoryGirl.create :section
-    # @subject1 = @section1_1.subject
-    # @school1 = @section1_1.school
-    # @teacher1 = @subject1.subject_manager
-    # @discipline = @subject1.discipline
 
     load_test_section(@section1_1, @teacher1)
 
@@ -39,7 +27,6 @@ describe "Student Listing", js:true do
     @discipline2 = @subject2.discipline
 
     @enrollment_s2 = FactoryGirl.create :enrollment, section: @section2_1, student: @student
-
 
   end
 
@@ -245,7 +232,6 @@ describe "Student Listing", js:true do
   end
 
   def can_create_student(student)
-    Rails.logger.debug("++++ can_create_student: #{student.inspect}")
     within("div#page-content") do
       page.should have_css("a[data-url='/students/new.js']")
       find("a[data-url='/students/new.js']").click
@@ -284,6 +270,27 @@ describe "Student Listing", js:true do
     # expect(page.text).to match(/New\sLname/) # alternate syntax
     page.text.should match(/New\sLname/)
     page.should have_content('new@email.address')
+
+    # confirm error on duplicate email
+    within("div#page-content") do
+      page.should have_css("a[data-url='/students/new.js']")
+      find("a[data-url='/students/new.js']").click
+    end
+    page.should have_content("Create New Student")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      within("form#new_student") do
+        page.fill_in 'student_first_name', :with => 'Another New Fname'
+        page.fill_in 'student_last_name', :with => 'Another New Lname'
+        page.fill_in 'student_email', :with => 'new@email.address'
+        page.fill_in 'student_grade_level', :with => '2'
+        page.click_button('Save')
+      end
+    end
+    # ensure that duplicate email gets an error on creates
+    page.should have_css("#modal_popup form#new_student")
+    within('#modal_popup #modal-message') do
+      page.should have_content('Username has already been taken')
+    end
   end
 
 

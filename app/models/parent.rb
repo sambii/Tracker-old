@@ -52,7 +52,8 @@ class Parent < User
   def set_unique_username
     self.username  = (child.username + "_p").downcase
     i         = 2
-    until unique_username?
+    # until unique_username?
+    until is_unique_username
       self.username = (child.username + "_p#{i}").downcase
       i += 1
     end

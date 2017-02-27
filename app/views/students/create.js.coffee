@@ -4,6 +4,7 @@ console.log "errors_count= #{errors_count}"
 if errors_count.toString() != '0'
   # display flash messages if any
   $('#breadcrumb-flash-msgs').html("<%= escape_javascript(render('layouts/messages')) %>")
+  $('#modal-message').html("<%= escape_javascript(render('layouts/messages')) %>")
   # redisplay form with errors
   # $('#modal_content').html("<%= escape_javascript(render('students/create') ) %>");
   $('#modal-body').html("<%= escape_javascript(render('students/create') ) %>");

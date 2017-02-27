@@ -107,19 +107,22 @@ class StudentsController < ApplicationController
     @school = get_current_school
     @student = Student.new
     @student.assign_attributes(params[:student])
+    Rails.logger.debug("*** initial errors: #{@student.errors.full_messages}")
     @student.school_id = @school.id
     @student.set_unique_username
     @student.set_temporary_password
+    @student.valid?
+    Rails.logger.debug("*** set errors: #{@student.errors.full_messages}")
     @parent = Parent.new
     @parent.assign_attributes(params[:parent])
     @parent.school_id = @school.id
     parent_status = @parent.valid?
+    Rails.logger.debug("*** parent initial errors: #{@parent.errors.full_messages}")
 
     respond_to do |format|
 
-      if @student.errors.count == 0 && @student.save
-        Rails.logger.debug("*** save @student.errors: #{@student.errors.inspect}")
-        Rails.logger.debug("*** save @student.errors.count: #{@student.errors.count}")
+      @student.save if @student.errors.count == 0
+      if @student.errors.count == 0
         begin
           UserMailer.welcome_user(@student, @school, get_server_config).deliver
         rescue => e
@@ -138,31 +141,28 @@ class StudentsController < ApplicationController
         parent_status = @parent.save
         Rails.logger.debug("*** save @parent.errors: #{@parent.errors.inspect}")
         Rails.logger.debug("*** save @parent.errors.count: #{@parent.errors.count}")
-        Rails.logger.debug("*** save parent_status.errors: #{parent_status.errors.inspect}")
-        Rails.logger.debug("*** save parent_status.errors.count: #{parent_status.errors.count}")
+        Rails.logger.debug("*** save parent_status: #{parent_status.inspect}")
         begin
           UserMailer.welcome_user(@parent, @school, get_server_config).deliver
         rescue => e
           Rails.logger.error("Error: Parent Email missing ServerConfigs record with support_email address")
           raise InvalidConfiguration, "Missing ServerConfigs record with support_email address"
         end
-        if !parent_status
-          flash[:alert] = @parent.errors.full_messages
-        end
-        Rails.logger.debug("*** final errors: #{@student.errors.inspect}")
-        Rails.logger.debug("*** final errors count: #{@student.errors.count}")
-        format.js
+        err_msgs = []
+        err_msgs << @student.errors.full_messages if @student.errors.count > 0
+        err_msgs << @parent.errors.full_messages if @parent.errors.count > 0
       else
-        Rails.logger.debug("*** successful Student Save ???")
-        if !parent_status
-          flash[:alert] = @student.errors.full_messages << @parent.errors.full_messages
-        else
-          flash[:alert] = @student.errors.full_messages
-        end
-        Rails.logger.debug("*** final errors: #{@student.errors.inspect}")
-        Rails.logger.debug("*** final errors count: #{@student.errors.count}")
-        format.js # { render js: "alert('Student not successfully created!')"}
+        err_msgs = []
+        err_msgs << @student.errors.full_messages if @student.errors.count > 0
+        Rails.logger.debug("*** unsuccessful")
       end
+      Rails.logger.debug("*** final errors: #{@student.errors.full_messages}")
+      Rails.logger.debug("*** final errors count: #{@student.errors.count}")
+      flash[:alert] = err_msgs.join(', ') if err_msgs.length > 0
+      flash.each do |name, msg|
+        Rails.logger.debug("*** flash message: #{msg}") if msg.is_a?(String)
+      end
+      format.js
     end
   end
 
