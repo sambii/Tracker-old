@@ -180,6 +180,18 @@ FactoryGirl.define do
     student      true
   end
 
+  factory :student_no_email, class: User do
+    school
+    gender "F"
+    password "password"
+    password_confirmation "password"
+    active true
+    username 'student_no_email'
+    grade_level 2
+    student true
+    subscription_status "0"
+  end
+
   # NOTE: Basic Teacher, not assigned to a section!
   # If going to a section, create a teaching_assignment first
   factory :teacher do

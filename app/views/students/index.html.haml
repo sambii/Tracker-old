@@ -122,7 +122,7 @@
                       %td.user-parent-sub-status{id: "parent_#{s.parent.id}_subscription_status"}= s.parent.try(:subscription_status)
                     - else
                       %td.user-parent-email
-                      %td.user-parent-sub-status='sub-status'
+                      %td.user-parent-sub-status='No Parent/Guardian'
                     %td
                       %a{href: "/students/#{s.id}", title: 'Student Dashboard'}
                         %i.fa.fa-lg.fa-dashboard

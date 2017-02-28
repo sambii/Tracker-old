@@ -12,6 +12,8 @@ describe "User can change password", js:true do
     @section1_1 = FactoryGirl.create :section, subject: @subject1
     @discipline = @subject1.discipline
     load_test_section(@section1_1, @teacher1)
+
+    @student_no_email = FactoryGirl.create :student_no_email, school_id: @school1.id, first_name: 'Student', last_name: 'Has No Email'
   end
 
   describe "as teacher" do
@@ -142,17 +144,43 @@ describe "User can change password", js:true do
         end
       end
 
-      within("#modal-body") do
-        # confirm screen has changed with new temp password
-        within("td#user_#{@student.parent.id}.parent-temp-pwd") do
-          within("span.temp-pwd") do
-            @student.parent.reload
-            page.should have_content("#{@student.parent.temporary_password}")
-          end
-          page.should have_css("span.temp-pwd")
-          find("a[href='/parents/#{@student.parent.id}/set_parent_temporary_password']").click
-        end
-      end
+      # within("#modal-body") do
+      #   # confirm screen has changed with new temp password
+      #   within("td#user_#{@student.parent.id}.parent-temp-pwd") do
+      #     within("span.temp-pwd") do
+      #       @student.parent.reload
+      #       page.should have_content("#{@student.parent.temporary_password}")
+      #     end
+      #     page.should have_css("span.temp-pwd")
+      #     find("a[href='/parents/#{@student.parent.id}/set_parent_temporary_password']").click
+      #   end
+      # end
+
+      # logout and back in as student, to confirm logging in with new password works correctly
+      @student.reload
+      student_email = @student.email
+
+      page.find("#main-container header .dropdown-toggle").click
+      page.find("#main-container header .dropdown-menu-right a[href='/users/sign_out']").click
+
+      assert_equal("/", current_path)
+      page.fill_in 'user_username', :with => @student.username
+      page.fill_in 'user_password', :with => @student.temporary_password
+      find("input[name='commit']").click
+
+      page.fill_in 'user_password', :with => 'after_reset'
+      page.fill_in 'user_password_confirmation', :with => 'after_reset'
+      page.find("input[name='commit']").click
+
+      page.fill_in 'user_username', :with => @student.username
+      page.fill_in 'user_password', :with => 'after_reset'
+      find("input[name='commit']").click
+
+      assert_equal("/students/#{@student.id}", current_path)
+      @student.reload
+      assert_equal(student_email, @student.email)
+
+
     else
       # cannot get to security screen or update password for student
     end
