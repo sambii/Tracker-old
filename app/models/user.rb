@@ -212,7 +212,8 @@ class User < ActiveRecord::Base
     self.temporary_password     = temporary_string
   end
 
-  # deprecate this - it reads and processes all users when it should be looked up!
+  # deprecate this - use instead is_unique_username
+  # this is bad coding, as it loads all users when the user should be looked up!
   # Because usernames are generated automatically for school personnel, students, and parents,
   # this method is called to determine whether the generated username is in fact unique. The controllers
   # for those personnel types are responsible for handling the result of this method.
@@ -225,41 +226,44 @@ class User < ActiveRecord::Base
       usernames.count(username) == 1 or usernames.count(username) == 0
     end
   end
-
   def is_unique_username
-    Rails.logger.debug("*** is_unique_username #{self.username}")
     if self.username.blank?
       return false
-    elsif User.where(username: self.username).count > 0
-      return false
     else
-      return true
+      matches = User.where(username: self.username)
+      if new_record? && matches.count > 0
+        return false
+      elsif !new_record? && matches.count > 1
+        return false
+      else
+        return true
+      end
     end
   end
 
+  # set unique username from email or name based upon school flag.
+  # ensure all usernames are all lowercase from now on
+  # if username already exists (for another user), then increment the name
   def set_unique_username
     if self.school_id.present?
       school ||= School.find self.school_id
       if school.has_flag?(School::USERNAME_FROM_EMAIL) && self.email.present?
-        base_username = (school.acronym + "_" + self.email.downcase.split('@', 2)[0])
+        base_username = (school.acronym + "_" + self.email.downcase.split('@', 2)[0]).downcase
       else
         base_username  = (school.acronym + "_" + f_last_name).downcase
       end
     else
       # username for System Users (no school assigned)
       # email address is required
-      Rails.logger.debug("*** self.email: #{self.email}")
-      base_username = self.email.present? ? (self.email.downcase.split('@', 2)[0]) : ''
+      base_username = (self.email.present? ? (self.email.downcase.split('@', 2)[0]) : '').downcase
     end      
     self.username  = base_username
-    Rails.logger.debug("*** self.username: #{self.username}")
     i = 2
     # until unique_username?
     until is_unique_username
       self.username = (base_username + i.to_s).downcase
       i += 1
     end
-    Rails.logger.debug("*** self.username: #{self.username}")
     true
 
   end

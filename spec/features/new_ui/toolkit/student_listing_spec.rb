@@ -271,12 +271,29 @@ describe "Student Listing", js:true do
     page.text.should match(/New\sLname/)
     page.should have_content('new@email.address')
 
-    # confirm error on duplicate email
+    # confirm username is sch1_new
+    student_nodes = all('tbody tr.student-row')
+    Rails.logger.debug("*** student_nodes[1][:id]: #{student_nodes[1][:id].inspect}")
+    new_student_id = student_nodes[1][:id].split('_')[1]
+    Rails.logger.debug("*** new_student_id: #{new_student_id}")
+    within("tr#student_#{new_student_id}") do
+      page.should have_css("a[data-url='/students/#{new_student_id}/security.js']")
+      find("a[data-url='/students/#{new_student_id}/security.js']").click
+    end
+    page.should have_content("Student/Parent Security and Access")
+    within("#modal_popup") do
+      page.should have_content("#{@school1.acronym}_new".downcase)
+      page.find('button').click
+    end
+
+    # ensure username is incremented if a duplicate (e.g. is different after @, etc.)
     within("div#page-content") do
       page.should have_css("a[data-url='/students/new.js']")
       find("a[data-url='/students/new.js']").click
     end
-    page.should have_content("Create New Student")
+    within('#modal_popup h2') do
+      page.should have_content("Create New Student")
+    end
     within("#modal_popup .modal-dialog .modal-content .modal-body") do
       within("form#new_student") do
         page.fill_in 'student_first_name', :with => 'Another New Fname'
@@ -286,11 +303,29 @@ describe "Student Listing", js:true do
         page.click_button('Save')
       end
     end
-    # ensure that duplicate email gets an error on creates
-    page.should have_css("#modal_popup form#new_student")
-    within('#modal_popup #modal-message') do
-      page.should have_content('Username has already been taken')
+    page.should_not have_css("#modal_popup form#new_student")
+    assert_equal("/students", current_path)
+    # expect(page.text).to match(/New\sFname/) # alternate syntax
+    page.text.should match(/New\sFname/)
+    # expect(page.text).to match(/New\sLname/) # alternate syntax
+    page.text.should match(/New\sLname/)
+    page.should have_content('new@email.address')
+
+    # confirm username is sch1_new2
+    student_nodes = all('tbody tr.student-row')
+    Rails.logger.debug("*** student_nodes[0][:id]: #{student_nodes[0][:id].inspect}")
+    another_student_id = student_nodes[0][:id].split('_')[1]
+    Rails.logger.debug("*** another_student_id: #{another_student_id}")
+    within("tr#student_#{another_student_id}") do
+      page.should have_css("a[data-url='/students/#{another_student_id}/security.js']")
+      find("a[data-url='/students/#{another_student_id}/security.js']").click
     end
+    page.should have_content("Student/Parent Security and Access")
+    within("#modal_popup") do
+      page.should have_content("#{@school1.acronym}_new2".downcase)
+      page.find('button').click
+    end
+
   end
 
 
