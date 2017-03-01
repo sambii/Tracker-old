@@ -49,7 +49,7 @@ describe "Disciplines Maintenance", js:true do
       # set_users_school(@school)
       @home_page = "/researchers/#{@researcher.id}"
     end
-    it { cannot_see_discipline_maint }
+    it { can_see_discipline_maint }
   end
 
   describe "as system administrator" do
@@ -59,7 +59,7 @@ describe "Disciplines Maintenance", js:true do
       # set_users_school(@school)
       @home_page = "/system_administrators/#{@system_administrator.id}"
     end
-    it { can_see_discipline_maint }
+    it { can_do_discipline_maint }
   end
 
   describe "as student" do
@@ -93,7 +93,9 @@ describe "Disciplines Maintenance", js:true do
     visit disciplines_path
     assert_equal(@home_page, current_path)
     page.should_not have_css("a[href='/disciplines/#{@discipline_ids[0]}/edit']")
+    page.should_not have_css("a[data-url='/disciplines/#{@discipline_ids[0]}/edit.js']")
     page.should_not have_css("a[href='/disciplines/new']")
+    page.should_not have_css("a[data-url='/disciplines/new.js']")
 
     # should not be able to directly maintain evidence types
     visit edit_discipline_path(@discipline_ids[0])
@@ -104,6 +106,30 @@ describe "Disciplines Maintenance", js:true do
   end # cannot_see_evid_type_maint
 
   def can_see_discipline_maint
+    # should not have a active toolkit item for System Maint.
+    page.should_not have_css("#side-sys-maint")
+    page.should_not have_css("a[href='/system_administrators/system_maintenance']")
+    # try to go directly to page
+    visit system_maintenance_system_administrators_path
+    assert_equal(@home_page, current_path)
+
+    # evidence types listing should not have links to new or edit
+    visit disciplines_path
+    assert_equal(disciplines_path, current_path)
+    page.should_not have_css("a[href='/disciplines/#{@discipline_ids[0]}/edit']")
+    page.should_not have_css("a[data-url='/disciplines/#{@discipline_ids[0]}/edit.js']")
+    page.should_not have_css("a[href='/disciplines/new']")
+    page.should_not have_css("a[data-url='/disciplines/new.js']")
+
+    # should not be able to directly maintain evidence types
+    visit edit_discipline_path(@discipline_ids[0])
+    assert_equal(@home_page, current_path)
+    visit new_discipline_path
+    assert_equal(@home_page, current_path)
+
+  end # can_see_evid_type_maint
+
+  def can_do_discipline_maint
     # this is only seen by a system administrator, so landing page should be the sys admin home page
 
 
@@ -217,6 +243,6 @@ describe "Disciplines Maintenance", js:true do
 
     # to do - add deactivate option for evidence types (requires database change and many tests)
 
-  end # can_maintain_evid_type
+  end # can_do_discipline_maint
 
 end

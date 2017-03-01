@@ -36,7 +36,7 @@ describe "Bulk Enter Teacher Assignments", js:true do
     before do
       sign_in(@teacher1)
     end
-    it { no_bulk_enter_teacher_assignments(true) }
+    it { no_bulk_enter_teacher_assignments }
   end
 
   describe "as school administrator" do
@@ -53,7 +53,7 @@ describe "Bulk Enter Teacher Assignments", js:true do
       sign_in(@researcher)
       set_users_school(@school1)
     end
-    it { no_bulk_enter_teacher_assignments(false) }
+    it { no_bulk_enter_teacher_assignments }
   end
 
   describe "as system administrator" do
@@ -69,21 +69,20 @@ describe "Bulk Enter Teacher Assignments", js:true do
     before do
       sign_in(@student)
     end
-    it { no_bulk_enter_teacher_assignments(false) }
+    it { no_bulk_enter_teacher_assignments }
   end
 
   describe "as parent" do
     before do
       sign_in(@student.parent)
     end
-    it { no_bulk_enter_teacher_assignments(false) }
+    it { no_bulk_enter_teacher_assignments }
   end
 
   ##################################################
   # test methods
 
-  def no_bulk_enter_teacher_assignments(is_teacher)
-    page.should have_css('li#side-staff a.disabled') if is_teacher
+  def no_bulk_enter_teacher_assignments
     visit enter_bulk_teaching_assignments_path
     assert_not_equal("/teaching_assignments/enter_bulk", current_path)
   end

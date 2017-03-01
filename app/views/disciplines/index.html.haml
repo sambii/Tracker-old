@@ -53,7 +53,7 @@
                     %a{href: discipline_path(d.id), title: 'View Discipline'}
                       %i.fa.fa-lg.fa-ellipsis-h
                 %td.text-center
-                  - if can? :show, d
+                  - if can? :edit, d
                     %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_discipline_path(d.id, format: :js)}, title: 'Edit Discipline'}
                       %i.fa.fa-lg.fa-edit
   .col-sm-1
