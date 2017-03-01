@@ -249,6 +249,7 @@ describe "Student Listing", js:true do
       end
     end
     # ensure that blank email gets an error on creates
+    # confirm email was saved during create
     page.should have_css("#modal_popup form#new_student")
     within("#modal_popup .modal-dialog .modal-content .modal-body") do
       within("form#new_student") do
@@ -310,6 +311,7 @@ describe "Student Listing", js:true do
     # expect(page.text).to match(/New\sLname/) # alternate syntax
     page.text.should match(/New\sLname/)
     page.should have_content('new@email.address')
+    page.all('td.user-email', text: 'new@email.address').count.should == 2
 
     # confirm username is sch1_new2
     student_nodes = all('tbody tr.student-row')
