@@ -164,6 +164,8 @@ describe "User can change password", js:true do
       @student.reload
       student_email = @student.email
 
+      page.find('#modal_popup #modal-body button', text: 'Close').click
+
       page.find("#main-container header .dropdown-toggle").click
       page.find("#main-container header .dropdown-menu-right a[href='/users/sign_out']").click
 
@@ -183,6 +185,52 @@ describe "User can change password", js:true do
       assert_equal("/students/#{@student.id}", current_path)
       @student.reload
       assert_equal(student_email, @student.email)
+
+
+      # log back in as user
+      page.find("#main-container header .dropdown-toggle").click
+      page.find("#main-container header .dropdown-menu-right a[href='/users/sign_out']").click
+      page.fill_in 'user_username', :with => @username
+      page.fill_in 'user_password', :with => 'newpassword'
+      find("input[name='commit']").click
+
+      # reset student with no email's password
+      assert_equal(@home_page, current_path)
+      within('#side-students') do
+        find("a[href='/students']").click
+      end
+      assert_equal('/students', current_path)
+      within("#student_#{@student_no_email.id}") do
+        find("a[data-url='/students/#{@student_no_email.id}/security.js']").click
+      end
+
+      # confirm display of temporary password if there is one, and confirm the display of the reset password button
+      within("#modal-body") do
+        within("td#user_#{@student_no_email.id}.student-temp-pwd") do
+          page.should_not have_css("span.temp-pwd")
+          find("a[href='/students/#{@student_no_email.id}/set_student_temporary_password']").click
+          page.should have_css("span.temp-pwd")
+        end
+      end
+
+      @student_no_email.reload
+      page.find('#modal_popup #modal-body button', text: 'Close').click
+
+      # signin with reset temporary password, then set password
+      page.find("#main-container header .dropdown-toggle").click
+      page.find("#main-container header .dropdown-menu-right a[href='/users/sign_out']").click
+      assert_equal("/", current_path)
+      page.fill_in 'user_username', :with => @student_no_email.username
+      page.fill_in 'user_password', :with => @student_no_email.temporary_password
+      find("input[name='commit']").click
+      assert_equal("/users/#{@student_no_email.id}/change_password", current_path)
+      page.fill_in 'user_password', :with => 'newpassword'
+      page.fill_in 'user_password_confirmation', :with => 'newpassword'
+      page.find("input[name='commit']").click
+      assert_equal("/", current_path)
+      page.fill_in 'user_username', :with => @student_no_email.username
+      page.fill_in 'user_password', :with => 'newpassword'
+      find("input[name='commit']").click
 
       # log back in as user
       page.find("#main-container header .dropdown-toggle").click

@@ -218,6 +218,7 @@ class StudentsController < ApplicationController
   # New UI
   # Students reset passwords from student listing via JS
   def security
+    @school = get_current_school
     @student = Student.find(params[:id])
     Rails.logger.debug("*** @student = #{@student.inspect.to_s}")
     @parent = @student.get_parent
@@ -227,13 +228,18 @@ class StudentsController < ApplicationController
     end
   end
 
+
   # set temporary password for student in student listing security popup
   def set_student_temporary_password
     @school = get_current_school
     @student.set_temporary_password
-    @student.save
-    UserMailer.changed_user_password(@student, @school, get_server_config).deliver # deliver after save
-
+    @student.update_attribute(:temporary_password, @student.temporary_password)
+    if @student.errors.count > 0
+      flash[:alert] = "Error: #{@student.errors.full_messages}"
+      @student.reload
+    else
+      UserMailer.changed_user_password(@student, @school, get_server_config).deliver
+    end
     respond_to do |format|
       format.js
     end

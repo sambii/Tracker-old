@@ -190,6 +190,10 @@ FactoryGirl.define do
     grade_level 2
     student true
     subscription_status "0"
+    after(:create) do |student|
+      @parent_no_email = FactoryGirl.create(:user, school_id: student.school_id, parent: true, child_id: student.id)
+    end
+
   end
 
   # NOTE: Basic Teacher, not assigned to a section!
