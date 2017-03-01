@@ -91,6 +91,7 @@ describe "User can change password", js:true do
   # test methods
 
   def can_login_first_time_and_reset_pwd(user, edit_student=false, edit_staff=false)
+    # Note: user at change password page because there was a temporary password
     assert_equal("/users/#{user.id}/change_password", current_path)
     page.fill_in 'user_password', :with => 'newpassword'
     page.fill_in 'user_password_confirmation', :with => 'newpassword'
@@ -108,6 +109,7 @@ describe "User can change password", js:true do
         end
         visit @home_page
       end
+
       # reset student's password
       assert_equal(@home_page, current_path)
       within('#side-students') do
@@ -118,6 +120,7 @@ describe "User can change password", js:true do
         find("a[data-url='/students/#{@student.id}/security.js']").click
       end
 
+      # confirm display of temporary password if there is one, and confirm the display of the reset password button
       within("#modal-body") do
         within("td#user_#{@student.parent.id}.parent-temp-pwd") do
           page.should have_css("span.temp-pwd")
@@ -129,6 +132,7 @@ describe "User can change password", js:true do
         end
       end
 
+      # confirm student now has a temporary password
       within("#modal-body") do
         # confirm screen has changed with new temp password
         within("td#user_#{@student.id}.student-temp-pwd") do
@@ -144,17 +148,17 @@ describe "User can change password", js:true do
         end
       end
 
-      # within("#modal-body") do
-      #   # confirm screen has changed with new temp password
-      #   within("td#user_#{@student.parent.id}.parent-temp-pwd") do
-      #     within("span.temp-pwd") do
-      #       @student.parent.reload
-      #       page.should have_content("#{@student.parent.temporary_password}")
-      #     end
-      #     page.should have_css("span.temp-pwd")
-      #     find("a[href='/parents/#{@student.parent.id}/set_parent_temporary_password']").click
-      #   end
-      # end
+      within("#modal-body") do
+        # confirm screen has changed with new temp password
+        within("td#user_#{@student.parent.id}.parent-temp-pwd") do
+          within("span.temp-pwd") do
+            @student.parent.reload
+            page.should have_content("#{@student.parent.temporary_password}")
+          end
+          page.should have_css("span.temp-pwd")
+          page.should have_css("a[href='/parents/#{@student.parent.id}/set_parent_temporary_password']")
+        end
+      end
 
       # logout and back in as student, to confirm logging in with new password works correctly
       @student.reload
@@ -180,11 +184,26 @@ describe "User can change password", js:true do
       @student.reload
       assert_equal(student_email, @student.email)
 
+      # log back in as user
+      page.find("#main-container header .dropdown-toggle").click
+      page.find("#main-container header .dropdown-menu-right a[href='/users/sign_out']").click
+      page.fill_in 'user_username', :with => @username
+      page.fill_in 'user_password', :with => 'newpassword'
+      find("input[name='commit']").click
 
     else
       # cannot get to security screen or update password for student
     end
+
     if edit_staff
+      # if user has to pick a school, pick it
+      if !user.school_id.present?
+        find("#side-schools a[href='/schools']").click
+        within("table tbody tr#school-#{@school1.id}") do
+          find("a[href='/schools/#{@school1.id}']").click
+        end
+      end
+
       # reset staff member's password
       within('#side-staff') do
         find("a[href='/users/staff_listing']").click

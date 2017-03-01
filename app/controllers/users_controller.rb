@@ -106,9 +106,13 @@ class UsersController < ApplicationController
   end
 
   def update
-    if params[:user][:password].blank? and params[:user][:password_confirmation].blank?
+    if params[:user][:password].blank? || params[:user][:password_confirmation].blank?
       params[:user].delete(:password)
       params[:user].delete(:password_confirmation)
+    end
+    # prevent clearing out email address if blank
+    if params[:user][:email].blank?
+      params[:user].delete(:email)
     end
 
     @user = User.find(params[:id])
