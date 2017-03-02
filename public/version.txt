@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.054 Mar 2, 2017
+- bug fix for student clearing emails
 PARLO Tracker version v2.01.053 Feb 21, 2017
 - System Administrator Home page (Alerts, Server Config, System Users, Evidence Types, Disciplines, user listing cleanups)
 PARLO Tracker version v2.01.052 Jan 11, 2017
