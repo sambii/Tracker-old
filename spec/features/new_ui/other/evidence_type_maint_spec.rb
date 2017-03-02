@@ -86,7 +86,7 @@ describe "Evidence Type Maintenance", js:true do
 
     # evidence types listing should not have links to new or edit
     visit evidence_types_path
-    assert_equal('/evidence_types', current_path)
+    assert_equal(@home_page, current_path)
     page.should_not have_css("a[href='/evidence_types/#{@evidence_type_ids[0]}/edit']")
     page.should_not have_css("a[href='/evidence_types/new']")
 
@@ -168,7 +168,7 @@ describe "Evidence Type Maintenance", js:true do
       end
     end
     assert_not_equal('', new_et_id)
-    
+
     # click the edit button for the newly created evidence type
     within("tr#et_#{new_et_id}") do
       find("a[data-url='/evidence_types/#{new_et_id}/edit.js']").click

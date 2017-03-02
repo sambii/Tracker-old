@@ -107,11 +107,9 @@ describe "User can change password", js:true do
         within("table tbody tr#school-#{@school1.id}") do
           find("a[href='/schools/#{@school1.id}']").click
         end
-        visit @home_page
       end
 
       # reset student's password
-      assert_equal(@home_page, current_path)
       within('#side-students') do
         find("a[href='/students']").click
       end
@@ -194,8 +192,14 @@ describe "User can change password", js:true do
       page.fill_in 'user_password', :with => 'newpassword'
       find("input[name='commit']").click
 
-      # reset student with no email's password
-      assert_equal(@home_page, current_path)
+      if !user.school_id.present?
+        find("#side-schools a[href='/schools']").click
+        within("table tbody tr#school-#{@school1.id}") do
+          find("a[href='/schools/#{@school1.id}']").click
+        end
+      end
+
+     # reset student with no email's password
       within('#side-students') do
         find("a[href='/students']").click
       end
@@ -281,7 +285,7 @@ describe "User can change password", js:true do
 
     else
       # cannot get to security screen or update password for staff
-    end 
+    end
   end
 
 
