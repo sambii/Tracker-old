@@ -330,6 +330,7 @@ module SubjectOutcomesHelper
     new_los_by_rec = Hash.new
     new_los_by_lo_code = Hash.new
     records = Array.new
+    inval_subject_names = Hash.new
     @filename = params['file'].original_filename
     # @errors[:filename] = 'Choose file again to rerun'
     # note: 'headers: true' uses column header as the key for the name (and hash key)
@@ -339,10 +340,24 @@ module SubjectOutcomesHelper
       rhash = validate_csv_fields(row.to_hash.with_indifferent_access, @subject_names)
       rhash[COL_REC_ID] = ix
       if rhash[COL_ERROR]
-        @errors[:base] = 'Errors exist - see below:' if !rhash[COL_EMPTY]
+        @errors[:base] = 'Errors exist:' if !rhash[COL_EMPTY]
       end
       # check if course and grade match an existing subject name
       check_subject = rhash[COL_SUBJECT]
+      if @subject_names[check_subject].blank?
+        check_subject = rhash[:'Course'] + ' ' + rhash[:'Grade']
+      end
+      have_all_mps = true
+      if @subject_names[check_subject].blank?
+        # no matching standard course + grade, check if has semester in name
+        rhash[:'mp_bitmap'].split('&').each do |one_mp|
+          have_all_mps = false if @subject_names[check_subject + 's' + one_mp].blank?
+        end
+      end
+      if !have_all_mps
+        # cannot find matching course with or without semester in names
+        inval_subject_names[check_subject] = check_subject
+      end
       if @match_subject.blank?
         ix += 1
         matched_subject = false
@@ -369,7 +384,7 @@ module SubjectOutcomesHelper
     # Rails.logger.debug("*** lo_get_file_from_upload records.count == 0: #{records.count == 0}")
     # this test doesn't work, @present_by_subject is not set yet
     # raise("Error - No Curriculum Records to upload.") if records.count == 0 && @present_by_subject.blank?
-    return {records: records, new_los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code}
+    return {records: records, new_los_by_rec: new_los_by_rec, new_los_by_lo_code: new_los_by_lo_code, inval_subject_names: inval_subject_names}
   end
 
   def lo_get_all_old_los
@@ -433,16 +448,30 @@ module SubjectOutcomesHelper
     # Rails.logger.debug("*** @subject_ids: #{@subject_ids.inspect}")
     new_rec_ids_by_subject = Hash.new([])
     all_new_los = Hash.new
+    invalid_subject_names = Hash.new
     records.each do |rec|
       # Rails.logger.debug("*** lo_get_all_new_los rec: #{rec.inspect}")
-      subject_id = Integer(rec[:subject_id]) rescue 0
-      subject_name = @subject_ids[subject_id].name
       # fix for two different formats coming in:
       lo_code = rec[:lo_code].present? ? rec[:lo_code] : rec[:'LO Code:']
       lo_desc = rec[:desc].present? ? rec[:desc] : rec[:'Learning Outcome']
       lo_course = rec[:course].present? ? rec[:course] : rec[:'Course']
       lo_grade = rec[:grade].present? ? rec[:grade] : rec[:'Grade']
       lo_mp = rec[:mp].present? ? rec[:mp] : rec[:mp_bitmap]
+      # check for valid subject
+      subject_id = Integer(rec[:subject_id]) rescue 0
+      if subject_id > 0 && @subject_ids[subject_id].present?
+        # we have a matched subject name
+        subject_name = @subject_ids[subject_id].name
+      else
+        # create the standard course & grade name and if not found add to invalid subjects.
+        subject_name = "#{lo_course} #{lo_grade}"
+        if @subject_names[subject_name].present?
+          subject_id = @subject_names[subject_name].id
+        else
+          subject_id = 0
+          invalid_subject_names[subject_name] = subject_name
+        end
+      end
       if subject_id > 0
         new_rec = {
           rec_id: rec[:rec_id],
@@ -464,7 +493,7 @@ module SubjectOutcomesHelper
         # Rails.logger.debug("*** all_new_los[#{new_rec[:rec_id]}]: #{all_new_los[new_rec[:rec_id]].inspect}")
       end
     end
-    return {new_rec_ids_by_subject: new_rec_ids_by_subject, all_new_los: all_new_los}
+    return {new_rec_ids_by_subject: new_rec_ids_by_subject, all_new_los: all_new_los, invalid_subject_names: invalid_subject_names}
   end
 
   def lo_dups_for_subject(subj)

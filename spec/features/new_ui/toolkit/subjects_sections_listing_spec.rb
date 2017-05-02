@@ -301,7 +301,7 @@ describe "Subjects Sections Listing", js:true do
       end
 
       Rails.logger.debug("+++ out of popup")
-      sleep 10
+      # sleep 10
       within("tr#sect_#{@section1_2.id}") do
         page.should have_content('Changed Section ID')
       end

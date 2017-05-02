@@ -140,6 +140,9 @@ class SubjectOutcomesController < ApplicationController
       # Rails.logger.debug("*** @new_los_by_rec_clean: #{@new_los_by_rec_clean.inspect}")
       @new_los_by_lo_code_clean = recs_from_upload[:new_los_by_lo_code]
       # Rails.logger.debug("*** @new_los_by_lo_code_clean: #{@new_los_by_lo_code_clean.inspect}")
+      inval_subject_names = recs_from_upload[:inval_subject_names]
+      # Rails.logger.debug("*** inval_subject_names: #{inval_subject_names.inspect}")
+      @errors[:base] = append_with_comma(@errors[:base], "Invalid subject(s): #{inval_subject_names.map {|k,v| v}.join(', ')}") if inval_subject_names.count > 0
 
       step = 2
       Rails.logger.debug("*** upload_lo_file Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
@@ -151,7 +154,7 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
       @records = dup_lo_code_checked[:records]
       Rails.logger.debug("*** records count: #{@records.count}")
-      @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
+      @errors[:base] = 'Errors exist!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
 
 
       step = 3
@@ -191,6 +194,8 @@ class SubjectOutcomesController < ApplicationController
       new_los = lo_get_all_new_los(@records)
       @new_rec_ids_by_subject = new_los[:new_rec_ids_by_subject].clone
       @all_new_los = new_los[:all_new_los].clone
+      invalid_subject_names = new_los[:invalid_subject_names].clone
+      @errors[:base] = append_with_comma(@errors[:base], "Invalid subject(s): #{invalid_subject_names.map {|k,v| v}.join(', ')}") if invalid_subject_names.count > 0 && inval_subject_names.count == 0
 
       step = 3
       Rails.logger.debug("*** Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
@@ -384,6 +389,8 @@ class SubjectOutcomesController < ApplicationController
       new_los = lo_get_all_new_los(@records)
       @new_rec_ids_by_subject = new_los[:new_rec_ids_by_subject].clone
       @all_new_los = new_los[:all_new_los].clone
+      invalid_subject_names = new_los[:invalid_subject_names].clone
+      @errors[:base] = append_with_comma(@errors[:base], "Invalid subject(s): #{invalid_subject_names.map {|k,v| v}.join(', ')}") if invalid_subject_names.count > 0
 
       step = 3
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")

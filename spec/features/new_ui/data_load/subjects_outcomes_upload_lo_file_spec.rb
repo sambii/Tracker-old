@@ -60,6 +60,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       set_users_school(@school1)
     end
     it { bulk_upload_all_same }
+    it { bulk_upload_all_new_subject }
     it { bulk_upload_art_same }
     it { bulk_upload_art_add_swap }
     it { bulk_upload_art_2_change }
@@ -105,11 +106,43 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Learning Outcomes Updated Matching Report')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '0')
-      page.should have_css('#total_adds', text: '0')
-      page.should have_css('#total_deactivates', text: '0')
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('5')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('4')}
+      within("#breadcrumb-flash") do
+        page.should_not have_content("Errors exist:, Invalid subject(s):")
+      end
     end # within #page-content
+    within("#lower-flash-messages") do
+      page.should_not have_content("Errors exist:, Invalid subject(s):")
+    end
+  end # def bulk_upload_all_matching
+
+  # test for all subjects bulk upload of Learning Outcomes into Model School
+  # no mismatches (only adds) - can update all learning outcomes immediately without matching
+  def bulk_upload_all_new_subject
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_new_subject.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+      end
+      find('#upload').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('5')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('4')}
+      within("#breadcrumb-flash") do
+        page.should have_content("Errors exist:, Invalid subject(s):")
+      end
+    end # within #page-content
+    within("#lower-flash-messages") do
+      page.should have_content("Errors exist:, Invalid subject(s):")
+    end
   end # def bulk_upload_all_matching
 
   # test for single subject bulk upload of Learning Outcomes into Model School
@@ -289,7 +322,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
       page.should have_content('Upload Learning Outcomes from Curriculum')
       page.should have_content('Upload Curriculum / LOs File')
-      sleep 20
+      # sleep 20
       within("#ask-filename") do
         page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
