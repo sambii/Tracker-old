@@ -160,10 +160,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#save_matches')
       find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '0')
-      page.should have_css('#total_adds', text: '0')
-      page.should have_css('#total_deactivates', text: '0')
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('0')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('0')}
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -182,21 +182,24 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      within('h3') do
+      # within('h3') do
+      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      # end
+      within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       page.should have_css('select#selections_4')
       find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '0')
-      page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '0')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '0')
-      page.should have_css('#total_adds', text: '0')
-      page.should have_css('#total_deactivates', text: '0')
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updates') { page.should have_content('3')}
+      within('#count_adds') { page.should have_content('1')}
+      within('#count_deactivates') { page.should have_content('0')}
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('3')}
+      within('#total_adds') { page.should have_content('1')}
+      within('#total_deactivates') { page.should have_content('0')}
     end # within #page-content
 
     # next deactivate lo 3 and 4, leaving duplicate deactivated records
@@ -210,21 +213,24 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      within('h3') do
+      # within('h3') do
+      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      # end
+      within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       find('#save_matches').click
       # save_and_open_page
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '0')
-      page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '2')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '0')
-      page.should have_css('#total_adds', text: '0')
-      page.should have_css('#total_deactivates', text: '2')
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updates') { page.should have_content('1')}
+      within('#count_adds') { page.should have_content('0')}
+      within('#count_deactivates') { page.should have_content('3')}
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('1')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('3')}
     end # within #page-content
 
     #
@@ -239,20 +245,23 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      within('h3') do
+      # within('h3') do
+      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      # end
+      within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       find('#save_matches').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '2')
-      page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '0')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '2')
-      page.should have_css('#total_adds', text: '0')
-      page.should have_css('#total_deactivates', text: '0')
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updates') { page.should have_content('2')}
+      within('#count_adds') { page.should have_content('0')}
+      within('#count_deactivates') { page.should have_content('0')}
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('2')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('0')}
     end # within #page-content
 
     # update the add and swap 3 and 4
@@ -268,21 +277,24 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      within('h3') do
+      # within('h3') do
+      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      # end
+      within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
-      page.should have_css('select#selections_4')
+      # page.should have_css('select#selections_4')
       find('#save_matches').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '3')
-      page.should have_css('#count_adds', text: '1')
-      page.should have_css('#count_deactivates', text: '0')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '3')
-      page.should have_css('#total_adds', text: '1')
-      page.should have_css('#total_deactivates', text: '0')
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updates') { page.should have_content('4')}
+      within('#count_adds') { page.should have_content('0')}
+      within('#count_deactivates') { page.should have_content('0')}
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('4')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('0')}
     end # within #page-content
 
     # confirm nothing to change
@@ -296,7 +308,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      within('h3') do
+      # within('h3') do
+      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
+      # end
+      within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       page.should_not have_css('select#selections_4')

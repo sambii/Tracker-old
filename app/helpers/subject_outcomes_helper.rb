@@ -50,8 +50,8 @@ module SubjectOutcomesHelper
         # match synonymous fields (and set to primary field)
 
         # strip leading a trailing spaces in lo_code and name
-        csv_hash[COL_OUTCOME_CODE] = csv_hash[COL_OUTCOME_CODE].strip
-        csv_hash[COL_OUTCOME_NAME] = csv_hash[COL_OUTCOME_NAME].gsub!(/\s+/, ' ').strip()[0...255]
+        csv_hash[COL_OUTCOME_CODE] = (csv_hash[COL_OUTCOME_CODE].to_s).strip
+        csv_hash[COL_OUTCOME_NAME] = (csv_hash[COL_OUTCOME_NAME].to_s).gsub(/\s+/, ' ').to_s.strip()[0...255]
 
         # make sure marking period is filled with either marking period field or semester field.
         if csv_hash[COL_MARK_PER].blank?
@@ -67,7 +67,7 @@ module SubjectOutcomesHelper
         # convert 'Year Long' into the full year (based on the school marking periods) bit mask string
         all_mp_mask =@school.marking_periods.present? ? (2 ** @school.marking_periods)-1 : 0
         all_mp_mask_str = SubjectOutcome.get_bitmask_string(all_mp_mask)
-        csv_hash[COL_MARK_PER] = all_mp_mask_str if csv_hash[COL_MARK_PER].strip.upcase == 'YEAR LONG'
+        csv_hash[COL_MARK_PER] = all_mp_mask_str if (csv_hash[COL_MARK_PER].to_s).strip.upcase == 'YEAR LONG'
 
         # make sure marking period bitmask is valid marking period bitmask for school
         csv_hash[COL_ERROR] = append_with_comma(csv_hash[COL_ERROR], "Marking Period too large") if bitmask > all_mp_mask
