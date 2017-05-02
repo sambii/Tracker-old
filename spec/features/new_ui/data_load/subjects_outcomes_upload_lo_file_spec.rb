@@ -355,14 +355,14 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 2')
-      page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updates', text: '4')
-      page.should have_css('#count_adds', text: '0')
-      page.should have_css('#count_deactivates', text: '0')
-      page.should have_css('#total_errors', text: '0')
-      page.should have_css('#total_updates', text: '4')
-      page.should have_css('#total_adds', text: '0')
-      page.should have_css('#total_deactivates', text: '0')
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updates') { page.should have_content('3')}
+      within('#count_adds') { page.should have_content('1')}
+      within('#count_deactivates') { page.should have_content('1')}
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('3')}
+      within('#total_adds') { page.should have_content('1')}
+      within('#total_deactivates') { page.should have_content('1')}
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -444,7 +444,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
-
+      
       page.should have_content('Match Old LOs to New LOs')
       within('#breadcrumb-flash-msgs') do
         page.should have_content('No Curriculum Records to upload.')

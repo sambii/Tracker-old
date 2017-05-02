@@ -345,12 +345,12 @@ module SubjectOutcomesHelper
       # check if course and grade match an existing subject name
       check_subject = rhash[COL_SUBJECT]
       if @subject_names[check_subject].blank?
-        check_subject = rhash[:'Course'] + ' ' + rhash[:'Grade']
+        check_subject = rhash[:'Course'].to_s + ' ' + rhash[:'Grade'].to_s
       end
       have_all_mps = true
       if @subject_names[check_subject].blank?
         # no matching standard course + grade, check if has semester in name
-        rhash[:'mp_bitmap'].split('&').each do |one_mp|
+        rhash[:'mp_bitmap'].to_s.split('&').each do |one_mp|
           have_all_mps = false if @subject_names[check_subject + 's' + one_mp].blank?
         end
       end
