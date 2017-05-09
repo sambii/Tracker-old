@@ -43,4 +43,4 @@ function do_db_backup () {
 }
 
 ### EGYPT ENVIRONMENT ####
-do_db_backup /web/parlo-tracker/stem-egypt/current/config/database.yml /root/db_backups/StemEgypt production
+do_db_backup /root/bin/database.yml /root/db_backups/StemEgypt production
