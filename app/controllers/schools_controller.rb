@@ -561,10 +561,10 @@ class SchoolsController < ApplicationController
           new_grade_level = st.grade_level + 1
         end
         st.grade_level = new_grade_level
-        fail("ERROR: error incrementing grade level for student: #{st.id} - #{st.name} for #{@school.name}") if !st.save
+        fail("ERROR: error incrementing grade level for student: #{st.id} - #{st.errors.full_messages}") if !st.save
         Enrollment.where(student_id: st.id).each do |e|
           e.student_grade_level = new_grade_level
-          fail("ERROR: error incrementing grade level for student enrollment: #{st.id} - #{st.name} - #{e.id} for #{@school.name}") if !e.save
+          fail("ERROR: error incrementing grade level for student enrollment: #{st.id} - #{e.errors.full_messages}") if !e.save
         end
       end
     end
