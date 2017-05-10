@@ -579,6 +579,7 @@ namespace :stem_egypt_training_data do
         stu.username = un
         stu.first_name = Faker::Name.first_name
         stu.last_name = Faker::Name.last_name
+        stu.email = Faker::Internet.email
         stu.grade_level = 1
         stu.gender = ["M", "F"][n % 2]
         stu.school_id = school.id
