@@ -217,12 +217,12 @@ namespace :stem_egypt_training_data do
 
     # create Competency Assessment Students (6 set names)
     assmt_students_a = [
-      ['M', 'Ali', 'Amgad Kamal', 'ETH_aamgad.kamal'],
-      ['F', 'Doaa', 'Salan Elsayed', 'ETH_dsalan.elsayed'],
-      ['M', 'Fady', 'Adel Fahmy', 'ETH_fadel.fahmy'],
-      ['F', 'Israa', 'Mostafa Badran', 'ETH_imostafa.badran'],
-      ['M', 'Hager', 'Naser Mahmoud', 'ETH_hnaser.mahmoud'],
-      ['F', 'Mara', 'Saeid Mousa', 'ETH_msaeid.mousa']
+      ['M', 'Ali', 'Amgad Kamal', 'ETH_aamgad.kamal', 'aamgad.kamal@sample.com'],
+      ['F', 'Doaa', 'Salan Elsayed', 'ETH_dsalan.elsayed', 'dsalan.elsayed@sample.com'],
+      ['M', 'Fady', 'Adel Fahmy', 'ETH_fadel.fahmy', 'fadel.fahmy@sample.com'],
+      ['F', 'Israa', 'Mostafa Badran', 'ETH_imostafa.badran', 'imostafa.badran@sample.com'],
+      ['M', 'Hager', 'Naser Mahmoud', 'ETH_hnaser.mahmoud', 'hnaser.mahmoud@sample.com'],
+      ['F', 'Mara', 'Saeid Mousa', 'ETH_msaeid.mousa', 'msaeid.mousa@sample.com']
     ]
     assmt_students = Array.new
     assmt_students_a.each do |stu_info|
@@ -233,6 +233,7 @@ namespace :stem_egypt_training_data do
         stu.username =  stu_info[3]
         stu.first_name = stu_info[1]
         stu.last_name = stu_info[2]
+        stu.email = stu_info[4]
         stu.grade_level = 1
         stu.gender = stu_info[0]
         stu.school_id = school.id
