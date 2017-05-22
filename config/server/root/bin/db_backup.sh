@@ -35,7 +35,7 @@ function do_db_backup () {
     user=`get_field username`
     database=`get_field database`
 
-    date=`date '+%Y-%m-%d_%H:%M:%S'`
+    date=`date '+%Y_%m_%d_%H_%M_%S'`
     backup_file=daily_db_${environment}_${database}_$date.sql.bz2
 
     /usr/bin/mysqldump -u $user --password=$pwd --databases $database | /usr/bin/bzip2 -9 > $backup_path/$backup_file

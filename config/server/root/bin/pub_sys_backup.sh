@@ -21,10 +21,10 @@ function do_pub_sys_backup () {
       fi
     }
 
-    date=`date '+%Y-%m-%d_%H_%M_%S'`
+    date=`date '+%Y_%m_%d_%H_%M_%S'`
     backup_file=daily_pub_sys_$date.gz
 
-    tar -czf $backup_path/$backup_file $backup_dir
+    tar -czf $backup_path/$backup_file -C $backup_dir .
     trim_backups
 }
 
