@@ -3,6 +3,9 @@
 #
 class Student < User
 
+  # constants
+  MIN_GRADUATION_YEAR = 2000
+
   # parameter black/white listing
   attr_accessor :subsection
 
@@ -374,10 +377,21 @@ class Student < User
     begin
       if self.school_id.present?
         school = School.find(self.school_id)
-        if school.has_flag?(School::USER_BY_FIRST_LAST) && (self.grade_level.blank? || self.grade_level > 3)
-          self.errors.add(:grade_level, 'Grade Level is invalid')
-          grade_level_error = true
+        if school.has_flag?(School::USER_BY_FIRST_LAST)
+          max_grade_level = 3
+        else
+          max_grade_level = 12
         end
+        grade_level_error = false
+        if self.grade_level.blank?
+          # no blank grade levels allowed
+          self.errors.add(:grade_level, 'Grade Level is blank')
+          grade_level_error = true
+        elsif (self.grade_level > max_grade_level && self.grade_level < MIN_GRADUATION_YEAR)
+          # grade levels are valid (allowing for grade level to also be year of graduation year)
+          self.errors.add(:grade_level, 'Grade level is too large')
+          grade_level_error = true
+        end 
       end
     rescue
       Rails.logger.error("ERROR: is_email_required? school (#{self.school_id.inspect}) find error.")
