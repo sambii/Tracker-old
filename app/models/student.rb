@@ -377,10 +377,12 @@ class Student < User
     begin
       if self.school_id.present?
         school = School.find(self.school_id)
-        if school.has_flag?(School::USER_BY_FIRST_LAST)
-          max_grade_level = 3
-        else
-          max_grade_level = 12
+        max_grade = 12
+        max_grade = 3 if school.has_flag?(School::USER_BY_FIRST_LAST)
+        # make sure grade level is set and less than the max if not set to graduation year
+        if self.grade_level.blank? || (self.grade_level > max_grade && self.grade_level < 2000)
+          self.errors.add(:grade_level, 'Grade Level is invalid')
+          grade_level_error = true
         end
         grade_level_error = false
         if self.grade_level.blank?

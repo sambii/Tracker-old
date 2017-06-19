@@ -168,7 +168,7 @@ class SchoolsController < ApplicationController
   end
 
   # new UI, add/update subjects and LOs from Model School (for new year rollover)
-  # - note deactivate subject or subject outcomes not possible at this point
+  # - note subject active flag is not implemented yet, subject outcome active flags should be reviewed.
   # - possible temporary solution to put zzz in front of descriptions (note add zzz to dup check!)
   # NOTE: this is untested code
   def new_year_rollover
@@ -181,8 +181,8 @@ class SchoolsController < ApplicationController
         end
         model_schools = School.where(acronym: 'MOD')
 
-        Rails.logger.debug("*** School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
-        Rails.logger.debug("*** Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
+        # Rails.logger.debug("*** School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
+        # Rails.logger.debug("*** Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
 
         # ensure school year is less than model school's year.
         if model_schools.count == 1
@@ -197,8 +197,8 @@ class SchoolsController < ApplicationController
           end
         end
 
-        Rails.logger.debug("*** Update School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
-        Rails.logger.debug("*** Update Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
+        # Rails.logger.debug("*** Update School Year: #{@school.school_year.ends_at.year}, #{@school.inspect}, #{@school.school_year.inspect}")
+        # Rails.logger.debug("*** Update Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
 
         # increment student grade levels for all students in school, deactivate students > max grade (3 - egypt, 12 - others)
         rollover_student_grade_levels(@school)
@@ -552,20 +552,24 @@ class SchoolsController < ApplicationController
       # should be run after school year has been updated
       max_grade = 12
       max_grade = 3 if school.has_flag?(School::USER_BY_FIRST_LAST)
-      Rails.logger.debug("+#}% max_grade: #{max_grade}")
+      # Rails.logger.debug("+#}% max_grade: #{max_grade}")
       # increment student grade levels for all students in school, deactivate students > max grade (3 - egypt, 12 - others)
       Student.where(school_id: school.id).each do |st|
-        if st.grade_level == max_grade
-          new_grade_level = school.school_year.starts_at.year
-        else
-          new_grade_level = st.grade_level + 1
+        if st.grade_level < max_grade
+          # below max grade level, increment it
+          st.grade_level += 1
+        elsif st.grade_level == max_grade
+          # at max grade level, set it to school year to indicate graduation year
+          st.grade_level = school.school_year.starts_at.year
+        elsif st.grade_level > max_grade
+          # already set to graduation year, leave it alone
         end
-        st.grade_level = new_grade_level
         fail("ERROR: error incrementing grade level for student: #{st.id} - #{st.errors.full_messages}") if !st.save
-        Enrollment.where(student_id: st.id).each do |e|
-          e.student_grade_level = new_grade_level
-          fail("ERROR: error incrementing grade level for student enrollment: #{st.id} - #{e.errors.full_messages}") if !e.save
-        end
+        # at rollover there should be no enrollments (unless doing a manual rollback and rollover)
+        # Enrollment.where(student_id: st.id).each do |e|
+        #   e.student_grade_level = new_grade_level
+        #   fail("ERROR: error incrementing grade level for student enrollment: #{st.id} - #{e.errors.full_messages}") if !e.save
+        # end
       end
     end
 
