@@ -28,6 +28,8 @@ describe "Student Listing", js:true do
 
     @enrollment_s2 = FactoryGirl.create :enrollment, section: @section2_1, student: @student
 
+    @student_grad   = FactoryGirl.create :student, school: @school1, first_name: 'Student', last_name: 'Graduated', active: false, grade_level: 2017
+
   end
 
   describe "as teacher" do
@@ -129,6 +131,13 @@ describe "Student Listing", js:true do
         page.should have_css("i.fa-undo") if can_deactivate && @student_transferred.active == false
         page.should_not have_css("i.fa-undo") if !can_deactivate && @student_transferred.active == false
       end
+      # graduated student should be deactivated
+      within("tr#student_#{@student_grad.id}.deactivated") do
+        page.should have_content("#{@student_grad.last_name}") if can_create
+        within('td.user-grade-level') do
+          page.should have_content("#{@student_grad.grade_level}") if can_create
+        end
+      end
     end # within("#page-content") do
     can_see_student_dashboard(@student)
     visit students_path
@@ -139,6 +148,7 @@ describe "Student Listing", js:true do
     can_reset_student_password(@student) if !read_only # note: tested more completely in password_change_spec.rb
     can_change_student(@student) if !read_only
     can_create_student(@student) if !read_only
+    can_change_graduate(@student_grad) if !read_only
   end # def has_valid_subjects_listing
 
   ##################################################
@@ -228,6 +238,26 @@ describe "Student Listing", js:true do
       page.should have_content('Changed Fname')
       page.should have_content('Changed Lname')
       page.should have_content('changed@email.address')
+    end
+  end
+
+  def can_change_graduate(student)
+    within("tr#student_#{student.id}.deactivated") do
+      page.should have_css("a[data-url='/students/#{student.id}/edit.js']")
+      find("a[data-url='/students/#{student.id}/edit.js']").click
+    end
+    page.should have_content("Edit Student")
+    within("#modal_popup .modal-dialog .modal-content .modal-body") do
+      within("form#edit_student_#{student.id}") do
+        page.fill_in 'student_first_name', :with => 'Changed Fname'
+        page.fill_in 'student_last_name', :with => 'Changed Lname'
+        page.click_button('Save')
+      end
+    end
+    assert_equal("/students", current_path)
+    within("tr#student_#{student.id}.deactivated") do
+      page.should have_content('Changed Fname')
+      page.should have_content('Changed Lname')
     end
   end
 
