@@ -561,8 +561,10 @@ class SchoolsController < ApplicationController
         elsif st.grade_level == max_grade
           # at max grade level, set it to school year to indicate graduation year
           st.grade_level = school.school_year.starts_at.year
+          st.active = false
         elsif st.grade_level > max_grade
-          # already set to graduation year, leave it alone
+          # already set to graduation year, ensure it is deactivated
+          st.active = false
         end
         fail("ERROR: error incrementing grade level for student: #{st.id} - #{st.errors.full_messages}") if !st.save
         # at rollover there should be no enrollments (unless doing a manual rollback and rollover)
