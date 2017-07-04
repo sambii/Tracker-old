@@ -56,6 +56,7 @@ describe "Rollover School Year", js:true do
     @student_grad   = FactoryGirl.create :student, school: @school2, first_name: 'Student', last_name: 'Graduated', active: false, grade_level: 2015
 
     # Put Learning Outcomes into Art 2 to be changed by New Year Rollover
+    # Note model_lo_id is set properly, so it is properly matched to the model school lo
     @s2_subj_art_2 = FactoryGirl.create :subject, name: 'Art 2', school: @school2, subject_manager: @teacher2_1, discipline: @discipline2
     @s2_so_at_2_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_art_2, lo_code: 'AT.2.01', description: 'Old School Info 01', marking_period: '1', model_lo_id: @so_at_2_01.id
     @s2_so_at_2_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_art_2, lo_code: 'AT.2.02', description: 'Old School Info 02', marking_period: '1', model_lo_id: @so_at_2_02.id
@@ -69,27 +70,43 @@ describe "Rollover School Year", js:true do
     @s2_so2_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @subject2_1, lo_code: 'SO.1.04', description: 'Original LO 04', marking_period: '1&2'
 
     # Put Learning Outcomes into Subject 2_2 to be deactivated by New Year Rollover
-    @s2_subj_CP3 = FactoryGirl.create :subject, name: 'Subject CP3', school: @school2, subject_manager: @teacher2_1, discipline: @discipline2
-    @s2_so_d_CP3_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.01', description: 'CP.3.01 To Deactivate', marking_period: '1'
-    @s2_so_d_CP3_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.02', description: 'CP.3.02 To Deactivate', marking_period: '1'
-    @s2_so_d_CP3_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.03', description: 'CP.3.03 To Deactivate', marking_period: '1'
-    @s2_so_d_CP3_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.04', description: 'CP.3.04 To Deactivate', marking_period: '1'
+    # Note model_lo_id is set properly, so it is properly matched to the model school lo
+    # @s2_subj_CP3 = FactoryGirl.create :subject, name: 'Subject CP3', school: @school2, subject_manager: @teacher2_1, discipline: @discipline2
+    # @s2_so_d_CP3_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.01', description: 'CP.3.01 To Deactivate', marking_period: '1', model_lo_id: @so_d_CP3_01.id
+    # @s2_so_d_CP3_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.02', description: 'CP.3.02 To Deactivate', marking_period: '1', model_lo_id: @so_d_CP3_01.id
+    # @s2_so_d_CP3_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.03', description: 'CP.3.03 To Deactivate', marking_period: '1', model_lo_id: @so_d_CP3_01.id
+    # @s2_so_d_CP3_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3, lo_code: 'CP.3.04', description: 'CP.3.04 To Deactivate', marking_period: '1', model_lo_id: @so_d_CP3_01.id
+
+    @s2_subj_CP3s1 = FactoryGirl.create :subject, name: 'Capstone 3s1', school: @school2, subject_manager: @teacher2_1, discipline: @subj_capstone_3s1.discipline
+    @s2_cp_3_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.01', description: 'CP.3.01 Original', marking_period: '1', model_lo_id: @cp_3_01.id
+    @s2_cp_3_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.02', description: 'CP.3.02 Original', marking_period: '1', model_lo_id: @cp_3_02.id
+    @s2_cp_3_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.03', description: 'CP.3.03 Original', marking_period: '1', model_lo_id: @cp_3_03.id
+    @s2_cp_3_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.04', description: 'CP.3.04 Original', marking_period: '1', model_lo_id: @cp_3_04.id
+    @s2_cp_3_05 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.05', description: 'CP.3.05 Original', marking_period: '1', model_lo_id: @cp_3_05.id
+    @s2_cp_3_06 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.06', description: 'CP.3.06 Original', marking_period: '1', model_lo_id: @cp_3_06.id
+    @s2_cp_3_07 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.07', description: 'CP.3.07 Original', marking_period: '1', model_lo_id: @cp_3_07.id
+    @s2_cp_3_08 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.08', description: 'CP.3.08 Original', marking_period: '1', model_lo_id: @cp_3_08.id
+    @s2_cp_3_09 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.09', description: 'CP.3.09 Original', marking_period: '1', model_lo_id: @cp_3_09.id
+    @s2_cp_3_10 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.10', description: 'CP.3.10 Original', marking_period: '1', model_lo_id: @cp_3_10.id
+    @s2_cp_3_11 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.11', description: 'CP.3.11 Original', marking_period: '1', model_lo_id: @cp_3_11.id
+    @s2_cp_3_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_CP3s1, lo_code: 'CP.3.12', description: 'CP.3.12 Original', marking_period: '1', model_lo_id: @cp_3_12.id
 
 
     # Put Learning Outcomes into Math 1 to have many rollover tests done on it.
+    # Note model_lo_id is set properly, so it is properly matched to the model school lo
     @s2_subj_math_1 = FactoryGirl.create :subject, name: 'Math 1', school: @school2, subject_manager: @teacher2_1, discipline: @discipline2
-    @s2_ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.01', description: 'Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.', marking_period: '1'
-    @s2_ma_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.02', description: 'Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.', marking_period: '1'
-    @s2_ma_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.03', description: 'Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.', marking_period: '1'
-    @s2_ma_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.04', description: 'will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).', marking_period: '1'
-    @s2_ma_1_05 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.05', description: 'Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.', marking_period: '1'
-    @s2_ma_1_06 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.06', description: 'Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.', marking_period: '1&2'
-    @s2_ma_1_07 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.07', description: 'Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.', marking_period: '1&2'
-    @s2_ma_1_08 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.08', description: 'Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.', marking_period: '2'
-    @s2_ma_1_09 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.09', description: 'Will have a description that is very similar to 10.', marking_period: '2'
-    @s2_ma_1_10 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.10', description: 'Will have a description that is very similar to 09.', marking_period: '2'
-    @s2_ma_1_11 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.11', description: 'Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.', marking_period: '2'
-    @s2_ma_1_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.12', description: 'Will be reactivated. Apply determinants and their properties in real-world situations.', marking_period: '2', active: false
+    @s2_ma_1_01 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.01', description: 'Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.', marking_period: '1', model_lo_id: @ma_1_01.id
+    @s2_ma_1_02 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.02', description: 'Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.', marking_period: '1', model_lo_id: @ma_1_02.id
+    @s2_ma_1_03 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.03', description: 'Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.', marking_period: '1', model_lo_id: @ma_1_03.id
+    @s2_ma_1_04 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.04', description: 'will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).', marking_period: '1', model_lo_id: @ma_1_04.id
+    @s2_ma_1_05 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.05', description: 'Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.', marking_period: '1', model_lo_id: @ma_1_05.id
+    @s2_ma_1_06 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.06', description: 'Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.', marking_period: '1&2', model_lo_id: @ma_1_06.id
+    @s2_ma_1_07 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.07', description: 'Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.', marking_period: '1&2', model_lo_id: @ma_1_07.id
+    @s2_ma_1_08 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.08', description: 'Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.', marking_period: '2', model_lo_id: @ma_1_08.id
+    @s2_ma_1_09 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.09', description: 'Will have a description that is very similar to 10.', marking_period: '2', model_lo_id: @ma_1_09.id
+    @s2_ma_1_10 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.10', description: 'Will have a description that is very similar to 09.', marking_period: '2', model_lo_id: @ma_1_10.id
+    @s2_ma_1_11 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.11', description: 'Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.', marking_period: '2', model_lo_id: @ma_1_11.id
+    @s2_ma_1_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.12', description: 'Will be reactivated. Apply determinants and their properties in real-world situations.', marking_period: '2', active: false, model_lo_id: @ma_1_12.id
 
 
   end
@@ -323,7 +340,7 @@ describe "Rollover School Year", js:true do
 
     within("#subj_header_#{@subject2_2.id}") {page.should have_content("#{@subject2_2.discipline.name} : #{@subject2_2.name}")}
     within("#subj_header_#{@s2_subj_art_2.id}") {page.should have_content("#{@discipline2.name} : #{@s2_subj_art_2.name}")}
-    within("#subj_header_#{@s2_subj_CP3.id}") {page.should have_content("#{@discipline2.name} : #{@s2_subj_CP3.name}")}
+    within("#subj_header_#{@s2_subj_CP3s1.id}") {page.should have_content("#{@subj_capstone_3s1.discipline.name} : #{@s2_subj_CP3s1.name}")}
     within("#subj_header_#{@s2_subj_math_1.id}") {page.should have_content("#{@s2_subj_math_1.discipline.name} : #{@s2_subj_math_1.name}")}
     within("#subj_header_#{@subject2_1.id}") {page.should have_content("#{@subject2_1.discipline.name} : #{@subject2_1.name}")}
 
@@ -390,18 +407,18 @@ describe "Rollover School Year", js:true do
     end
     page.should have_content("View Learning Outcomes for:")
     within('table#current_los') do
-      page.should have_content('Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
-      page.should have_content('Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
-      page.should have_content('Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
-      page.should have_content('will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
-      page.should have_content('Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
-      page.should have_content('Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
-      page.should have_content('Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
-      page.should have_content('Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
-      page.should have_content('Will have a description that is very similar to 10.')
-      page.should have_content('Will have a description that is very similar to 09.')
-      page.should have_content('Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
-      page.should_not have_content('Will be reactivated. Apply determinants and their properties in real-world situations.')
+      page.should have_content('MA.1.01 - Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
+      page.should have_content('MA.1.02 - Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
+      page.should have_content('MA.1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
+      page.should have_content('MA.1.04 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+      page.should have_content('MA.1.05 - Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
+      page.should have_content('MA.1.06 - Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
+      page.should have_content('MA.1.07 - Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
+      page.should have_content('MA.1.08 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+      page.should have_content('MA.1.09 - Will have a description that is very similar to 10.')
+      page.should have_content('MA.1.10 - Will have a description that is very similar to 09.')
+      page.should have_content('MA.1.11 - Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
+      page.should_not have_content('MA.1.12 - Will be reactivated. Apply determinants and their properties in real-world situations.')
     end
 
     # confirm students are in original grade level
@@ -449,7 +466,7 @@ describe "Rollover School Year", js:true do
 
     if sys_admin
       # LO Updates in Model School
-      # Note: only math LOs changed in model school
+      # Note: ????? only math LOs changed in model school ?????
       bulk_upload_all_los
 
       # go to @school2
@@ -559,36 +576,39 @@ describe "Rollover School Year", js:true do
     if sys_admin
       # confirm the LOs from the Sys Admin's Bulk Upload are displayed
       within('table#current_los') do
-        page.should have_content('Will be changed significantly.')
-        page.should_not have_content('Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
-        page.should_not have_content('Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
-        page.should have_content('Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
-        page.should have_content('will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
-        page.should have_content('Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
-        page.should have_content('Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
-        page.should have_content('Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
-        page.should have_content('Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
-        page.should have_content('Will have a description that is very similar to 10.')
-        page.should have_content('Will have a description that is very similar to 09.')
-        page.should have_content('Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations')
-        page.should_not have_content('Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
-        page.should have_content('Will be reactivated. Apply determinants and their properties in real-world situations.')
+        page.should_not have_content('MA.1.01 - Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
+        page.should have_content('MA.1.01 - Will be changed significantly.')
+        page.should_not have_content('MA.1.02 - Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
+        page.should_not have_content('MA.1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
+        page.should have_content('MA 1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
+        page.should have_content('MA.1.04 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+        page.should_not have_content('MA.1.08 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+        page.should have_content('MA.1.05 - Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
+        page.should have_content('MA.1.06 - Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
+        page.should have_content('MA.1.07 - Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
+        page.should_not have_content('MA.1.04 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+        page.should have_content('MA.1.08 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+        page.should have_content('MA.1.09 - Will have a description that is very similar to 10.')
+        page.should have_content('MA.1.10 - Will have a description that is very similar to 09.')
+        page.should_not have_content('MA.1.11 - Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
+        page.should have_content('MA.1.11 - Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations')
+        page.should have_content('MA.1.12 - Will be reactivated. Apply determinants and their properties in real-world situations.')
       end
     else
-      # confirm school admins LOs are correct (note School Admins do not Upload Learning Outcomes)
+      # confirm school admins LOs are correct (note School Admins do not Upload Learning Outcomes, so no changes)
       within('table#current_los') do
-        page.should have_content('Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
-        page.should have_content('Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
-        page.should have_content('Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
-        page.should have_content('will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
-        page.should have_content('Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
-        page.should have_content('Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
-        page.should have_content('Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
-        page.should have_content('Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
-        page.should have_content('Will have a description that is very similar to 10.')
-        page.should have_content('Will have a description that is very similar to 09.')
-        page.should have_content('Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
-        page.should_not have_content('Will be reactivated. Apply determinants and their properties in real-world situations.')
+        page.should have_content('MA.1.01 - Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
+        page.should have_content('MA.1.02 - Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
+        page.should have_content('MA.1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
+        page.should have_content('MA.1.04 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+        page.should have_content('MA.1.05 - Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
+        page.should have_content('MA.1.06 - Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
+        page.should have_content('MA.1.07 - Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
+        page.should have_content('MA.1.08 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+        page.should have_content('MA.1.09 - Will have a description that is very similar to 10.')
+        page.should have_content('MA.1.10 - Will have a description that is very similar to 09.')
+        page.should have_content('MA.1.11 - Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
+        page.should_not have_content('MA.1.12 - Will be reactivated. Apply determinants and their properties in real-world situations.')
       end
     end
 
@@ -635,18 +655,34 @@ describe "Rollover School Year", js:true do
       page.should have_content('Upload Learning Outcomes from Curriculum')
       within("#ask-filename") do
         page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_ny_rollover.csv'))
+        # see also bulk_upload_los_rspec_ny_mod_before.csv.
+        # This file is what the model school looks like (as of Jul 4, 2017) before the rollover file is applied
         page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
       end
       find('#upload').click
 
       # Math 1 with all preselected identical pairs
-
       page.should have_content("Matching Process of #{@subj_math_1.name} of All Subjects")
+      #
+      # Confirm all counts prior to math 1 are correct
+      # all 16 capstone 3.1 learning outcomes are deactivated
       page.should have_content("Automatically Updated Subjects counts: Errors - 0, Updates - 0, Adds - 0, Deactivates - 16")
+
       # select records for good update
       select('Y-MA.1.01', from: "selections_8")
       select('BI-MA.1.11', from: "selections_17")
+
       find('#save_matches').click
+      #
+      # Confirm math 1 counts are correct
+      # 8 updates:
+      #  - 1 reactivate of MA.1.12
+      #  - 2 swap of codes for MA.1.04 and MA.1.08
+      #  - 1 code change for MA.1.03
+      #  - 2 semester changes for MA.1.05, and MA.1.07
+      #  - 2 matched description changes for MA.1.01, and MA.1.11
+      # 1 deactivate:
+      #  - 1 deactivate of MA.1.02
       page.should have_content("Math 1 counts: Updates - 8 , Adds - 0 , Deactivates - 1 , Errors - 0")
       # select records for good update
       select('T-MA.2.01', from: "selections_19")
@@ -654,11 +690,15 @@ describe "Rollover School Year", js:true do
       select('V-MA.2.03', from: "selections_21")
       select('W-MA.2.04', from: "selections_22")
       select('X-MA.2.05', from: "selections_23")
-
       find('#save_matches').click
+      #
+      # Confirm math 2 counts are correct
+      # 5 updates:
+      #  - all 5 learning outcomes have matched description changes
       page.should have_content("Math 2 counts: Updates - 5 , Adds - 0 , Deactivates - 0 , Errors - 0")
-      # Confirm Report is properly generated
+      # Confirm Report totals are correct (see comments above for count details)
       page.should have_content("Grand total counts: Subjects Updated - 7 , Updates - 13 , Adds - 0 , Deactivates - 17 , Errors - 0")
+
     end # within #page-content
     # Run again, and should have all LO counts at zero
     visit upload_lo_file_subject_outcomes_path
