@@ -563,16 +563,27 @@ class SchoolsController < ApplicationController
       Student.where(school_id: school.id).each do |st|
         if st.grade_level < max_grade
           # below max grade level, increment it
-          st.grade_level += 1
+          Rails.logger.debug "# below max grade level, increment it"
+          save_resp = st.update_attribute(:grade_level, st.grade_level += 1)
         elsif st.grade_level == max_grade
           # at max grade level, set it to school year to indicate graduation year
-          st.grade_level = school.school_year.starts_at.year
-          st.active = false
-        elsif st.grade_level > max_grade
+          Rails.logger.debug "# at max grade level, set it to school year to indicate graduation year"
+          save_resp = st.update_attribute(:grade_level, school.school_year.starts_at.year)
+          save_resp = st.update_attribute(:active, false) if save_resp
+        elsif (st.grade_level > max_grade && st.grade_level < Student::MIN_GRADUATION_YEAR)
+          # invalid grade level, mark student as inactive
+          Rails.logger.debug "# invalid grade level, mark student as inactive"
+          save_resp = st.update_attribute(:active, false)
+        elsif st.grade_level > max_grade && st.active == true
           # already set to graduation year, ensure it is deactivated
-          st.active = false
+          Rails.logger.debug "# already set to graduation year, ensure it is deactivated"
+          save_resp = st.update_attribute(:active, false)
+        else
+          # already set to graduation year and deactivated - display no error
+          Rails.logger.debug "# already set to graduation year and deactivated - display no error"
+          save_resp = true
         end
-        fail("ERROR: error incrementing grade level for student: #{st.id} - #{st.errors.full_messages}") if !st.save
+        fail("ERROR: error incrementing grade level for student: #{st.id} - #{st.errors.full_messages}") if !save_resp
         # at rollover there should be no enrollments (unless doing a manual rollback and rollover)
         # Enrollment.where(student_id: st.id).each do |e|
         #   e.student_grade_level = new_grade_level

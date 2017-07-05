@@ -396,7 +396,7 @@ class Student < User
         end 
       end
     rescue
-      Rails.logger.error("ERROR: is_email_required? school (#{self.school_id.inspect}) find error.")
+      Rails.logger.error("ERROR: is_grade_level_valid? school (#{self.school_id.inspect}) find error.")
     end
     return grade_level_error
   end

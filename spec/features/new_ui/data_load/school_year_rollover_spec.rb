@@ -55,6 +55,16 @@ describe "Rollover School Year", js:true do
     @enrollment2_5 = FactoryGirl.create :enrollment, section: @section2_1_1, student: @student2_5, student_grade_level: 1, active: false
     @student_grad   = FactoryGirl.create :student, school: @school2, first_name: 'Student', last_name: 'Graduated', active: false, grade_level: 2015
 
+    # create some invalid records
+    @student_invalid_grade = FactoryGirl.build :student, school: @school2, first_name: 'Student', last_name: 'Bad Grade', grade_level: 23
+    @student_invalid_grade.save(:validate => false)
+    @enrollment_invalid_grade = FactoryGirl.build :enrollment, section: @section2_1_1, student: @student_invalid_grade
+    @enrollment_invalid_grade.save
+    @student_no_email = FactoryGirl.build :student, school: @school2, first_name: 'Student', last_name: 'No Email', email: ''
+    @student_no_email.save(:validate => false)
+    @enrollment_no_email = FactoryGirl.build :enrollment, section: @section2_1_1, student: @student_no_email
+    @enrollment_no_email.save
+
     # Put Learning Outcomes into Art 2 to be changed by New Year Rollover
     # Note model_lo_id is set properly, so it is properly matched to the model school lo
     @s2_subj_art_2 = FactoryGirl.create :subject, name: 'Art 2', school: @school2, subject_manager: @teacher2_1, discipline: @discipline2
