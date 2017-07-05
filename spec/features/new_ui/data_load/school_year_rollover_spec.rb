@@ -108,6 +108,8 @@ describe "Rollover School Year", js:true do
     @s2_ma_1_11 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.11', description: 'Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.', marking_period: '2', model_lo_id: @ma_1_11.id
     @s2_ma_1_12 = FactoryGirl.create :subject_outcome, :arabic, subject: @s2_subj_math_1, lo_code: 'MA.1.12', description: 'Will be reactivated. Apply determinants and their properties in real-world situations.', marking_period: '2', active: false, model_lo_id: @ma_1_12.id
 
+    @school_lt01 = FactoryGirl.create :school_prior_year, :arabic, name: 'Leadership Training School 01', acronym: 'LT01'
+    @school_lt02 = FactoryGirl.create :school_prior_year, :arabic, name: 'Leadership Training School 02', acronym: 'LT02'
 
   end
 
@@ -159,6 +161,7 @@ describe "Rollover School Year", js:true do
     end
     it { nav_to_schools_page }
     it { valid_sys_admin_school_rollover(@school1, @school2) }
+    it { no_training_school_rollovers }
   end
 
   describe "as student" do
@@ -760,5 +763,39 @@ describe "Rollover School Year", js:true do
     end # within #page-content
 
   end # def bulk_upload_all_los
+
+  def no_training_school_rollovers
+    visit schools_path()
+    find("a[id='rollover-#{@training_school.id}']").click
+    # click OK in javascript confirmation popup
+    page.driver.browser.switch_to.alert.accept
+    within('#breadcrumb-flash-msgs') {page.should_not have_content('School year was successfully rolled over.')}
+    within('#breadcrumb-flash-msgs') {page.should have_content('Rollover not allowed on Training Schools')}
+
+    find("a[id='rollover-#{@school_lt01.id}']").click
+    # click OK in javascript confirmation popup
+    page.driver.browser.switch_to.alert.accept
+    within('#breadcrumb-flash-msgs') {page.should_not have_content('School year was successfully rolled over.')}
+    within('#breadcrumb-flash-msgs') {page.should have_content('Rollover not allowed on Training Schools')}
+
+    find("a[id='rollover-#{@school_lt02.id}']").click
+    # click OK in javascript confirmation popup
+    page.driver.browser.switch_to.alert.accept
+    within('#breadcrumb-flash-msgs') {page.should_not have_content('School year was successfully rolled over.')}
+    within('#breadcrumb-flash-msgs') {page.should have_content('Rollover not allowed on Training Schools')}
+
+    find("a[id='rollover-#{@school2.id}']").click
+    # click OK in javascript confirmation popup
+    page.driver.browser.switch_to.alert.accept
+    within('#breadcrumb-flash-msgs') {page.should have_content('School year was successfully rolled over.')}
+    within('#breadcrumb-flash-msgs') {page.should_not have_content('Rollover not allowed on Training Schools')}
+
+    find("a[id='rollover-#{@model_school.id}']").click
+    # click OK in javascript confirmation popup
+    page.driver.browser.switch_to.alert.accept
+    within('#breadcrumb-flash-msgs') {page.should have_content('School year was successfully rolled over.')}
+    within('#breadcrumb-flash-msgs') {page.should_not have_content('Rollover not allowed on Training Schools')}
+
+  end #no_training_school_rollovers
 
 end

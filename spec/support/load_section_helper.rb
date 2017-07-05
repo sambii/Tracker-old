@@ -185,13 +185,15 @@ module LoadSectionHelper
   def create_training_school
     Rails.logger.debug("***** create_training_school")
     # this needs to be run after create_model_school and before any other schools are created, so the ID is 2
-    @training_school = FactoryGirl.create :school_current_year, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
+    # set to prior year for testing no new year rollover
+    @training_school = FactoryGirl.create :school_prior_year, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
   end
 
   def create_arabic_training_school
     Rails.logger.debug("***** create_training_school")
     # this needs to be run after create_model_school and before any other schools are created, so the ID is 2
-    @training_school = FactoryGirl.create :school_current_year, :arabic, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
+    # set to prior year for testing no new year rollover
+    @training_school = FactoryGirl.create :school_prior_year, :arabic, marking_periods:"2", name: 'Egyptian Training School', acronym: 'ETS'
   end
 
   def create_school1

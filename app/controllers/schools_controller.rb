@@ -201,7 +201,7 @@ class SchoolsController < ApplicationController
         # Rails.logger.debug("*** Update Model School Year: #{model_schools.first.school_year.ends_at.year}, #{model_schools.first.inspect}, #{model_schools.first.school_year.inspect}")
 
         # increment student grade levels for all students in school, deactivate students > max grade (3 - egypt, 12 - others)
-        rollover_student_grade_levels(@school)
+        rollover_student_grade_levels(@school) if is_live_school(@school.id, @school)
 
         notice_msg = ''
         # Copy subjects and learning outcomes from model school if it exists.
@@ -218,8 +218,10 @@ class SchoolsController < ApplicationController
             #     end
             #   end
             # end
-          else
+          elsif is_live_school(@school.id, @school)
             copy_subjects(model_schools.first, @school)
+          else
+            raise 'Rollover not allowed on Training Schools'
           end
           notice_msg = "School year was successfully rolled over."
         else
@@ -605,4 +607,36 @@ class SchoolsController < ApplicationController
         end
       end
     end
+
+    def is_live_school(school_id, school=nil)
+      begin
+        Rails.logger.debug("*** school_id: #{school_id.inspect}")
+        Rails.logger.debug("*** school: #{school.inspect}")
+        if school_id.blank? && school.blank?
+          raise 'missing school'
+        else
+          sch = school
+          sch = School.find(school_id) if sch.blank?
+          if sch.id != sch.id
+            Rails.logger.debug("*** is_live_school: sch.id != school.id ")
+            return false # invalid call with two different school id's
+          elsif sch.id < 3
+            Rails.logger.debug("*** is_live_school: sch.id < 3 ")
+            return false # schools 1 is model school and 2 is the training school
+          elsif sch.acronym.match(/^LT\d\d$/)
+            # Leadership Training School
+            Rails.logger.debug("*** is_live_school: sch.acronym.match(\A[L][T]\9\9\Z) ")
+            return false
+          else
+            # Must be live school
+            Rails.logger.debug("*** is_live_school: else ")
+            return true
+          end
+        end
+      rescue => e
+        Rails.logger.debug("*** is_live_school: rescue #{e.inspect}")
+        return false
+      end
+    end
+
 end
