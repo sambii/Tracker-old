@@ -207,16 +207,17 @@ class SchoolsController < ApplicationController
         # Copy subjects and learning outcomes from model school if it exists.
         if model_schools.count == 1
           if @school.acronym == 'MOD'
-            # make sure the model_lo_id field is preset before rolling over
-            if SubjectOutcome.where('model_lo_id IS NOT NULL').count == 0
-              # ensure model_lo_id fields in subject outcomes for all schools are preset to model school subject outcomes.
-              School.all.each do |s|
-                if s.id != @school.id
-                  # only do this for schools not the model school
-                  s.preset_model_lo_id
-                end
-              end
-            end
+            # one time code to preset the model_lo_id fields in learning outcomes to corresponding on in Model School
+            # # make sure the model_lo_id field is preset before rolling over
+            # if SubjectOutcome.where('model_lo_id IS NOT NULL').count == 0
+            #   # ensure model_lo_id fields in subject outcomes for all schools are preset to model school subject outcomes.
+            #   School.all.each do |s|
+            #     if s.id != @school.id
+            #       # only do this for schools not the model school
+            #       s.preset_model_lo_id
+            #     end
+            #   end
+            # end
           else
             copy_subjects(model_schools.first, @school)
           end
@@ -446,7 +447,7 @@ class SchoolsController < ApplicationController
 
       # Note: should loop through existing school learning outcomes, to update from their matching model records
 
-      # Then shouls loop through model school learning outcomes, to ensure all new ones are added
+      # Then should loop through model school learning outcomes, to ensure all new ones are added
 
       # Reporting
       matches = Array.new
@@ -469,7 +470,7 @@ class SchoolsController < ApplicationController
           match_item = Hash.new
           match_item[:error_str] = ''
           if mod_so.present?
-            Rails.logger.debug("*** model rec Present")
+            # Rails.logger.debug("*** model rec Present  #{so.name} - active:  #{so.active}")
             so.lo_code = mod_so.lo_code
             so.description = mod_so.description
             so.marking_period = mod_so.marking_period
@@ -487,7 +488,6 @@ class SchoolsController < ApplicationController
             match_item[:model_lo_id] = so.id
             matches << match_item
           else
-            Rails.logger.debug("*** error")
             match_item[:error_str] = "ERROR: Missing Model LO pointed to by model_lo_id: #{so.model_lo_id} in record: #{so.id}"
             # fail(match_item[:error_str])
             Rails.logger.error(match_item[:error_str])
@@ -496,32 +496,36 @@ class SchoolsController < ApplicationController
         end
       end
 
-      Rails.logger.debug("** Update Rest")
+      # Rails.logger.debug("** Update Rest")
       # Update rest of subject outcomes (without model_lo_id)
-      mod_subjos = SubjectOutcome.where(subject_id: model_subject_id, )
+      mod_subjos = SubjectOutcome.where(subject_id: model_subject_id, active: true)
       mod_subjos.each do |mod_so|
-        Rails.logger.debug("*** mod_so: #{mod_so.inspect}")
+        # Rails.logger.debug("*** mod_so: #{mod_so.name} active: #{mod_so.active}")
         so = nil
         match_item = Hash.new
         match_item[:error_str] = ''
         ns_subjos = SubjectOutcome.where(subject_id: sch_subject_id, description: mod_so.description)
         if ns_subjos.count == 0
-          Rails.logger.debug("*** Does not exist - add it")
+          # Rails.logger.debug("*** Does not exist - add LO #{mod_so.name}")
           # does not exist, add it
           so = SubjectOutcome.new
         else
-          Rails.logger.debug("*** Exists")
+          # Rails.logger.debug("*** Exists")
           if ns_subjos.first.model_lo_id.blank?
-            Rails.logger.debug("*** Exists and blank ID")
+            # Rails.logger.debug("*** LO Exists and blank ID  #{mod_so.name}")
             so = ns_subjos.first
+          elsif !ns_subjos.first.active
+            # Rails.logger.debug("*** LO Exists but was deactivated #{mod_so.name} - reactivate it")
+            so = ns_subjos.first
+            so.active = true
           else
-            Rails.logger.debug("*** ID present - ignore it")
+            # Rails.logger.debug("*** ID present - ignore LO  #{mod_so.name}")
             # ignore this record - should have already been updated above from model_lo_id update
             so = nil
           end
         end
         if so.present?
-          Rails.logger.debug("*** ID present - save it")
+          # Rails.logger.debug("*** ID present - save #{mod_so.name}")
           match_item[:lo_name] = mod_so.name
           match_item[:lo_position] = mod_so.position
           match_item[:lo_mp] = mod_so.marking_period
@@ -535,7 +539,7 @@ class SchoolsController < ApplicationController
           so.subject_id = sch_subject_id
           so.model_lo_id = mod_so.id
           if !so.save
-            Rails.logger.error("ERROR: #{so.inspect}")
+            # Rails.logger.error("ERROR: #{so.inspect}")
             match_item[:error_str] = "ERROR: error saving Learning Outcome #{so.name} for subject id #{sch_subject_id}, errors: #{so.errors.full_messages}"
             fail(match_item[:error_str])
           end
@@ -543,7 +547,7 @@ class SchoolsController < ApplicationController
         end
       end
 
-      Rails.logger.debug("** Done copying Learning Outcomes to subject ID #{sch_subject_id}")
+      # Rails.logger.debug("** Done copying Learning Outcomes to subject ID #{sch_subject_id}")
 
       return matches
     end

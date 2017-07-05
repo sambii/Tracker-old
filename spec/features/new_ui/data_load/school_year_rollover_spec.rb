@@ -469,10 +469,46 @@ describe "Rollover School Year", js:true do
       # Note: ????? only math LOs changed in model school ?????
       bulk_upload_all_los
 
+      find("a[href='/subjects']").click
+      # confirm Model school has 7 subjects:
+      #  - 1 - Discipline 1 - Art 1 
+      #  - 1 - Discipline 3 - Capstone 1s1 
+      #  - 1 - Discipline 4 - Capstone 3s1 
+      #  - 1 - Discipline 6 - Math 2 
+      #  - 3 - Discipline 8 - Art 2, Math 1, New Subject 
+      #  - 7 - total
+      page.all("tbody.tbody-subject").count.should == 7
+
+      page.should have_css("tbody#subj_header_#{@subj_math_1.id}")
+      within("tbody#subj_header_#{@subj_math_1.id}") do
+        page.should have_content(@subj_math_1.name)
+        find("a[href='/subjects/#{@subj_math_1.id}/edit_subject_outcomes']").click
+      end
+      page.should have_content("View Learning Outcomes for:")
+      
+      within('table#current_los') do
+        page.should have_content("MA.1.01 - Will be changed significantly.")
+        page.should have_content("MA 1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
+        page.should have_content("MA.1.08 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).")
+        page.should have_content("MA.1.05 - Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.")
+        page.should have_content("MA.1.06 - Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.")
+        page.should have_content("MA.1.07 - Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.")
+        page.should have_content("MA.1.04 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.")
+        page.should have_content("MA.1.09 - Will have a description that is very similar to 10.")
+        page.should have_content("MA.1.10 - Will have a description that is very similar to 09.")
+        page.should have_content("MA.1.11 - Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations")
+        page.should have_content("MA.1.12 - Will be reactivated. Apply determinants and their properties in real-world situations.")
+      end
+
       # go to @school2
       find("a[href='/schools']").click
       find("a[href='/schools/#{@school2.id}']").click
       find("a[href='/subjects']").click
+      # confirm School 2 has 5 subjects:
+      #  - 1 - Discipline 4 - Capstone 3s1 
+      #  - 4 - Discipline 8 - Art 2, Math 1, Subject 2_1, Subject 2_2
+      #  - 5 - total
+      page.all("tbody.tbody-subject").count.should == 5
 
     end
 
@@ -515,8 +551,15 @@ describe "Rollover School Year", js:true do
     if sys_admin
       # confirm new subject got copied over from model school
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
-      # confirm all subjects from model school plus original Subject 2_1 are listed
-      page.all("tbody.tbody-subject").count.should == 10
+      # confirm all subjects from model school plus original school 2 subjects are listed
+      # confirm School 2 has 5 subjects:
+      #  - 1 - Discipline 1 - Art 1 
+      #  - 1 - Discipline 3 - Capstone 1s1 
+      #  - 1 - Discipline 4 - Capstone 3s1 
+      #  - 1 - Discipline 6 - Math 2 
+      #  - 5 - Discipline 8 - Art 2, Math 1, New Subject, Subject 2_1, Subject 2_2
+      #  - 9 - total
+      page.all("tbody.tbody-subject").count.should == 9
     end
 
     # confirm @subject2_1 exists and has learning outcomes
@@ -576,18 +619,19 @@ describe "Rollover School Year", js:true do
     if sys_admin
       # confirm the LOs from the Sys Admin's Bulk Upload are displayed
       within('table#current_los') do
+
         page.should_not have_content('MA.1.01 - Will be changed significantly. Create, interpret and analyze trigonometric ratios that model real-world situations.')
         page.should have_content('MA.1.01 - Will be changed significantly.')
         page.should_not have_content('MA.1.02 - Will be deleted. Apply the relationships between 2-D and 3-D objects in modeling situations.')
         page.should_not have_content('MA.1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
         page.should have_content('MA 1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.')
-        page.should have_content('MA.1.04 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
-        page.should_not have_content('MA.1.08 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+        page.should_not have_content('MA.1.04 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
+        page.should have_content('MA.1.08 - will be switched with 08. Apply volume formulas (pyramid, cones, spheres, prisms).')
         page.should have_content('MA.1.05 - Will be switched to semester 1&2. Create, interpret and analyze functions, particularly linear and step functions that model real-world situations.')
         page.should have_content('MA.1.06 - Will be unchanged. Analyze, display and describe quantitative data with a focus on standard deviation.')
         page.should have_content('MA.1.07 - Will be switched to semester 2. Create, interpret and analyze quadratic functions that model real-world situations.')
-        page.should_not have_content('MA.1.04 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
-        page.should have_content('MA.1.08 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+        page.should_not have_content('MA.1.08 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
+        page.should have_content('MA.1.04 - Will be switched with 04. Create, interpret and analyze exponential and logarithmic functions that model real-world situations.')
         page.should have_content('MA.1.09 - Will have a description that is very similar to 10.')
         page.should have_content('MA.1.10 - Will have a description that is very similar to 09.')
         page.should_not have_content('MA.1.11 - Will have period removed from description. Create, interpret and analyze systems of linear functions that model real-world situations.')
