@@ -107,6 +107,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Learning Outcomes Updated Matching Report')
+      within('#count_updated_subjects') { page.should have_content('0')}
       within('#total_errors') { page.should have_content('0')}
       within('#total_updates') { page.should have_content('5')}
       within('#total_adds') { page.should have_content('0')}
@@ -133,6 +134,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
       find('#upload').click
       page.should have_content('Learning Outcomes Updated Matching Report')
+      within('#count_updated_subjects') { page.should have_content('0')}
       within('#total_errors') { page.should have_content('0')}
       within('#total_updates') { page.should have_content('5')}
       within('#total_adds') { page.should have_content('0')}
@@ -160,7 +162,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#upload').click
       page.should have_css('#save_matches')
       find('#cancel').click
-      page.should have_content('Learning Outcomes Updated Matching Report')
+      within('#count_updated_subjects') { page.should have_content('0')}
       within('#total_errors') { page.should have_content('0')}
       within('#total_updates') { page.should have_content('0')}
       within('#total_adds') { page.should have_content('0')}
@@ -192,6 +194,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
+      within('#count_updated_subjects') { page.should have_content('0')}
       within('#count_errors') { page.should have_content('0')}
       within('#count_updates') { page.should have_content('3')}
       within('#count_adds') { page.should have_content('1')}
@@ -222,6 +225,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
+      within('#count_updated_subjects') { page.should have_content('1')}
       within('#count_errors') { page.should have_content('0')}
       within('#count_updates') { page.should have_content('1')}
       within('#count_adds') { page.should have_content('0')}
@@ -251,6 +255,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
+      within('#count_updated_subjects') { page.should have_content('1')}
       within('#count_errors') { page.should have_content('0')}
       within('#count_updates') { page.should have_content('2')}
       within('#count_adds') { page.should have_content('0')}
@@ -286,6 +291,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
+      within('#count_updated_subjects') { page.should have_content('1')}
       within('#count_errors') { page.should have_content('0')}
       within('#count_updates') { page.should have_content('4')}
       within('#count_adds') { page.should have_content('0')}
@@ -319,6 +325,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#cancel').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
+      within('#count_updated_subjects') { page.should have_content('0')}
       page.should have_css('#count_errors', text: '0')
       page.should have_css('#count_updates', text: '0')
       page.should have_css('#count_adds', text: '0')
@@ -355,6 +362,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find('#save_matches').click
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 2')
+      within('#count_updated_subjects') { page.should have_content('1')}
       within('#count_errors') { page.should have_content('0')}
       within('#count_updates') { page.should have_content('3')}
       within('#count_adds') { page.should have_content('1')}
@@ -387,13 +395,13 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('select#selections_0')
       # select('A-AT.2.01', from: "selections_0")
       page.should have_css('#save_matches')
-      # find('#save_matches').click
-      # save_and_open_page
-      # page.should have_content('Learning Outcomes Updated Matching Report')
-      # page.should have_css('#count_errors', text: '0')
-      # page.should have_css('#count_updates', text: '0')
-      # page.should have_css('#count_adds', text: '0')
-      # page.should have_css('#count_deactivates', text: '0')
+      find('#save_matches').click
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      within('#count_updated_subjects') { page.should have_content('1')}
+      page.should have_css('#count_errors', text: '0')
+      page.should have_css('#count_updates', text: '2')
+      page.should have_css('#count_adds', text: '2')
+      page.should have_css('#count_deactivates', text: '2')
     end # within #page-content
   end # def bulk_upload_art_matching
 
@@ -421,7 +429,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       find("#selections_9 option:contains('K-MA.1.11')").select_option
 
       find('#save_matches').click
-
       #
       # Confirm math 1 counts are correct
       # 8 updates:
@@ -434,6 +441,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       #  - 1 deactivate of MA.1.02
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Math 1')
+      within('#count_updated_subjects') { page.should have_content('1')}
       within('#count_errors') { page.should have_content('0')}
       within('#count_updates') { page.should have_content('8')}
       within('#count_adds') { page.should have_content('0')}
@@ -671,7 +679,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '1')
       page.should have_css('#count_errors', text: '0')
-      page.should have_css('#count_updated_subjects', text: '4')
+      # page.should have_css('#count_updated_subjects', text: '4')
       page.should have_css('#total_updates', text: '11')
       page.should have_css('#total_adds', text: '1')
       page.should have_css('#total_deactivates', text: '13')
@@ -686,7 +694,8 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       page.should have_css('#count_updates', text: '0')
       page.should have_css('#count_adds', text: '0')
       page.should have_css('#count_deactivates', text: '0')
-      page.should have_css('#count_updated_subjects', text: '4')
+      # page.should have_css('#count_updated_subjects', text: '4')
+      within('#count_updated_subjects') { page.should have_content('4')}
       page.should have_css('#total_errors', text: '0')
       page.should have_css('#total_updates', text: '11')
       page.should have_css('#total_adds', text: '1')
@@ -737,6 +746,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       # should go to ending report (all updates are done)
 
       page.should have_content('Learning Outcomes Updated Matching Report')
+      within('#count_updated_subjects') { page.should have_content('1')}
       page.should have_css("#prior_subj", text: 'Math 2')
       page.should have_css('#count_errors', text: '0')
       page.should have_css('#count_updates', text: '0')

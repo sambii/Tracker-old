@@ -420,7 +420,7 @@ class SubjectOutcomesController < ApplicationController
       @total_deactivates = params['total_deactivates'].present? ? (Integer(params['total_deactivates']) rescue 0) : 0
       @count_updated_subjects = params['count_updated_subjects'].present? ? (Integer(params['count_updated_subjects']) rescue 0) : 0
 
-      Rails.logger.debug("*** @count_updated_subjects #{@count_updated_subjects.inspect}")
+      Rails.logger.debug("*** @count_updated_subjects from params: #{params['count_updated_subjects']} => #{@count_updated_subjects.inspect}")
 
       step = 5
       Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
@@ -491,7 +491,9 @@ class SubjectOutcomesController < ApplicationController
         lo_get_old_los_for_subj(@match_subject)
 
         if updates_done
+          Rails.logger.debug("TTTTT old @count_updated_subjects:  #{@count_updated_subjects}")
           @count_updated_subjects += 1
+          Rails.logger.debug("TTTTT updated @count_updated_subjects:  #{@count_updated_subjects}")
           go_to_next = true
         end
       elsif @action == "save_all"

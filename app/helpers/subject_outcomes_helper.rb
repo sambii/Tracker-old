@@ -821,7 +821,8 @@ module SubjectOutcomesHelper
       if auto_update
         Rails.logger.debug("*** lo_setup_subject - AUTO UPDATE - #{subj.inspect}")
         # update this subject now and be done with it
-        @count_updated_subjects += 1 if lo_update_subject(subj)
+        # @count_updated_subjects += 1 if lo_update_subject(subj)
+        lo_update_subject(subj)
       else
         Rails.logger.debug("*** lo_setup_subject - no autoupdate, then display it (if first) #{subj} -> #{@subject_to_show.inspect}")
         # if no autoupdate, then display it (if first)
