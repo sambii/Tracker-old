@@ -135,6 +135,7 @@ class SubjectOutcomesController < ApplicationController
       # create hash of new LO records from uploaded csv file
       recs_from_upload = lo_get_file_from_upload(params)
       @records = recs_from_upload[:records]
+
       # Rails.logger.debug("*** @records: #{@records.inspect}")
       @new_los_by_rec_clean = recs_from_upload[:new_los_by_rec]
       # Rails.logger.debug("*** @new_los_by_rec_clean: #{@new_los_by_rec_clean.inspect}")
@@ -214,7 +215,8 @@ class SubjectOutcomesController < ApplicationController
       @count_deactivates = 0
       @count_updated_subjects = 0
 
-      Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
+      Rails.logger.debug("*** starting @match_subject #{@match_subject.inspect}")
+
       # get starting subject to present to user
       if @match_subject.present?
         lo_setup_subject(@match_subject, false)
@@ -505,7 +507,7 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** params[:submit_action]: #{params[:submit_action]}")
 
       ##### get subject to present to user #####
-      Rails.logger.debug("*** @match_subject #{@match_subject.inspect}")
+      Rails.logger.debug("*** get subject to present to user - @match_subject #{@match_subject.inspect}")
       Rails.logger.debug("*** @subject_to_show #{@subject_to_show.inspect}")
       do_subject_matched = false
       @subjects.each_with_index do |subj, ix|

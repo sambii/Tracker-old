@@ -61,13 +61,14 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     end
     it { bulk_upload_all_same }
     it { bulk_upload_all_new_subject }
+    it { bulk_upload_all_mismatches }
     it { bulk_upload_art_same }
     it { bulk_upload_art_add_swap }
     it { bulk_upload_art_2_change }
     it { bulk_upload_art_2_add_delete }
+    it { bulk_upload_math_1_change }
     it { bulk_upload_capstone_1s1_delete_all }
     it { bulk_upload_wrong_file }
-    it { bulk_upload_all_mismatches }
   end
 
   describe "as student" do
@@ -170,8 +171,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
 
   # test for single subject bulk upload of Learning Outcomes into Model School
   def bulk_upload_art_add_swap
-    #
-    # first cancel add, to confirm no update occurs
+
+    # Test 1 (bulk_upload_los_rspec_updates.csv):
+    #  - 3 Changes (updates) (AT.1.02, AT.1.03, AT.1.04)
+    #  - 1 add (AT.1.05)
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -182,9 +185,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      # within('h3') do
-      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
-      # end
       within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
@@ -202,7 +202,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within('#total_deactivates') { page.should have_content('0')}
     end # within #page-content
 
-    # next deactivate lo 3 and 4, leaving duplicate deactivated records
+    # Test 2 (bulk_upload_los_rspec_art1_deacts.csv):
+    #  - 1 Change (updates) (AT.1.02 code to AT.1.03)
+    #  - 3 Deactivates (AT.1.03, AT.1.04, AT.1.05)
+    # note: AT.1.05 was created on Test 1
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -213,14 +216,10 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      # within('h3') do
-      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
-      # end
       within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
       find('#save_matches').click
-      # save_and_open_page
       page.should have_content('Learning Outcomes Updated Matching Report')
       page.should have_css("#prior_subj", text: 'Art 1')
       within('#count_errors') { page.should have_content('0')}
@@ -233,8 +232,9 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within('#total_deactivates') { page.should have_content('3')}
     end # within #page-content
 
-    #
-    # reinstate 3 and 4 (with first matching record IDs as active)
+    # Test 3 (bulk_upload_los_rspec_initial.csv):
+    #  - 2 Reactivates (updates) (AT.1.03, AT.1.04)
+    # note: AT.1.05 is left deactivated as it was not in the original LOs
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -245,9 +245,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      # within('h3') do
-      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
-      # end
       within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
@@ -267,6 +264,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     # update the add and swap 3 and 4
     # note: cannot reproduce the duplicate record error, because the record reactivated is the last matching one.
     # error occurs when active record is not the last one, so the inactive record is chosen, leaving two active producing duplicate error.
+
+    # Test 4 (bulk_upload_los_rspec_updates.csv):
+    #  - 3 Changes (updates) (AT.1.02, AT.1.03, AT.1.04)
+    #  - 1 Reactivate (updates) (AT.1.05)
+    # Note: this is the same as test 1, except AT.1.05 is reactivated instead of added
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -277,9 +279,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      # within('h3') do
-      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
-      # end
       within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
@@ -297,7 +296,11 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within('#total_deactivates') { page.should have_content('0')}
     end # within #page-content
 
-    # confirm nothing to change
+    # Test 5 (bulk_upload_los_rspec_updates.csv):
+    #  - 0 updates
+    #  - 0 reactivates
+    #  - 0 adds
+    # Note: confirm nothing to change
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
       assert_equal("/subject_outcomes/upload_lo_file", current_path)
@@ -308,9 +311,6 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
         select('Art 1', from: "subject_id")
       end
       find('#upload').click
-      # within('h3') do
-      #   page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
-      # end
       within('.block-title') do
         page.should have_content("Learning Outcomes Matching Process of Only #{@subj_art_1.name}")
       end
@@ -397,6 +397,54 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
     end # within #page-content
   end # def bulk_upload_art_matching
 
+  def bulk_upload_math_1_change
+    visit upload_lo_file_subject_outcomes_path
+    within("#page-content") do
+      assert_equal("/subject_outcomes/upload_lo_file", current_path)
+      page.should have_content('Upload Learning Outcomes from Curriculum')
+      page.should have_content('Upload Curriculum / LOs File')
+      within("#ask-filename") do
+        page.attach_file('file', Rails.root.join('spec/fixtures/files/bulk_upload_los_rspec_updates.csv'))
+        page.should_not have_content("Error: Missing Curriculum (LOs) Upload File.")
+        select('Math 1', from: "subject_id")
+      end
+      find('#upload').click
+      page.should have_content('Match Old LOs to New LOs')
+      # 'Save Matches' button should be showing
+      page.should have_button("Reconcile Subject")
+      page.should_not have_css("#save_all")
+
+      within('.block-title h3') do
+        page.should have_content("Learning Outcomes Matching Process of Only #{@subj_math_1.name}")
+      end
+      find("#selections_0 option:contains('A-MA.1.01')").select_option
+      find("#selections_9 option:contains('K-MA.1.11')").select_option
+
+      find('#save_matches').click
+
+      #
+      # Confirm math 1 counts are correct
+      # 8 updates:
+      #  - 1 reactivate of MA.1.12
+      #  - 2 swap of codes for MA.1.04 and MA.1.08
+      #  - 1 code change for MA.1.03
+      #  - 2 semester changes for MA.1.05, and MA.1.07
+      #  - 2 matched description changes for MA.1.01, and MA.1.11
+      # 1 deactivate:
+      #  - 1 deactivate of MA.1.02
+      page.should have_content('Learning Outcomes Updated Matching Report')
+      page.should have_css("#prior_subj", text: 'Math 1')
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updates') { page.should have_content('8')}
+      within('#count_adds') { page.should have_content('0')}
+      within('#count_deactivates') { page.should have_content('1')}
+      within('#total_errors') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('8')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('1')}
+    end # within #page-content
+  end # def bulk_upload_art_matching
+
   def bulk_upload_capstone_1s1_delete_all
     visit upload_lo_file_subject_outcomes_path
     within("#page-content") do
@@ -453,6 +501,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       end
     end
   end
+
   # test for all subjects bulk upload of Learning Outcomes into Model School
   # some mismatches (deactivates, reactivates or changes) - requires subject by subject matching
   def bulk_upload_all_mismatches
@@ -478,6 +527,7 @@ describe "Subject Outcomes Bulk Upload LOs", js:true do
       within('h3.ui-error') do
         page.should have_content('Note: When save is done, all unmatched new records will be added, and all unmatched old records will be deactivated.')
       end
+
       within('.block-title h3') do
         page.should have_content("Learning Outcomes Matching Process of #{@subj_art_2.name} of All Subjects")
       end

@@ -562,6 +562,7 @@ module SubjectOutcomesHelper
     end
   end
 
+  # updates @all_old_los and @all_new_los for subject subj
   def lo_matches_for_subject(subj)
     step = 5
     Rails.logger.debug("*** Stage: #{@stage}, Subject #{subj.id}-#{subj.name} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
