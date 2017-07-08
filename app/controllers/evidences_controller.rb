@@ -172,7 +172,8 @@ class EvidencesController < ApplicationController
     end
     # if no errors, notify all students
     Rails.logger.debug("+++ errors: #{errors} errors: #{errors}")
-    if errors == 0 && params[:send_email] == 'true'
+    if errors == 0 && params[:send_email] == 'true' && params[:evidence][:reassessment] == 'false'
+      # only send email notifications to
       @section.active_enrollments.each do |e|
         # send new evidence email to student
         Rails.logger.debug("+++ main section send new evidence email to student: #{e.student.full_name}")
