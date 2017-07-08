@@ -89,7 +89,7 @@ class SubjectOutcomesController < ApplicationController
       @subjects = Subject.where(school_id: @school.id).includes(:discipline).order('disciplines.name, subjects.name')
       # if only processing one subject
       # - creates/updates @match_subject, @subject_id
-      @match_subject = lo_get_match_subject(params)
+      @match_subject = @single_subject = lo_get_match_subject(params)
 
       # ensure that model_lo_id is preset
       so_count = SubjectOutcome.where('model_lo_id IS NOT NULL').count
@@ -149,33 +149,32 @@ class SubjectOutcomesController < ApplicationController
       Rails.logger.debug("*** upload_lo_file Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
       # Check for duplicate LO codes in uploaded file
       @error_list = Hash.new
-      # check for file duplicate LO Codes
-      dup_lo_code_checked = validate_dup_lo_codes(@records)
-      @error_list = dup_lo_code_checked[:error_list]
-      Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
-      @records = dup_lo_code_checked[:records]
-      Rails.logger.debug("*** records count: #{@records.count}")
-      @errors[:base] = 'Errors exist!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
+
+      # # removed these double checks (these are done by subject later) 7/7/2017 DT
+      # # check for file duplicate LO Codes
+      # dup_lo_code_checked = validate_dup_lo_codes(@records)
+      # @error_list = dup_lo_code_checked[:error_list]
+      # Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
+      # @records = dup_lo_code_checked[:records]
+      # Rails.logger.debug("*** records count: #{@records.count}")
+
+      # # # this gives errors for all subjects.  Need to only have this error for the specific subject
+      # # @errors[:base] = 'Errors exist!!!:' if dup_lo_code_checked[:abort] || @error_list.length > 0
+
+      # # removed these double checks (these are done by subject later) 7/7/2017 DT
+      # step = 3
+      # Rails.logger.debug("*** upload_lo_file Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
+      # # Check for duplicate LO descriptions in uploaded file
+      # @error_list2 = Hash.new
+      # # check for file duplicate LO Descriptions
+      # dup_lo_descs_checked = validate_dup_lo_descs(@records)
+      # @error_list2 = dup_lo_descs_checked[:error_list]
+      # Rails.logger.debug("*** @error_list2: #{@error_list2.inspect}")
+      # @records = dup_lo_descs_checked[:records]
 
 
-      step = 3
-      Rails.logger.debug("*** upload_lo_file Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
-      # Check for duplicate LO descriptions in uploaded file
-      @error_list2 = Hash.new
-      # check for file duplicate LO Descriptions
-      dup_lo_descs_checked = validate_dup_lo_descs(@records)
-      @error_list2 = dup_lo_descs_checked[:error_list]
-      Rails.logger.debug("*** @error_list2: #{@error_list2.inspect}")
-      @records = dup_lo_descs_checked[:records]
       @records_clean = @records.clone
       Rails.logger.debug("*** records count: #{@records.count}")
-      # @errors[:base] = 'Errors exist - see below!!!:' if dup_lo_descs_checked[:abort] || @error_list2.length > 0
-      # Rails.logger.debug("*** rec 0: #{@records[0]}")
-      # Rails.logger.debug("*** rec 1: #{@records[1]}")
-      # Rails.logger.debug("*** rec 2: #{@records[2]}")
-      # Rails.logger.debug("*** rec 3: #{@records[3]}")
-      # Rails.logger.debug("*** rec 4: #{@records[4]}")
-
       Rails.logger.debug("*** @errors: #{@errors.inspect}")
 
       @stage = 3
@@ -344,7 +343,7 @@ class SubjectOutcomesController < ApplicationController
       @subjects = Subject.where(school_id: @school.id).includes(:discipline).order('disciplines.name, subjects.name')
       # if only processing one subject
       # - creates/updates @match_subject, @subject_id, @errors[:subject]
-      @match_subject = lo_get_match_subject(params)
+      @match_subject = @single_subject = lo_get_match_subject(params)
       @process_by_subject = lo_get_processed_subject(params)
 
       @stage = 2
@@ -523,7 +522,9 @@ class SubjectOutcomesController < ApplicationController
 
         Rails.logger.debug("*** subject looping #{ix} - #{subj.name}")
 
-        if do_subject_matched
+        if @stage == 10
+          break
+        elsif do_subject_matched
           lo_setup_subject(subj, true) # didn't do all auto updates in lo_upload
           Rails.logger.debug("*** matched next subject #{ix} - #{subj.inspect}")
         end
@@ -545,7 +546,7 @@ class SubjectOutcomesController < ApplicationController
 
       ##### todo get next subject to present to user #####
 
-      if @present_by_subject.present?
+      if @stage != 10 && @present_by_subject.present?
         step = '3a'
         Rails.logger.debug("*** lo_matching Stage: #{@stage}, Step #{step} Time @ #{Time.now.strftime("%d/%m/%Y %H:%M:%S")}")
         # we are processing one subject, so we are not looping through subjects

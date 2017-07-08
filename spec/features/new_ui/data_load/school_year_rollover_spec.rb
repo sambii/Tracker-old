@@ -484,11 +484,11 @@ describe "Rollover School Year", js:true do
 
       find("a[href='/subjects']").click
       # confirm Model school has 7 subjects:
-      #  - 1 - Discipline 1 - Art 1 
-      #  - 1 - Discipline 3 - Capstone 1s1 
-      #  - 1 - Discipline 4 - Capstone 3s1 
-      #  - 1 - Discipline 6 - Math 2 
-      #  - 3 - Discipline 8 - Art 2, Math 1, New Subject 
+      #  - 1 - Discipline 1 - Art 1
+      #  - 1 - Discipline 3 - Capstone 1s1
+      #  - 1 - Discipline 4 - Capstone 3s1
+      #  - 1 - Discipline 6 - Math 2
+      #  - 3 - Discipline 8 - Art 2, Math 1, New Subject
       #  - 7 - total
       page.all("tbody.tbody-subject").count.should == 7
 
@@ -498,7 +498,7 @@ describe "Rollover School Year", js:true do
         find("a[href='/subjects/#{@subj_math_1.id}/edit_subject_outcomes']").click
       end
       page.should have_content("View Learning Outcomes for:")
-      
+
       within('table#current_los') do
         page.should have_content("MA.1.01 - Will be changed significantly.")
         page.should have_content("MA 1.03 - Will have the MA.1.03 code without the period. Understand similarity and use the concept for scaling to solve problems.")
@@ -518,7 +518,7 @@ describe "Rollover School Year", js:true do
       find("a[href='/schools/#{@school2.id}']").click
       find("a[href='/subjects']").click
       # confirm School 2 has 5 subjects:
-      #  - 1 - Discipline 4 - Capstone 3s1 
+      #  - 1 - Discipline 4 - Capstone 3s1
       #  - 4 - Discipline 8 - Art 2, Math 1, Subject 2_1, Subject 2_2
       #  - 5 - total
       page.all("tbody.tbody-subject").count.should == 5
@@ -566,10 +566,10 @@ describe "Rollover School Year", js:true do
       page.should have_content("#{@subject2_1.discipline.name} : New Subject")
       # confirm all subjects from model school plus original school 2 subjects are listed
       # confirm School 2 has 5 subjects:
-      #  - 1 - Discipline 1 - Art 1 
-      #  - 1 - Discipline 3 - Capstone 1s1 
-      #  - 1 - Discipline 4 - Capstone 3s1 
-      #  - 1 - Discipline 6 - Math 2 
+      #  - 1 - Discipline 1 - Art 1
+      #  - 1 - Discipline 3 - Capstone 1s1
+      #  - 1 - Discipline 4 - Capstone 3s1
+      #  - 1 - Discipline 6 - Math 2
       #  - 5 - Discipline 8 - Art 2, Math 1, New Subject, Subject 2_1, Subject 2_2
       #  - 9 - total
       page.all("tbody.tbody-subject").count.should == 9
@@ -748,14 +748,17 @@ describe "Rollover School Year", js:true do
       select('W-MA.2.04', from: "selections_22")
       select('X-MA.2.05', from: "selections_23")
       find('#save_matches').click
-      #
-      # Confirm math 2 counts are correct
-      # 5 updates:
-      #  - all 5 learning outcomes have matched description changes
-      page.should have_content("Math 2 counts: Updates - 5 , Adds - 0 , Deactivates - 0 , Errors - 0")
-      # Confirm Report totals are correct (see comments above for count details)
-      page.should have_content("Grand total counts: Subjects Updated - 7 , Updates - 13 , Adds - 0 , Deactivates - 17 , Errors - 0")
-
+      save_and_open_page
+      within('#prior_subj') { page.should have_content('Math 2')}
+      within('#count_updates') { page.should have_content('5')}
+      within('#count_adds') { page.should have_content('0')}
+      within('#count_deactivates') { page.should have_content('0')}
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updated_subjects') { page.should have_content('4')}
+      within('#total_updates') { page.should have_content('13')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('17')}
+      within('#total_errors') { page.should have_content('0')}
     end # within #page-content
     # Run again, and should have all LO counts at zero
     visit upload_lo_file_subject_outcomes_path
@@ -768,8 +771,18 @@ describe "Rollover School Year", js:true do
       end
       find('#upload').click
 
-      # Confirm Report is properly generated
-      page.should have_content("Grand total counts: Subjects Updated - 7 , Updates - 0 , Adds - 0 , Deactivates - 0 , Errors - 0")
+      #
+      # Confirm nothing updated after second run
+      within('#prior_subj') { page.should have_content('Automatically Updated Subjects')}
+      within('#count_updates') { page.should have_content('0')}
+      within('#count_adds') { page.should have_content('0')}
+      within('#count_deactivates') { page.should have_content('0')}
+      within('#count_errors') { page.should have_content('0')}
+      within('#count_updated_subjects') { page.should have_content('0')}
+      within('#total_updates') { page.should have_content('0')}
+      within('#total_adds') { page.should have_content('0')}
+      within('#total_deactivates') { page.should have_content('0')}
+      within('#total_errors') { page.should have_content('0')}
     end # within #page-content
 
   end # def bulk_upload_all_los
