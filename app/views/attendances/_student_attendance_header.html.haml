@@ -1,6 +1,6 @@
 %tr.header-row.height-30{data: {student_id: student_id}}
   %td
-    %a{href: "#{user_path(student_id)}"}
+    %a{href: "#{student_path(student_id)}"}
       .user-full-name=name
   %td=''
   - @attendance_types.each do |at|

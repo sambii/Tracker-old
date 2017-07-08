@@ -272,8 +272,26 @@ describe "Generate Attendance Report", js:true do
         end
         # should have inactive types dates listed at bottom of report
         page.should_not have_content('02 Sep 2015')
+
+        # confirm link to student goes to student
+        within("table tbody.tbody-header tr[data-student-id='#{@student.id}']") do
+          find("a[href='/students/#{@student.id}']").click
+        end
+      end # within('.report-body')
+    end # within("#page-content")
+
+    assert_equal(student_path(@student.id), current_path)
+    within("#main-container #page-content .header-block") do
+      within("h1.h3") do
+        page.should have_content('Dashboard')
+      end
+      within("h2.h1") do
+        page.should have_content(@student.last_name)
+        page.should have_content(@student.first_name)
       end
     end
+
+
 
     ###############################################################################
     # generate a report with a deactivated attendance type showing 'Other' column

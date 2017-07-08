@@ -2,7 +2,7 @@
   %td
     %strong.lmargin5
   %td
-    %a{href: "#{user_path(student_id)}"}
+    %a{href: "#{student_path(student_id)}"}
       ='Total:'
   - @attendance_types.each do |at|
     %td.total-cell.centered{data: {type_id: at.id}}=by_type[at.id]
