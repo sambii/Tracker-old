@@ -1,3 +1,5 @@
+PARLO Tracker version v2.01.055 July 8, 2017
+- Bug fixes from training resolved. LO upload process fixes and tests. New Year Rollover fixes and tests.
 PARLO Tracker version v2.01.054 Mar 2, 2017
 - bug fix for student clearing emails
 PARLO Tracker version v2.01.053 Feb 21, 2017
