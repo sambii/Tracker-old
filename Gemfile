@@ -66,7 +66,6 @@ group :development, :test do
   gem 'capybara', '1.1.2'
   gem 'factory_girl_rails', require: false
   gem 'guard-rspec'
-  gem 'debugger', '~> 1.6.1'
   gem 'simplecov'
   gem 'selenium-webdriver'
   gem "ruby-prof", "~> 0.13.0"
