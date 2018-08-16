@@ -27,7 +27,7 @@ gem 'rack-ssl', require: 'rack/ssl'
 gem 'mysql2', group: :production
 gem 'sqlite3', group: [:development, :test]
 
-gem 'devise'          # Authentication
+# gem 'devise'          # Authentication
 gem 'cancan'          # Authorization : See /app/models/ability.rb
 
 gem 'acts_as_list'    # Drag and drop reordering, 'position' column.
@@ -35,7 +35,6 @@ gem 'acts_as_list'    # Drag and drop reordering, 'position' column.
 gem 'paperclip'       # Upload / retrieve files via HTML.
 gem 'prawnto'
 gem 'prawn'           # Serve dynamically generated PDF's
-gem 'prawn-layout'
 gem 'axlsx_rails'
 gem 'delayed_job_active_record', "~> 4.0.0"
 gem "daemons", "~> 1.1.9" # needed to run delayed_job in production as daemon process.
@@ -61,6 +60,12 @@ gem 'letter_opener', group: :development # Opens emails in new window in develop
 
 gem 'fastthread', '1.0.7', git: 'git://github.com/zoltankiss/fastthread.git'
 
+# fixes for being old:
+gem 'bullet', '4.6.0', group: :development
+gem 'nokogiri', '1.6.3.1'
+gem 'rack-cache', '1.6.1'
+gem 'devise', '3.0.0'
+
 group :development, :test do
   gem 'rspec-rails'
   gem 'capybara', '1.1.2'
@@ -72,7 +77,7 @@ group :development, :test do
 end
 
 group :development do
-  gem 'bullet'
+  #gem 'bullet'
   gem 'capistrano', '~> 3.0'
   gem 'capistrano-rails', '~> 1.1'
   gem 'capistrano-rvm'
