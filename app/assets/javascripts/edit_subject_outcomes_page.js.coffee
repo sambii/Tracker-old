@@ -59,9 +59,8 @@ $ ->
     # ADD EVENT BINDINGS
 
     $('#add_new_lo').on 'click', (event, state) ->
-      console.log('called #addNewLo')
       addNewLo(this, event)
-      console.log('called #addNewLo2')
+
 
     $(".btn-primary[type='submit']").on 'click', (event, state) ->
       prepForSubmit(this, event)

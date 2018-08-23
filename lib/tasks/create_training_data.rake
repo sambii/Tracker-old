@@ -37,12 +37,7 @@ namespace :training_data do
 		  ends_at: DateTime.parse("2013-06-20 12:30 PM")
 		)
 
-		puts "school_id #{school.id}"
-		puts "school_year #{school_year.id}"
 		school.update_attributes(school_year_id:school_year.id)
-		puts "school year id #{school.school_year_id}"
-		puts "school_id #{school.id}"
-		puts "school_acronym #{school_acronym}"
 
 		school_admin = SchoolAdministrator.create!(
 		  username: "#{school_acronym}_school_admin",
@@ -54,7 +49,6 @@ namespace :training_data do
 		  password_confirmation: "password"
 		)
 
-		puts "school admin created"
 
 		Counselor.create!(
 		    username: "#{school_acronym}_counselor",
