@@ -205,6 +205,8 @@ class Ability
         can [:edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
             Subject,
             { subject_manager_id: user.id }
+          # The ability to Edit_subject_outcomes, etc is also determined by User table. See below.
+
 
         # Teacher
         can [:read],
@@ -220,6 +222,9 @@ class Ability
         can [:account_activity_report, :staff_listing, :dashboard],
           User,
           { school_id: user.school_id }
+        can [:edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
+          User,
+          { permissions: 'subject_admin' }
 
         # removed - see simple replacements below - may possibly be relevant if accessible_by is used
         # can [:create, :update, :dashboard, :security, :set_temporary_password], ["system_administrator = 1 or researcher = 1 or school_administrator = 1 or counselor = 1 or teacher = 1"], User do |u|

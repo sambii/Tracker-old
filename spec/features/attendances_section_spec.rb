@@ -33,7 +33,7 @@ describe "Shared Examples" do
         select(@attendance_type1.description, from: "attendance_#{@enrollments[0].student_id.to_s}_attendance_type_id")
         select(@excuse1.description, from: "attendance_#{@enrollments[1].student_id.to_s}_excuse_id")
         fill_in("attendance_#{@enrollments[2].student_id.to_s}_comment", with: "suprise, suprise")
-        
+
         Attendance.scoped.count.should == 0
         find('#save_attendance').click()
         #
@@ -155,7 +155,7 @@ describe "Types of Users tests" do
     it_behaves_like "SectionAttendance"
     it "should let teachers only see attendance for sections they are assigned to" do
       visit section_attendance_attendances_path+"?section_id=#{@section.id}"
-    
+
       find('h3').text.should =~ /#{@subject.name}/
       find('h3').text.should =~ /#{@section.line_number}/
     end

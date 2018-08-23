@@ -3,7 +3,7 @@
 #
 class User < ActiveRecord::Base
 
-  attr_accessible :duty_par, :permission_par, :xid, :first_name, :last_name, :email, :street_address, :city, :state, :zip_code, :active, :grade_level, :gender, :race, :special_ed, :child_id, :password, :password_confirmation, :subscription_status
+  attr_accessible :duty_par, :permission_par, :xid, :first_name, :last_name, :email, :street_address, :city, :state, :zip_code, :active, :grade_level, :gender, :race, :special_ed, :child_id, :password, :password_confirmation, :subscription_status, :school_id, :username
 
   # Include default devise modules. Others available are:
   # :token_authenticatable, :encryptable, :confirmable, :lockable and :omniauthable
@@ -256,7 +256,7 @@ class User < ActiveRecord::Base
       # username for System Users (no school assigned)
       # email address is required
       base_username = (self.email.present? ? (self.email.downcase.split('@', 2)[0]) : '').downcase
-    end      
+    end
     self.username  = base_username
     i = 2
     # until unique_username?

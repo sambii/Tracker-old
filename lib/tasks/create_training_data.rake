@@ -8,11 +8,11 @@ namespace :training_data do
 	# Each section should have at least 10 learning outcomes
 	# 5 of learning outcomes should already be added to the section
     # 	Each of the 5 LOs should have 4 pieces of evidence
-    #   	Of the five,  Two of the LOs and the supporting evidence should be rated 
-    #       	Of the five,  the remaining Three of the LOs should NOT be rated 
+    #   	Of the five,  Two of the LOs and the supporting evidence should be rated
+    #       	Of the five,  the remaining Three of the LOs should NOT be rated
     #           	Of the three not rated LOs, Two of the LOs supporting evidence should be rated
     #               	Of the three not rated LOs, the one remaining LOs supporting evidence should NOT be rated
- 
+
 
     #PRE-REQ: An Evidence Type named "Homework" must exist in the system else this script will fail
 	task create: :environment do
@@ -29,15 +29,20 @@ namespace :training_data do
 		  zip_code: "19428",
 		  marking_periods: 4,
 		)
-		 
+
 		school_year = SchoolYear.create!(
 		  name: "#{school_acronym} 2012->2013",
 		  school_id: school.id,
 		  starts_at: DateTime.parse("2012-09-01 12:30 PM"),
 		  ends_at: DateTime.parse("2013-06-20 12:30 PM")
-		) 
+		)
 
+		puts "school_id #{school.id}"
+		puts "school_year #{school_year.id}"
 		school.update_attributes(school_year_id:school_year.id)
+		puts "school year id #{school.school_year_id}"
+		puts "school_id #{school.id}"
+		puts "school_acronym #{school_acronym}"
 
 		school_admin = SchoolAdministrator.create!(
 		  username: "#{school_acronym}_school_admin",
@@ -48,6 +53,8 @@ namespace :training_data do
 		  password: "password",
 		  password_confirmation: "password"
 		)
+
+		puts "school admin created"
 
 		Counselor.create!(
 		    username: "#{school_acronym}_counselor",
@@ -75,9 +82,9 @@ namespace :training_data do
 
 		puts "create a discipline"
 		discipline = Discipline.create!(
-		  name: "#{school_acronym} Discipline" 
+		  name: "#{school_acronym} Discipline"
 		)
-		
+
 		puts "create 5 subjects"
 		subjects=[]
 		5.times do |n|
@@ -88,7 +95,7 @@ namespace :training_data do
 			  subject_manager_id: school_admin.id
 			)
 		end
-		
+
 		puts "create two sections per teacher and assign them to it"
 		sections = []
 
@@ -153,7 +160,7 @@ namespace :training_data do
 		stud_ix = 0
 
 		puts "assign the next 15 new students to each section"
-		# sections.each do |section| 
+		# sections.each do |section|
 	 #    15.times do |n|
 
 		# 	  # enroll the student into the class
@@ -179,7 +186,7 @@ namespace :training_data do
 			end
 		end
 
-		
+
 		puts "create 10 subject outcomes per subject"
 		subject_outcomes = []
 		subjects.each do |subject|
@@ -191,9 +198,9 @@ namespace :training_data do
 			   subject_outcomes << s
 			end
 		end
-		
+
 		section_outcomes = []
-		
+
 		puts "assign first 5 subject outcomes for a subject to each section"
 		rander = Random.new(Random.new_seed) # for LO marking period assignment bitmask
 		sections.each do |section|
@@ -208,16 +215,16 @@ namespace :training_data do
 					    active: true,
 					    minimized: false
 						)
-						n = n + 1 
+						n = n + 1
 					end
 				end
 			end
 		end
-		
+
 		puts "make sure all Evidence Types exist"
 		evidence_types = ["Homework", "In-Class", "Quiz", "Test"]
 		evidence_type_ids = []
-		
+
 		# load up evidence_type_ids with existing or new IDs of all evidence types
 		evidence_types.each_with_index do |ev, i|
 			db_evidence_types = EvidenceType.where(name: ev)
@@ -267,7 +274,7 @@ namespace :training_data do
 			 	      student_id: student.id,
 			 	      section_outcome_id: section_outcome.id
 			 	    )
-				
+
 				    section_outcome.evidence_section_outcomes.each do |eso|
 				    	e_rating = EvidenceSectionOutcomeRating.create!(
 	 	      				rating: e_ratings[Random.rand(4)],
@@ -275,7 +282,7 @@ namespace :training_data do
 	 	      				evidence_section_outcome_id: eso.id,
 	 	      				comment: ""
 	 	    			)
-				    end	
+				    end
 			 	end
 			end
 
@@ -288,10 +295,10 @@ namespace :training_data do
 	 	      				evidence_section_outcome_id: eso.id,
 	 	      				comment: ""
 	 	    			)
-				    end	
+				    end
 				end
 			end
-			
+
 			# print section ID for each section as it is completed
 			print "#{section.id}, "
 			$stdout.flush

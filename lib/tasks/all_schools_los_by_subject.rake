@@ -93,7 +93,7 @@ namespace :all_schools_los_by_subject do
     end
 
   end # task :delete
-
+  #Copy
   desc "Copy all Learning Outcomes from Model School to all other Schools for a Subject."
   task copy: :environment do
 

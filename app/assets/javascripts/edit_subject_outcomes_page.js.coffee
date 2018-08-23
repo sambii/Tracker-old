@@ -23,6 +23,7 @@ $ ->
     addNewLo = (that, ev) ->
       # $('#evid-add-hyperlinks li').clone().appendTo('#evid-hyperlinks-ul')
       # clone of new hyperlink element template.
+
       attach_elem = $('#blank_lo li').clone()
       # get the next available sequence number from last added item
       last_one_added = $('#current_los li:last-child')
@@ -58,7 +59,9 @@ $ ->
     # ADD EVENT BINDINGS
 
     $('#add_new_lo').on 'click', (event, state) ->
+      console.log('called #addNewLo')
       addNewLo(this, event)
+      console.log('called #addNewLo2')
 
     $(".btn-primary[type='submit']").on 'click', (event, state) ->
       prepForSubmit(this, event)

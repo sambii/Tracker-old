@@ -17,7 +17,7 @@ class SectionsController < ApplicationController
     params[:print_unrated] = params[:print_unrated].to_i
 
     show_prep_h
-    
+
     params[:marking_periods] ||= @marking_periods.to_a #for when we want the periods that are also changable by user selection in the UI
     params[:marking_periods].map!(&:to_i) #the user may change this to a string value through input boxes
 
@@ -678,7 +678,7 @@ class SectionsController < ApplicationController
                     subjos.each do |subjo|
                       # ensure subject outcome marking period is not nil - to avoid invalid marking period error
                       if subjo.marking_period.blank?
-                        subjo.marking_period = (2 ** subjo.subject.school.marking_periods) - 1 
+                        subjo.marking_period = (2 ** subjo.subject.school.marking_periods) - 1
                         raise("Errors updating subject outcome: #{subjo.errors.full_messages}") if !subjo.save
                       end
                       secto = SectionOutcome.new

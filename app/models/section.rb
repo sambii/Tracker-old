@@ -4,7 +4,7 @@
 class Section < ActiveRecord::Base
   # Access Control
   # using_access_control
-
+  attr_accessible  :school_year_id
   # Relationships
   has_many                        :teaching_assignments,
                                   dependent: :destroy

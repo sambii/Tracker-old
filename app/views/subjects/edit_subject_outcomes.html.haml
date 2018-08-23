@@ -1,6 +1,7 @@
-
+/ on the page updated = render 'edit_subject_outcomes' from = render 'view_subject_outcomes'
+/ content_for(:page_class, 'edit_subject_outcomes') from content_for(:page_class, 'View_subject_outcomes')
 - content_for(:title, 'View Learning Outcomes')
 - content_for(:page_name, 'View Learning Outcomes')
-- content_for(:page_class, 'view_subject_outcomes')
+- content_for(:page_class, 'edit_subject_outcomes')
 
-= render 'view_subject_outcomes'
+= render 'edit_subject_outcomes'

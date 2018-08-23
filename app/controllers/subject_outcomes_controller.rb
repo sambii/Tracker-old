@@ -153,7 +153,7 @@ class SubjectOutcomesController < ApplicationController
       # # removed these double checks (these are done by subject later) 7/7/2017 DT
       # # check for file duplicate LO Codes
       # dup_lo_code_checked = validate_dup_lo_codes(@records)
-      # @error_list = dup_lo_code_checked[:error_list]
+      # @error_list = dup_lo_code_checked[:error_list]e
       # Rails.logger.debug("*** @error_list: #{@error_list.inspect}")
       # @records = dup_lo_code_checked[:records]
       # Rails.logger.debug("*** records count: #{@records.count}")

@@ -73,6 +73,7 @@
                     / %a.pull-left.lmargin5{href: "javascript:void(0)"}
                     %strong.pull-left.lmargin5="#{start_letter}"
             %tbody.tbody-body.alt-rows
+              / s = staff line 77
               - staff.each do |s|
                 - deact_class = s.active ? 'active' : 'deactivated'
                 - if s.teacher? && s.active?
@@ -102,15 +103,17 @@
                     %a{href: "/users/#{s.id}", title: 'Staff Dashboard'}
                       %i.fa.fa-lg.fa-dashboard
                   %td
-                    - if s.role_symbols.include?(:teacher) && can?(:sections_list, s)
+                    - Rails.logger.debug "***** sections_list #{can?(:sections_list, s)}"
+                    - if current_user.teacher || current_user.has_permission?('manage_subject_admin')
                       %a{href: "/users/#{s.id}/sections_list", title: 'Staff Sections List'}
                         %i.fa.fa-lg.fa-check
                   %td.text-center
-                    - if s.role_symbols.include?(:teacher) && can?(:show, s)
+                    - if current_user.teacher || current_user.has_permission?('manage_subject_admin')
                       %a{data: {target: "#modal_popup", toggle: 'modal', url: user_path(s.id, format: :js)}, title: 'View Staff User Information'}
                         %i.fa.fa-lg.fa-ellipsis-h
+                        / s = staff line 77
                   %td.text-center
-                    - if can?(:edit, s)
+                    - if current_user.teacher || current_user.has_permission?('manage_subject_admin')
                       %a{data: {target: "#modal_popup", toggle: 'modal', url: edit_user_path(s.id, format: :js)}, title: 'Edit Staff User Information'}
                         %i.fa.fa-lg.fa-edit
                   %td.text-center
