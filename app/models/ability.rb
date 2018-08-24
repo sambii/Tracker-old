@@ -209,22 +209,18 @@ class Ability
 
 
         # Teacher
-        can [:read],
-            Teacher,
+        can [:read],Teacher, { id: user.id }  #maybe not needed
+        #can [:edit, :sections_list], Teacher, { user.has_permission?('manage_subject_admin')}
+
+        # User
+        can [:read, :change_password, :edit, :update, :profile, :sections_list, :account_activity_report, :staff_listing, :dashboard],
+          User,
             { id: user.id }
 
         # User
-        can [:read, :change_password, :edit, :update, :profile, :sections_list],
-            User,
-            { id: user.id }
-
-        # User
-        can [:account_activity_report, :staff_listing, :dashboard],
-          User,
-          { school_id: user.school_id }
-        can [:edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
-          User,
-          { permissions: 'subject_admin' }
+        # Not doing anything
+        # can [:account_activity_report, :staff_listing, :dashboard], User, { school_id: user.school_id }
+        # can [:edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes], User, { permissions: 'subject_admin' }
 
         # removed - see simple replacements below - may possibly be relevant if accessible_by is used
         # can [:create, :update, :dashboard, :security, :set_temporary_password], ["system_administrator = 1 or researcher = 1 or school_administrator = 1 or counselor = 1 or teacher = 1"], User do |u|
@@ -234,6 +230,7 @@ class Ability
         #   end
         #   u.school_id == user.school_id and !reject
         # end
+
         can [:create, :update, :dashboard, :security, :set_temporary_password, :sections_list], User, { student: true}
         can [:create, :update, :dashboard, :security, :set_temporary_password], User, { parent: true}
 
@@ -390,12 +387,20 @@ class Ability
       if user.has_permission?('subject_admin')
         if user.school_id.present? && user.school_id > 0
           can [:section_outcomes],
-            Section,
-            { subject: { school_id: user.school_id } }
+            Section, { subject: { school_id: user.school_id } }
           can [:read, :create, :update, :subject_admin, :edit_subject_outcomes, :update_subject_outcomes, :view_subject_outcomes],
-            Subject,
-            { school_id: user.school_id }
+            Subject, { school_id: user.school_id }
         end
+
+      end
+
+      if user.has_permission?('manage_subject_admin')
+        if user.school_id.present? && user.school_id > 0
+          can [:edit, :sections_list],
+            User,
+              { teacher: {school_id: user.school_id} }
+        end
+
       end
 
 
